@@ -1,0 +1,17 @@
+StructureResourceName = Metals
+KeepResources = SolidFuel, Ablator, EnrichedUranium, Plutonium-238, Uraninite, UraniumNitride, UF4, ThF4, Actinides
+
+EnergyForMetalwork = 10
+
+Cost2ComplexityFactor = 1E-04
+
+DistanceWeight   = 2
+ComplexityWeight = 11
+MetalworkWeight  = 10
+
+VesselKitDensity = 0.5
+VesselKitMinSize = 0.5
+
+DeployMaxSpeed   = 0.5
+DeployMaxAV      = 5E-06
+DeploymentSpeed  = 50
