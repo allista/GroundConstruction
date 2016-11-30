@@ -59,8 +59,9 @@ namespace GroundConstruction
 		[KSPField(guiName = "Bulding", guiActive = true)]
 		public string PartStatus = "Nothing";
 
-		VesselKit kit;
-		public float Completness { get { return kit == null? 0 : kit.Completness; } }
+		[KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
+		public float Completness { get { return kit.Valid? kit.Completness : 0; } }
+		public bool Valid { get { return part != null && vessel != null && kit.Valid; } }
 
 		#region Anchor
 		FixedJoint anchorJoint;
@@ -97,7 +98,7 @@ namespace GroundConstruction
 
 		void update_part_info()
 		{
-			if(kit != null)
+			if(kit.Valid)
 			{
 				KitName = kit.Name;
 				KitMass = kit.Mass;
@@ -185,8 +186,8 @@ namespace GroundConstruction
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
-			Events["Deploy"].active = kit != null && !Deployed && !Deploying;
-			Events["Launch"].active = kit != null && Deployed && LaunchAllowed && kit.Completness >= 1;
+			Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
+			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completness >= 1;
 			model = part.transform.Find("model");
 			setup_transform(SpawnTransformVAB, out spawn_transform_VAB);
 			setup_transform(SpawnTransformSPH, out spawn_transform_SPH);
@@ -198,14 +199,6 @@ namespace GroundConstruction
 		void OnPartUnpack() { if(Deployed) attach_anchor(); }
 		void OnDestroy() { detach_anchor(); }
 
-		public override void OnSave(ConfigNode node)
-		{
-			base.OnSave(node);
-			if(kit != null)
-				kit.SaveInto(node);
-//			this.Log("OnSave: node: {}\n\nkit: {}", node, kit);//debug
-		}
-
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
@@ -213,11 +206,7 @@ namespace GroundConstruction
 			model = part.transform.Find("model");
 			OrigSize = metric.size;
 			OrigScale = model.localScale;
-			kit = null;
-			var vessel_node = node.GetNode(VesselKit.NODE_NAME);
-			if(vessel_node != null) 
-				kit = ConfigNodeObject.FromConfig<VesselKit>(vessel_node);
-			if(kit != null)
+			if(kit.Valid)
 			{
 				update_model(true);
 				update_part_info();
@@ -227,8 +216,7 @@ namespace GroundConstruction
 
 		void Update()
 		{
-			if(HighLogic.LoadedSceneIsEditor &&
-			   kit != null &&
+			if(HighLogic.LoadedSceneIsEditor && kit.Valid &&
 			   model.localScale == OrigScale)
 				update_model(true);
 			if(Deployed)
@@ -317,7 +305,7 @@ namespace GroundConstruction
 		#region Deployment
 		bool can_deploy()
 		{
-			if(kit == null)
+			if(!kit.Valid)
 			{
 				Utils.Message("Cannot deploy: construction kit is empty.");
 				return false;
@@ -475,13 +463,13 @@ namespace GroundConstruction
 		public double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
 		{
 			required_energy = 0;
-			if(kit == null) return 0;
+			if(!kit.Valid) return 0;
 			return kit.RequiredMass(ref skilled_kerbal_seconds, out required_energy);
 		}
 
 		public void DoSomeWork(double skilled_kerbal_seconds)
 		{
-			if(kit == null) return;
+			if(!kit.Valid) return;
 			kit.DoSomeWork(skilled_kerbal_seconds);
 			if(kit.Completness >= 1)
 				TimeWarp.SetRate(0, false);
@@ -490,7 +478,7 @@ namespace GroundConstruction
 
 		#region IPartCostModifier implementation
 		public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
-		{ return kit == null ? 0 : kit.Cost; }
+		{ return kit.Valid? kit.Cost : 0; }
 
 		public ModifierChangeWhen GetModuleCostChangeWhen()
 		{ return ModifierChangeWhen.CONSTANTLY; }
@@ -498,7 +486,7 @@ namespace GroundConstruction
 
 		#region IPartMassModifier implementation
 		public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
-		{ return kit == null ? 0 : kit.Mass; }
+		{ return kit.Valid? kit.Mass : 0; }
 
 		public ModifierChangeWhen GetModuleMassChangeWhen()
 		{ return ModifierChangeWhen.CONSTANTLY; }

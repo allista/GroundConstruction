@@ -15,6 +15,7 @@ namespace GroundConstruction
 	{
 		double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy);
 		void DoSomeWork(double skilled_kerbal_seconds);
+		bool Valid { get; }
 	}
 
 	public abstract class DIYKit : ConfigNodeObject, iDIYKit
