@@ -21,15 +21,35 @@ namespace GroundConstruction
 
 		public class KitInfo : ConfigNodeObject
 		{
-			[Persistent] public Guid id;
-			[Persistent] public string KitName;
-			[Persistent] public float Completeness;
+			[Persistent] public Guid id = Guid.Empty;
+			[Persistent] public string KitName = string.Empty;
 
-			public KitInfo(ModuleConstructionKit k)
+			public ModuleConstructionKit Module { get; private set; }
+			public VesselKit Kit { get { return ModuleValid? Module.kit: null; } }
+
+			public bool Valid { get { return id != Guid.Empty; } }
+			public bool ModuleValid { get { return Module != null && Module.Valid; } }
+
+			public KitInfo() {}
+			public KitInfo(ModuleConstructionKit kit_module)
 			{
-				id = k.vessel.id;
-				KitName = k.KitName;
-				Completeness = k.Completness;
+				id = kit_module.vessel.id;
+				Module = kit_module;
+				KitName = kit_module.KitName;
+			}
+
+
+			public bool Recheck()
+			{
+				if(ModuleValid) return true;
+				FindKit();
+				return ModuleValid;
+			}
+
+			public void Clear()
+			{
+				id = Guid.Empty;
+				KitName = string.Empty;
 			}
 
 			public static ModuleConstructionKit GetKitFromVessel(Vessel vsl)
@@ -41,119 +61,78 @@ namespace GroundConstruction
 			public ModuleConstructionKit FindKit()
 			{
 				var kit_vsl = FlightGlobals.FindVessel(id);
-				return kit_vsl == null? null : GetKitFromVessel(kit_vsl);
+				Module = kit_vsl == null? null : GetKitFromVessel(kit_vsl);
+				return Module;
+			}
+
+			public override string ToString()
+			{
+				var s = KitName;
+				if(ModuleValid) s += " "+Module.KitStatus;
+				return s;
 			}
 		}
-
-		public class ConstructionQueue : Queue<Guid>, IConfigNode
-		{
-			public void Save(ConfigNode node)
-			{
-				foreach(var item in this)
-					node.AddValue("Item", item);
-			}
-
-			public void Load(ConfigNode node)
-			{
-				Clear();
-				var values = node.GetValues();
-				for(int i = 0, len = values.Length; i < len; i++)
-					Enqueue(new Guid(values[i]));
-			}
-		}
-
-//		public class CompletedList : List<Guid>, IConfigNode
-//		{
-//			public void Save(ConfigNode node)
-//			{ ForEach(item => node.AddValue("Item", item)); }
-//
-//			public void Load(ConfigNode node)
-//			{
-//				Clear();
-//				var values = node.GetValues();
-//				for(int i = 0, len = values.Length; i < len; i++)
-//					Add(new Guid(values[i]));
-//			}
-//		}
 
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
-		[KSPField(isPersistant = true)] public ConstructionQueue Queue = new ConstructionQueue();
-//		[KSPField(isPersistant = true)] public CompletedList Completed = new CompletedList();
-		[KSPField(isPersistant = true)] public Guid KitUnderConstruction = Guid.Empty;
-		ModuleConstructionKit kit;
+		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
+		[KSPField(isPersistant = true)] public KitInfo KitUnderConstruction = new KitInfo();
 		float workers = 0;
-
-		static ModuleConstructionKit get_kit_from_vessel(Vessel vsl)
-		{
-			var kit_part = vsl.Parts.Find(p => p.Modules.Contains<ModuleConstructionKit>());
-			return kit_part == null? null : kit_part.Modules.GetModule<ModuleConstructionKit>();
-		}
-
-		static ModuleConstructionKit find_kit_by_vesselID(Guid vid)
-		{
-			var kit_vsl = FlightGlobals.FindVessel(vid);
-			return kit_vsl == null? null : get_kit_from_vessel(kit_vsl);
-		}
+		double eta = -1;
 
 		bool get_next_kit()
 		{
-			while(Queue.Count > 0 && (kit == null || !kit.Valid))
-				kit = find_kit_by_vesselID(Queue.Dequeue());
-			var success = kit != null && kit.Valid;
-			KitUnderConstruction = success ? kit.vessel.id : Guid.Empty;
 			LastUpdateTime = -1;
-			return success;
-		}
-
-		struct TargetKit
-		{
-			public Guid id;
-			public string KitName;
-			public float Completeness;
-			public ModuleConstructionKit Kit;
-			public TargetKit(ModuleConstructionKit k)
+			while(Queue.Count > 0 && !KitUnderConstruction.ModuleValid)
 			{
-				Kit = k;
-				id = k.vessel.id;
-				KitName = k.KitName;
-				Completeness = k.Completness;
+				KitUnderConstruction = Queue.Dequeue();
+				KitUnderConstruction.FindKit();
 			}
+			if(KitUnderConstruction.ModuleValid) return true;
+			KitUnderConstruction.Clear();
+			return false;
 		}
 
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
 			LockName = "GroundWorkshop"+GetInstanceID();
-			if(FlightGlobals.ready && KitUnderConstruction != Guid.Empty)
+			if(FlightGlobals.ready && KitUnderConstruction.Valid)
 			{
-				kit = find_kit_by_vesselID(KitUnderConstruction);
-				if(kit == null) 
+				KitUnderConstruction.FindKit();
+				if(!KitUnderConstruction.ModuleValid) 
 				{
-					KitUnderConstruction = Guid.Empty;
+					KitUnderConstruction.Clear();
 					LastUpdateTime = -1;
 				}
 			}
 			update_workers();
 		}
 
-		List<TargetKit> nearby_unbuilt_kits = new List<TargetKit>();
-		List<TargetKit> nearby_built_kits = new List<TargetKit>();
+		void update_queue()
+		{
+			if(Queue.Count == 0) return;
+			Queue = new PersistentQueue<KitInfo>(Queue.Where(kit => kit.Recheck()));
+		}
+
+		List<KitInfo> nearby_unbuilt_kits = new List<KitInfo>();
+		List<KitInfo> nearby_built_kits = new List<KitInfo>();
 		void update_nearby_kits()
 		{
 			if(!FlightGlobals.ready) return;
+			var queued = new HashSet<Guid>(Queue.Select(k => k.id));
 			nearby_unbuilt_kits.Clear();
 			nearby_built_kits.Clear();
 			foreach(var vsl in FlightGlobals.Vessels)
 			{
-				var vsl_kit = get_kit_from_vessel(vsl);
+				var vsl_kit = KitInfo.GetKitFromVessel(vsl);
 				if(vsl_kit != null && vsl_kit.Valid && vsl_kit.Deployed &&
-				   vsl_kit != kit && !Queue.Contains(vsl.id) &&
+				   vsl_kit != KitUnderConstruction.Module && !queued.Contains(vsl.id) &&
 				   (part.transform.position-vsl_kit.transform.position).magnitude < GLB.MaxDistanceToWorkshop)
 				{
-					if(vsl_kit.Completness < 1)
-						nearby_unbuilt_kits.Add(new TargetKit(vsl_kit));
-					else nearby_built_kits.Add(new TargetKit(vsl_kit));
+					if(vsl_kit.Completeness < 1)
+						nearby_unbuilt_kits.Add(new KitInfo(vsl_kit));
+					else nearby_built_kits.Add(new KitInfo(vsl_kit));
 				}
 			}
 		}
@@ -180,35 +159,53 @@ namespace GroundConstruction
 
 		void Update()
 		{
-			if(Working) update_workers();
+			if(Working) 
+			{
+				update_workers();
+				if(workers > 0 && KitUnderConstruction.Kit != null)
+				{
+					eta = KitUnderConstruction.Kit.WorkLeft;
+					if(KitUnderConstruction.Kit.PartUnderConstruction != null)
+						eta += KitUnderConstruction.Kit.PartUnderConstruction.WorkLeft;
+					eta /= workers;
+				}
+				eta = -1;
+			}
 			if(show_window)
 			{
+				update_queue();
 				update_nearby_kits();
 			}
 		}
 
-		void FixedUpdate()
+		float dist2target(KitInfo kit)
+		{ return (kit.Module.part.transform.position-part.transform.position).magnitude; }
+
+		void FixedUpdate() //TODO: implement huge catch-ups that allow multiple kits assembly at once
 		{
 			if(!HighLogic.LoadedSceneIsFlight || !Working ||
-			   kit == null || workers.Equals(0)) return;
-			if(LastUpdateTime < 0) {}
+			   !KitUnderConstruction.Valid || workers.Equals(0)) return;
 			var deltaTime = GetDeltaTime();
 			this.Log("deltaTime: {}, fixedDeltaTime {}", deltaTime, TimeWarp.fixedDeltaTime);//debug
 			if(deltaTime < 0) return;
 			//check current kit
-			if(!kit.Valid || kit.vessel.mainBody != vessel.mainBody) 
+			if(!KitUnderConstruction.ModuleValid) 
 			{ Working = get_next_kit(); return; }
 			//calculate distance modifier
-			var dist = (kit.transform.position-part.transform.position).magnitude;
+			var dist = dist2target(KitUnderConstruction);
 			this.Log("dist: {}", dist);//debug
 			if(dist > GLB.MaxDistanceToWorkshop)
-			{ Working = get_next_kit(); return; }
+			{ 
+				Utils.Message("{0} is too far away. Switching to the next kit in line.", KitUnderConstruction.KitName);
+				Working = get_next_kit(); 
+				return; 
+			}
 			var dist_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency, 
 			                          Mathf.Max((dist-GLB.MinDistanceToWorkshop)/GLB.MaxDistanceToWorkshop, 0));
 			//try to get the structure resource
 			double work = workers*dist_mod*deltaTime;
 			double required_ec;
-			var required_mass = kit.RequiredMass(ref work, out required_ec);
+			var required_mass = KitUnderConstruction.Module.RequiredMass(ref work, out required_ec);
 			var have_mass = part.RequestResource(GLB.StructureResourceID, required_mass);
 			this.Log("dist.mod: {}, work {}, n.mass {}, n.EC {}", dist_mod, work, required_mass, required_ec);//debug
 			if(have_mass.Equals(0)) return;
@@ -216,7 +213,7 @@ namespace GroundConstruction
 			var have_ec = part.RequestResource(Utils.ElectricChargeID, required_ec);
 			if(have_ec/required_ec < GLB.WorkshopShutdownThreshold) 
 			{ 
-				Utils.Message("Not enough energy. Construction of {} was paused.", kit.KitName);
+				Utils.Message("Not enough energy. Construction of {0} was put on hold.", KitUnderConstruction.KitName);
 				Working = false; 
 				return; 
 			}
@@ -226,9 +223,9 @@ namespace GroundConstruction
 			this.Log("work {}, mass {}/{}, EC {}/{}", work, have_mass, required_mass, have_ec, required_ec);//debug
 			if(work > 0) 
 			{
-				kit.DoSomeWork(work);
-				this.Log("{}.completeness {}", kit.KitName, kit.Completness);//debug
-				if(kit.Completness >= 0)
+				KitUnderConstruction.Module.DoSomeWork(work);
+				this.Log("{}.completeness {}", KitUnderConstruction.KitName, KitUnderConstruction.Module.Completeness);//debug
+				if(KitUnderConstruction.Module.Completeness >= 0)
 					Working = get_next_kit();
 			}
 			//return unused structure resource
@@ -250,57 +247,138 @@ namespace GroundConstruction
 			return dT;
 		}
 
+		#region Resource Transfer
+		bool transfer_resources;
+		readonly ResourceManifestList transfer_list = new ResourceManifestList();
+		VesselResources host_resources, kit_resources;
+		KitInfo target_kit;
+
+		void setup_resource_transfer(KitInfo target)
+		{
+			if(!target.Recheck()) return;
+			if(dist2target(target) > GLB.MaxDistanceToWorkshop)
+			{
+				Utils.Message("{0} is too far away. Needs to be closer that {1}m", 
+				              target.KitName, GLB.MaxDistanceToWorkshop);
+				return;
+			}
+			target_kit = target;
+			host_resources = new VesselResources(vessel);
+			kit_resources = target_kit.Module.GetConstructResources();
+			transfer_list.NewTransfer(host_resources, kit_resources);
+			if(transfer_list.Count > 0) return;
+			host_resources = null;
+			kit_resources = null;
+			target_kit = null;
+			transfer_resources = false;
+		}
+		#endregion
+
 		#region GUI
-		ResourceTransferWindow resources_window = new ResourceTransferWindow();
+		readonly ResourceTransferWindow resources_window = new ResourceTransferWindow();
 
 		bool show_window;
+		const float width = 300;
+		const float height = 50;
+
 		[KSPEvent(guiName = "Construction Window", guiActive = true, active = true)]
 		public void ToggleConstructionWindow()
 		{ show_window = !show_window; }
 
 		void info_pane()
 		{
-
+			if(KitUnderConstruction.ModuleValid) 
+			{
+				GUILayout.BeginVertical(Styles.white);
+				GUILayout.Label("Constructing: "+KitUnderConstruction.KitName, GUILayout.ExpandWidth(true));
+				GUILayout.Label(KitUnderConstruction.Module.KitStatus, Styles.fracStyle(KitUnderConstruction.Module.Completeness), GUILayout.ExpandWidth(true));
+				GUILayout.Label(KitUnderConstruction.Module.PartStatus, Styles.fracStyle(KitUnderConstruction.Module.PartCompleteness), GUILayout.ExpandWidth(true));
+				if(Working)
+				{
+					GUILayout.Label(eta > 0?
+					                string.Format("ETA {0:c}", new TimeSpan(0,0,(int)eta)) : "Stalled...", 
+					                Styles.boxed_label, GUILayout.ExpandWidth(true));
+                }
+				GUILayout.EndVertical();
+			}
+			else GUILayout.Label("Nothing is under construction now.", Styles.boxed_label, GUILayout.ExpandWidth(true));
 		}
 
-		Vector2 queue_scroll;
+		Vector2 queue_scroll = Vector2.zero;
 		void queue_pane()
 		{
-
+			if(Queue.Count == 0) return;
+			GUILayout.BeginVertical(Styles.white);
+			queue_scroll = GUILayout.BeginScrollView(queue_scroll, GUILayout.Height(height), GUILayout.Width(width));
+			KitInfo del = null;
+			KitInfo up = null;
+			foreach(var info in Queue) 
+			{
+				GUILayout.BeginHorizontal();
+				GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+				if(GUILayout.Button(new GUIContent("^", "Move up"), Styles.normal_button))
+					up = info;
+				if(GUILayout.Button(new GUIContent("X", "Delete waypoint"), 
+				                    Styles.danger_button, GUILayout.Width(25))) 
+					del = info;
+				GUILayout.EndHorizontal();
+			}
+			if(del != null) Queue.Remove(del);
+			else if(up != null) Queue.MoveUp(up);
+			GUILayout.EndScrollView();
+			GUILayout.EndVertical();
 		}
 
-		bool transfer_resources;
-		ResourceManifestList transfer_list = new ResourceManifestList();
-		VesselResources host_resources, kit_resources;
-		ModuleConstructionKit target_kit;
-
-		void setup_resource_transfer(TargetKit target)
+		Vector2 built_scroll = Vector2.zero;
+		void built_kits_pane()
 		{
-			
+			if(nearby_built_kits.Count == 0) return;
+			GUILayout.BeginVertical(Styles.white);
+			built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
+			KitInfo selected = null;
+			foreach(var info in nearby_built_kits)
+			{
+				GUILayout.BeginHorizontal();
+				GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+				if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"), Styles.active_button))
+					selected = info;
+				GUILayout.EndHorizontal();
+			}
+			if(selected != null) 
+				setup_resource_transfer(selected);
+			GUILayout.EndScrollView();
+			GUILayout.EndVertical();
 		}
 
-		Vector2 complete_scroll;
-		void complete_kits_pane()
-		{
-
-		}
-
-		Vector2 nearby_scroll;
+		Vector2 unbuilt_scroll = Vector2.zero;
 		void nearby_kits_pane()
 		{
-
+			if(nearby_unbuilt_kits.Count == 0) return;
+			GUILayout.BeginVertical(Styles.white);
+			unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
+			KitInfo selected = null;
+			foreach(var info in nearby_unbuilt_kits)
+			{
+				GUILayout.BeginHorizontal();
+				GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+				if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"), Styles.active_button))
+					selected = info;
+				GUILayout.EndHorizontal();
+			}
+			if(selected != null) 
+				Queue.Enqueue(selected);
+			GUILayout.EndScrollView();
+			GUILayout.EndVertical();
 		}
 
-		const float width = 300;
-		const float height = 200;
-		Rect WindowPos = new Rect(width, height, Screen.width/4, Screen.height/4);
+		Rect WindowPos = new Rect(width, height*4, Screen.width/4, Screen.height/4);
 		void main_window(int WindowID)
 		{
 			GUILayout.BeginVertical();
 			nearby_kits_pane();
 			queue_pane();
 			info_pane();
-			complete_kits_pane();
+			built_kits_pane();
 			if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
 				show_window = false;
 			GUILayout.EndVertical();
@@ -311,22 +389,29 @@ namespace GroundConstruction
 		void OnGUI()
 		{
 			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-			if(show_window)
+			if(show_window && GUIWindowBase.HUD_enabled)
 			{
 				Styles.Init();
-				if(transfer_resources && transfer_list.Count > 0)
+				if(transfer_resources)
 				{
-					resources_window.Draw(string.Format("Resources: Workshop <> {0}", kit.KitName), transfer_list);
-					if(resources_window.transferNow) 
+					if(transfer_list.Count > 0)
 					{
-						double dM, dC;
-						transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
-						target_kit.kit.Mass += (float)dM;
-						target_kit.kit.Cost += (float)dC;
-						resources_window.transferNow = false;
-						resources_window.UnlockControls();
-						transfer_resources = false;
+						resources_window.Draw(string.Format("Resources: Workshop <> {0}", target_kit.KitName), transfer_list);
+						if(resources_window.transferNow) 
+						{
+							if(target_kit.Recheck())
+							{
+								double dM, dC;
+								transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
+								target_kit.Kit.Mass += (float)dM;
+								target_kit.Kit.Cost += (float)dC;
+							}
+							resources_window.UnlockControls();
+							resources_window.transferNow = false;
+							transfer_resources = false;
+						}
 					}
+					else transfer_resources = false;
 				}
 				else
 				{

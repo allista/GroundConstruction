@@ -59,9 +59,22 @@ namespace GroundConstruction
 		[KSPField(guiName = "Bulding", guiActive = true)]
 		public string PartStatus = "Nothing";
 
+		#region Kit
 		[KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
-		public float Completness { get { return kit.Valid? kit.Completness : 0; } }
+
 		public bool Valid { get { return part != null && vessel != null && kit.Valid; } }
+
+		public float Completeness { get { return kit.Valid? kit.Completeness : 0; } }
+
+		public float PartCompleteness 
+		{ get { return kit.Valid && kit.PartUnderConstruction != null? kit.PartUnderConstruction.Completeness : 0; } }
+
+		public VesselResources GetConstructResources()
+		{
+			if(Completeness < 1) return null;
+			return new VesselResources(kit.Blueprint);
+		}
+		#endregion
 
 		#region Anchor
 		FixedJoint anchorJoint;
@@ -107,11 +120,11 @@ namespace GroundConstruction
 				if(Deploying) KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
 				else if(Deployed) 
 				{
-					KitStatus = string.Format("Complete: {0:P1}", kit.Completness);
+					KitStatus = string.Format("Complete: {0:P1}", kit.Completeness);
 					PartStatus = kit.PartUnderConstruction == null? "Nothing" :
 						string.Format("{0}: {1:P1}", 
 						              kit.PartUnderConstruction.Title, 
-						              kit.PartUnderConstruction.Completness);
+						              kit.PartUnderConstruction.Completeness);
 				}
 				else KitStatus = "Idle";
 			}
@@ -187,7 +200,7 @@ namespace GroundConstruction
 		{
 			base.OnStart(state);
 			Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
-			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completness >= 1;
+			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
 			model = part.transform.Find("model");
 			setup_transform(SpawnTransformVAB, out spawn_transform_VAB);
 			setup_transform(SpawnTransformSPH, out spawn_transform_SPH);
@@ -398,7 +411,7 @@ namespace GroundConstruction
 		{
 			if(launch_in_progress) return false;
 			if(!can_deploy()) return false;
-			if(kit.Completness < 1)
+			if(kit.Completeness < 1)
 			{
 				Utils.Message("The assembly is not complete yet.");
 				return false;
@@ -471,7 +484,7 @@ namespace GroundConstruction
 		{
 			if(!kit.Valid) return;
 			kit.DoSomeWork(skilled_kerbal_seconds);
-			if(kit.Completness >= 1)
+			if(kit.Completeness >= 1)
 				TimeWarp.SetRate(0, false);
 		}
 		#endregion

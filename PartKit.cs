@@ -26,12 +26,14 @@ namespace GroundConstruction
 
 		[Persistent] public double TotalWork = -1; //seconds
 		[Persistent] public double WorkDone;       //seconds
-		[Persistent] public float  Completness;    //fraction
+		[Persistent] public float  Completeness;    //fraction
 
 		[Persistent] public float Mass;
 		[Persistent] public float Cost;
 
 		public bool Valid { get { return TotalWork > 0; } }
+
+		public double WorkLeft { get { return TotalWork-WorkDone; } }
 
 		public abstract double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy);
 		public abstract void DoSomeWork(double skilled_kerbal_seconds);
@@ -74,7 +76,7 @@ namespace GroundConstruction
 		public override double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
 		{
 			if(WorkDone+skilled_kerbal_seconds > TotalWork)
-				skilled_kerbal_seconds = TotalWork-WorkDone;
+				skilled_kerbal_seconds = WorkLeft;
 			var mass = skilled_kerbal_seconds/TotalWork*(PartMass-KitMass);
 			required_energy = mass*GLB.EnergyForMetalwork;
 			return mass;
@@ -83,9 +85,9 @@ namespace GroundConstruction
 		public override void DoSomeWork(double skilled_kerbal_seconds)
 		{
 			WorkDone = Math.Min(TotalWork, WorkDone+skilled_kerbal_seconds);
-			Completness =(float)(WorkDone/TotalWork);
-			Mass = Mathf.Lerp(KitMass, PartMass, Completness);
-			Cost = Mathf.Lerp(KitCost, PartCost, Completness);
+			Completeness =(float)(WorkDone/TotalWork);
+			Mass = Mathf.Lerp(KitMass, PartMass, Completeness);
+			Cost = Mathf.Lerp(KitCost, PartCost, Completeness);
 //			Utils.Log("Constructing: {} {}", Name, this);//debug
 		}
 	}

@@ -77,14 +77,8 @@ namespace GroundConstruction
 		public Dictionary<uint,float> BuiltPartsState()
 		{
 			var db = new Dictionary<uint,float>(BuiltParts.Count);
-			BuiltParts.ForEach(p => db.Add(p.craftID, p.Completness));
+			BuiltParts.ForEach(p => db.Add(p.craftID, p.Completeness));
 			return db;
-		}
-
-		public VesselResources GetConstructResources()
-		{
-			if(Completness < 1) return null;
-			return new VesselResources(Blueprint);
 		}
 
 		public override void Load(ConfigNode node)
@@ -130,10 +124,10 @@ namespace GroundConstruction
 		{
 			if(!get_next_if_needed()) return;
 			PartUnderConstruction.DoSomeWork(skilled_kerbal_seconds);
-			if(PartUnderConstruction.Completness >= 1)
+			if(PartUnderConstruction.Completeness >= 1)
 			{
 				WorkDone = Math.Min(TotalWork, WorkDone+PartUnderConstruction.TotalWork);
-				Completness = (float)(WorkDone/TotalWork);
+				Completeness = (float)(WorkDone/TotalWork);
 				BuiltParts.Add(PartUnderConstruction);
 				built_mass += PartUnderConstruction.PartMass;
 				built_cost += PartUnderConstruction.PartCost;
