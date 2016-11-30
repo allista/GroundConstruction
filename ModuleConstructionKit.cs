@@ -116,7 +116,7 @@ namespace GroundConstruction
 				KitName = kit.Name;
 				KitMass = kit.Mass;
 				KitCost = kit.Cost;
-				KitWork = (float)(kit.TotalWork-kit.WorkDone)/18000;
+				KitWork = (float)(kit.WorkLeft)/3600;
 				if(Deploying) KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
 				else if(Deployed) 
 				{
@@ -389,6 +389,7 @@ namespace GroundConstruction
 			if(!can_deploy()) return;
 			Events["Deploy"].active = false;
 			DeployingSpeed = GLB.DeploymentSpeed/kit.ShipMetric.volume;
+			Utils.SaveGame(kit.Name+"-before_deployment");
 			Deploying = true;
 		}
 		#endregion

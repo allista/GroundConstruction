@@ -53,6 +53,7 @@ namespace GroundConstruction
 		[Persistent] public float MaxDistanceToWorkshop     = 300f;
 		[Persistent] public float MinDistanceToWorkshop     = 50f;
 		[Persistent] public float MaxDistanceEfficiency     = 0.2f;
+//		[Persistent] public float MaxMetalworkPerHour       = 0.01f;
 
 		[Persistent] public float Cost2ComplexityFactor = 1e-4f;
 

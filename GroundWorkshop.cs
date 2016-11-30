@@ -46,12 +46,6 @@ namespace GroundConstruction
 				return ModuleValid;
 			}
 
-			public void Clear()
-			{
-				id = Guid.Empty;
-				KitName = string.Empty;
-			}
-
 			public static ModuleConstructionKit GetKitFromVessel(Vessel vsl)
 			{
 				var kit_part = vsl.Parts.Find(p => p.Modules.Contains<ModuleConstructionKit>());
@@ -67,8 +61,8 @@ namespace GroundConstruction
 
 			public override string ToString()
 			{
-				var s = KitName;
-				if(ModuleValid) s += " "+Module.KitStatus;
+				var s = string.Format("\"{0}\"", KitName);
+				if(ModuleValid) s += string.Format(" needs {0:F1} SKH, {1}", Module.kit.WorkLeft/3600, Module.KitStatus);
 				return s;
 			}
 		}
@@ -78,7 +72,9 @@ namespace GroundConstruction
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
 		[KSPField(isPersistant = true)] public KitInfo KitUnderConstruction = new KitInfo();
 		float workers = 0;
+		float distance_mod = 0;
 		double eta = -1;
+		string ETA = "Stalled...";
 
 		bool get_next_kit()
 		{
@@ -89,7 +85,7 @@ namespace GroundConstruction
 				KitUnderConstruction.FindKit();
 			}
 			if(KitUnderConstruction.ModuleValid) return true;
-			KitUnderConstruction.Clear();
+			KitUnderConstruction = new KitInfo();
 			return false;
 		}
 
@@ -102,7 +98,7 @@ namespace GroundConstruction
 				KitUnderConstruction.FindKit();
 				if(!KitUnderConstruction.ModuleValid) 
 				{
-					KitUnderConstruction.Clear();
+					KitUnderConstruction = new KitInfo();
 					LastUpdateTime = -1;
 				}
 			}
@@ -157,19 +153,45 @@ namespace GroundConstruction
 			this.Log("workers: {}", workers);//debug
 		}
 
+		bool can_construct()
+		{
+			if(!vessel.Landed)
+			{
+				Utils.Message("Cannot construct unless landed.");
+				return false;
+			}
+			if(vessel.srfSpeed > GLB.DeployMaxSpeed)
+			{
+				Utils.Message("Cannot construct while mooving.");
+				return false;
+			}
+			if(vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
+			{
+				Utils.Message("Cannot construct while rotating.");
+				return false;
+			}
+			return true;
+		}
+
 		void Update()
 		{
 			if(Working) 
 			{
 				update_workers();
-				if(workers > 0 && KitUnderConstruction.Kit != null)
+				if(workers > 0 && distance_mod > 0 && KitUnderConstruction.Kit != null)
 				{
 					eta = KitUnderConstruction.Kit.WorkLeft;
 					if(KitUnderConstruction.Kit.PartUnderConstruction != null)
 						eta += KitUnderConstruction.Kit.PartUnderConstruction.WorkLeft;
-					eta /= workers;
+					eta /= workers*distance_mod;
+					ETA = "Time left: "+KSPUtil.PrintTimeCompact(eta, false);
 				}
-				eta = -1;
+				else 
+				{
+					eta = -1;
+					ETA = "Stalled...";
+				}
+				Working = can_construct();
 			}
 			if(show_window)
 			{
@@ -183,8 +205,7 @@ namespace GroundConstruction
 
 		void FixedUpdate() //TODO: implement huge catch-ups that allow multiple kits assembly at once
 		{
-			if(!HighLogic.LoadedSceneIsFlight || !Working ||
-			   !KitUnderConstruction.Valid || workers.Equals(0)) return;
+			if(!HighLogic.LoadedSceneIsFlight || !Working || workers.Equals(0)) return;
 			var deltaTime = GetDeltaTime();
 			this.Log("deltaTime: {}, fixedDeltaTime {}", deltaTime, TimeWarp.fixedDeltaTime);//debug
 			if(deltaTime < 0) return;
@@ -200,15 +221,15 @@ namespace GroundConstruction
 				Working = get_next_kit(); 
 				return; 
 			}
-			var dist_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency, 
+			distance_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency, 
 			                          Mathf.Max((dist-GLB.MinDistanceToWorkshop)/GLB.MaxDistanceToWorkshop, 0));
 			//try to get the structure resource
-			double work = workers*dist_mod*deltaTime;
+			double work = workers*distance_mod*deltaTime;
 			double required_ec;
-			var required_mass = KitUnderConstruction.Module.RequiredMass(ref work, out required_ec);
-			var have_mass = part.RequestResource(GLB.StructureResourceID, required_mass);
-			this.Log("dist.mod: {}, work {}, n.mass {}, n.EC {}", dist_mod, work, required_mass, required_ec);//debug
-			if(have_mass.Equals(0)) return;
+			var required_res = KitUnderConstruction.Module.RequiredMass(ref work, out required_ec)/GLB.StructureResource.density;
+			var have_res = part.RequestResource(GLB.StructureResourceID, required_res);
+			this.Log("dist.mod: {}, work left {}, work {}, n.res {}, n.EC {}", distance_mod, KitUnderConstruction.Kit.WorkLeft, work, required_res, required_ec);//debug
+			if(have_res.Equals(0)) return;
 			//try to get EC
 			var have_ec = part.RequestResource(Utils.ElectricChargeID, required_ec);
 			if(have_ec/required_ec < GLB.WorkshopShutdownThreshold) 
@@ -218,9 +239,9 @@ namespace GroundConstruction
 				return; 
 			}
 			//do the work, if any
-			have_mass *= have_ec/required_ec;
-			work *= have_mass/required_mass;
-			this.Log("work {}, mass {}/{}, EC {}/{}", work, have_mass, required_mass, have_ec, required_ec);//debug
+			have_res *= have_ec/required_ec;
+			work *= have_res/required_res;
+			this.Log("work {}, res {}/{}, EC {}/{}", work, have_res, required_res, have_ec, required_ec);//debug
 			if(work > 0) 
 			{
 				KitUnderConstruction.Module.DoSomeWork(work);
@@ -229,8 +250,8 @@ namespace GroundConstruction
 					Working = get_next_kit();
 			}
 			//return unused structure resource
-			if(have_mass < required_mass)
-				part.RequestResource(GLB.StructureResourceID, have_mass-required_mass);
+			if(have_res < required_res)
+				part.RequestResource(GLB.StructureResourceID, have_res-required_res);
 		}
 
 		double GetDeltaTime()
@@ -278,7 +299,7 @@ namespace GroundConstruction
 		readonly ResourceTransferWindow resources_window = new ResourceTransferWindow();
 
 		bool show_window;
-		const float width = 300;
+		const float width = 400;
 		const float height = 50;
 
 		[KSPEvent(guiName = "Construction Window", guiActive = true, active = true)]
@@ -290,15 +311,22 @@ namespace GroundConstruction
 			if(KitUnderConstruction.ModuleValid) 
 			{
 				GUILayout.BeginVertical(Styles.white);
-				GUILayout.Label("Constructing: "+KitUnderConstruction.KitName, GUILayout.ExpandWidth(true));
+				GUILayout.Label("Constructing: "+KitUnderConstruction.KitName, Styles.green, GUILayout.ExpandWidth(true));
 				GUILayout.Label(KitUnderConstruction.Module.KitStatus, Styles.fracStyle(KitUnderConstruction.Module.Completeness), GUILayout.ExpandWidth(true));
 				GUILayout.Label(KitUnderConstruction.Module.PartStatus, Styles.fracStyle(KitUnderConstruction.Module.PartCompleteness), GUILayout.ExpandWidth(true));
 				if(Working)
 				{
-					GUILayout.Label(eta > 0?
-					                string.Format("ETA {0:c}", new TimeSpan(0,0,(int)eta)) : "Stalled...", 
-					                Styles.boxed_label, GUILayout.ExpandWidth(true));
+					GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
+					GUILayout.Label(ETA, Styles.boxed_label, GUILayout.ExpandWidth(true));
                 }
+				if(GUILayout.Button("Moove back to the Queue", 
+				                    Styles.danger_button, GUILayout.ExpandWidth(true)))
+				{
+					Queue.Enqueue(KitUnderConstruction);
+					KitUnderConstruction = new KitInfo();
+					LastUpdateTime = -1;
+					Working &= Queue.Count > 1;
+				}
 				GUILayout.EndVertical();
 			}
 			else GUILayout.Label("Nothing is under construction now.", Styles.boxed_label, GUILayout.ExpandWidth(true));
@@ -307,32 +335,39 @@ namespace GroundConstruction
 		Vector2 queue_scroll = Vector2.zero;
 		void queue_pane()
 		{
-			if(Queue.Count == 0) return;
-			GUILayout.BeginVertical(Styles.white);
-			queue_scroll = GUILayout.BeginScrollView(queue_scroll, GUILayout.Height(height), GUILayout.Width(width));
-			KitInfo del = null;
-			KitInfo up = null;
-			foreach(var info in Queue) 
+			if(Queue.Count > 0)
 			{
-				GUILayout.BeginHorizontal();
-				GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
-				if(GUILayout.Button(new GUIContent("^", "Move up"), Styles.normal_button))
-					up = info;
-				if(GUILayout.Button(new GUIContent("X", "Delete waypoint"), 
-				                    Styles.danger_button, GUILayout.Width(25))) 
-					del = info;
-				GUILayout.EndHorizontal();
+				GUILayout.Label("Construction Queue:", GUILayout.ExpandWidth(true));
+				GUILayout.BeginVertical(Styles.white);
+				queue_scroll = GUILayout.BeginScrollView(queue_scroll, GUILayout.Height(height), GUILayout.Width(width));
+				KitInfo del = null;
+				KitInfo up = null;
+				foreach(var info in Queue) 
+				{
+					GUILayout.BeginHorizontal();
+					GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+					if(GUILayout.Button(new GUIContent("^", "Move up"), 
+					                    Styles.normal_button, GUILayout.Width(25)))
+						up = info;
+					if(GUILayout.Button(new GUIContent("X", "Remove from Queue"), 
+					                    Styles.danger_button, GUILayout.Width(25))) 
+						del = info;
+					GUILayout.EndHorizontal();
+				}
+				if(del != null) Queue.Remove(del);
+				else if(up != null) Queue.MoveUp(up);
+				GUILayout.EndScrollView();
+				GUILayout.EndVertical();
 			}
-			if(del != null) Queue.Remove(del);
-			else if(up != null) Queue.MoveUp(up);
-			GUILayout.EndScrollView();
-			GUILayout.EndVertical();
+			if(Utils.ButtonSwitch("Process the Queue", ref Working, "", GUILayout.ExpandWidth(true)))
+			{ Working &= can_construct(); }
 		}
 
 		Vector2 built_scroll = Vector2.zero;
 		void built_kits_pane()
 		{
 			if(nearby_built_kits.Count == 0) return;
+			GUILayout.Label("Complete DIY kits nearby:", GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo selected = null;
@@ -354,6 +389,7 @@ namespace GroundConstruction
 		void nearby_kits_pane()
 		{
 			if(nearby_unbuilt_kits.Count == 0) return;
+			GUILayout.Label("Deployed DIY kits nearby:", GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo selected = null;
@@ -389,7 +425,7 @@ namespace GroundConstruction
 		void OnGUI()
 		{
 			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-			if(show_window && GUIWindowBase.HUD_enabled)
+			if(show_window && GUIWindowBase.HUD_enabled && vessel.isActiveVessel)
 			{
 				Styles.Init();
 				if(transfer_resources)

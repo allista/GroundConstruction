@@ -1,8 +1,12 @@
 StructureResourceName = Metals
 KeepResources = SolidFuel, Ablator, EnrichedUranium, Plutonium-238, Uraninite, UraniumNitride, UF4, ThF4, Actinides
 
-EnergyForMetalwork = 10
+EnergyForMetalwork        = 100
 WorkshopShutdownThreshold = 0.99
+MaxDistanceToWorkshop     = 300
+MinDistanceToWorkshop     = 50
+MaxDistanceEfficiency     = 0.2
+//MaxMetalworkPerHour       = 0.01
 
 Cost2ComplexityFactor = 1E-04
 
