@@ -2,11 +2,11 @@ StructureResourceName = Metals
 KeepResources = SolidFuel, Ablator, EnrichedUranium, Plutonium-238, Uraninite, UraniumNitride, UF4, ThF4, Actinides
 
 EnergyForMetalwork = 10
+WorkshopShutdownThreshold = 0.99
 
 Cost2ComplexityFactor = 1E-04
 
-DistanceWeight   = 2
-ComplexityWeight = 11
+ComplexityWeight = 13
 MetalworkWeight  = 10
 
 VesselKitDensity = 0.5

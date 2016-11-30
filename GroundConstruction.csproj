@@ -56,6 +56,7 @@
     <Compile Include="Globals.cs" />
     <Compile Include="VesselKit.cs" />
     <Compile Include="ModuleConstructionKit.cs" />
+    <Compile Include="GroundWorkshop.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

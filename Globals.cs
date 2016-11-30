@@ -46,13 +46,16 @@ namespace GroundConstruction
 				return keep_res_ids;
 			}
 		}
-
-		[Persistent] public float EnergyForMetalwork = 10;
 		#endregion
+
+		[Persistent] public float EnergyForMetalwork        = 10;
+		[Persistent] public float WorkshopShutdownThreshold = 0.99f;
+		[Persistent] public float MaxDistanceToWorkshop     = 300f;
+		[Persistent] public float MinDistanceToWorkshop     = 50f;
+		[Persistent] public float MaxDistanceEfficiency     = 0.2f;
 
 		[Persistent] public float Cost2ComplexityFactor = 1e-4f;
 
-		[Persistent] public float DistanceWeight   = 10;
 		[Persistent] public float ComplexityWeight = 110;
 		[Persistent] public float MetalworkWeight  = 100;
 
