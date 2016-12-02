@@ -108,6 +108,11 @@ namespace GroundConstruction
 		void OnDestroy()
 		{
 			GameEvents.onGameStateSave.Remove(onGameStateSave);
+		}
+
+		public override void OnInactive()
+		{
+			base.OnInactive();
 			GroundConstructionScenario.DeregisterWorkshop(this);
 		}
 
@@ -119,7 +124,7 @@ namespace GroundConstruction
 			base.OnStart(state);
 			LockName = "GroundWorkshop"+GetInstanceID();
 			update_workers();
-			if(Working) GroundConstructionScenario.RegisterWorkshop(this);
+			GroundConstructionScenario.RegisterWorkshop(this);
 		}
 
 		void update_queue()
@@ -257,7 +262,7 @@ namespace GroundConstruction
 			Working = false;
 			distance_mod = -1;
 			LastUpdateTime = -1;
-			GroundConstructionScenario.DeregisterWorkshop(this);
+			GroundConstructionScenario.RegisterWorkshop(this);
 		}
 
 		bool start_next_kit()

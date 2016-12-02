@@ -24,10 +24,13 @@ namespace GroundConstruction
 
 		public class WorkshopInfo : VesselInfo
 		{
-			[Persistent] public uint   wid;
+			public enum Status { IDLE, ACTIVE, COMPLETE };
+
+			[Persistent] public uint   id;
+			[Persistent] public string CB;
 			[Persistent] public string Name;
 			[Persistent] public string KitName;
-			[Persistent] public bool   Complete;
+			[Persistent] public Status State;
 			[Persistent] public double EndUT;
 			[Persistent] public string ETA;
 
@@ -35,20 +38,26 @@ namespace GroundConstruction
 			public WorkshopInfo(GroundWorkshop workshop) 
 			{
 				vesselID = workshop.vessel.id;
-				wid = workshop.part.flightID;
+				id = workshop.part.flightID;
+				CB = workshop.vessel.mainBody.bodyName;
 				Name = workshop.vessel.vesselName;
-				KitName = workshop.KitUnderConstruction.KitName;
-				EndUT = workshop.ETA > 0? Planetarium.GetUniversalTime()+workshop.ETA : -1;
+				State = Status.IDLE;
+				EndUT = -1;
+				if(workshop.KitUnderConstruction.Valid) 
+				{
+					State = Status.ACTIVE;
+					KitName = workshop.KitUnderConstruction.KitName;
+					if(workshop.ETA > 0) EndUT = Planetarium.GetUniversalTime()+workshop.ETA;
+				}
 			}
 
-			public void SwitchTo()
+			public bool SwitchTo()
 			{
-				Utils.Log("Switching To: {}, vid {}", this, vesselID);//debug
 				var vsl = FlightGlobals.FindVessel(vesselID);
 				if(vsl == null) 
 				{
 					Utils.Message("{0} was not found in the game", Name);
-					return;
+					return false;
 				}
 				if(FlightGlobals.ready) FlightGlobals.SetActiveVessel(vsl);
 				else
@@ -56,43 +65,36 @@ namespace GroundConstruction
 					GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
 					FlightDriver.StartAndFocusVessel("persistent", FlightGlobals.Vessels.IndexOf(vsl));
 				}
-//				{
-//					var game = HighLogic.CurrentGame.Updated();
-//					if(game.flightState != null)
-//					{
-//						Utils.Log("FlightState.protoVessels: {}", game.flightState.protoVessels);//debug
-//						var idx = game.flightState.protoVessels.FindIndex(pv => pv.vesselID == vid);
-//						if(idx >= 0)
-//						{
-//							GamePersistence.SaveGame(game, "persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
-//							FlightDriver.StartAndFocusVessel("persistent", idx);
-//							return;
-//						}
-//					}
-//				}
+				return true;
+			}
+
+			public GUIStyle GetStyle()
+			{
+				if(State == Status.COMPLETE) 
+					return Styles.green;
+				if(State == Status.ACTIVE)
+					return EndUT > 0? Styles.yellow : Styles.red;
+				return Styles.white;
 			}
 
 			public override string ToString()
 			{ 
-				return Complete? 
-					string.Format("\"{0}\" assembled \"{1}\".", Name, KitName) :
-					string.Format("\"{0}\" is building \"{1}\". {2}", Name, KitName, ETA);
+				if(State == Status.COMPLETE)
+					return string.Format("[{0}] \"{1}\" assembled \"{2}\".", CB, Name, KitName);
+				if(State == Status.ACTIVE)
+					return string.Format("[{0}] \"{1}\" is building \"{2}\". {3}", CB, Name, KitName, ETA);
+				return string.Format("[{0}] \"{1}\" is idle.", CB, Name);
 			}
 		}
 
-		static Dictionary<uint,WorkshopInfo> Workshops = new Dictionary<uint,WorkshopInfo>();
+		static SortedDictionary<uint,WorkshopInfo> Workshops = new SortedDictionary<uint,WorkshopInfo>();
 
-		public static bool RegisterWorkshop(GroundWorkshop workshop)
+		public static void RegisterWorkshop(GroundWorkshop workshop)
 		{
-			if(workshop.KitUnderConstruction.Valid && workshop.Working)
-			{
-				Workshops[workshop.part.flightID] = new WorkshopInfo(workshop);
-				Utils.Log("Workshop registered: {} [{}], {}, ETA: {}", 
-				          workshop.vessel.vesselName, workshop.vessel.id, 
-				          workshop.KitUnderConstruction.KitName, workshop.ETA); //debug
-				return true;
-			}
-			return false;
+			Workshops[workshop.part.flightID] = new WorkshopInfo(workshop);
+			Utils.Log("Workshop registered: {} [{}], {}, ETA: {}", 
+			          workshop.vessel.vesselName, workshop.vessel.id, 
+			          workshop.KitUnderConstruction.KitName, workshop.ETA); //debug
 		}
 
 		public static bool DeregisterWorkshop(GroundWorkshop workshop)
@@ -106,13 +108,13 @@ namespace GroundConstruction
 				var finished = false;
 				foreach(var workshop in Workshops.Values)
 				{
-					if(workshop.Complete) continue;
+					if(workshop.State == WorkshopInfo.Status.IDLE) continue;
 					if(workshop.EndUT > 0 && 
 					   workshop.EndUT < now)
 					{
 						Utils.Message(10, "Engineers at '{0}' should have assembled the '{1}' by now.",
 						              workshop.Name, workshop.KitName);
-						workshop.Complete = true;
+						workshop.State = WorkshopInfo.Status.IDLE;
 						finished = true;
 					}
 					else
@@ -136,7 +138,7 @@ namespace GroundConstruction
 		{
 			base.OnSave(node);
 			var workshops = new PersistentList<WorkshopInfo>(Workshops.Values);
-			workshops.Sort((a,b) => a.wid.CompareTo(b.wid));
+			workshops.Sort((a,b) => a.id.CompareTo(b.id));
 			workshops.Save(node.AddNode("Workshops"));
 		}
 
@@ -149,7 +151,7 @@ namespace GroundConstruction
 			{
 				var workshops = new PersistentList<WorkshopInfo>();
 				workshops.Load(wnode);
-				workshops.ForEach(w => Workshops.Add(w.wid, w));
+				workshops.ForEach(w => Workshops.Add(w.id, w));
 			}
 		}
 
@@ -157,7 +159,7 @@ namespace GroundConstruction
 		const float width = 500;
 		const float height = 50;
 
-		static bool show_window = true;
+		static bool show_window;
 		public static void ShowWindow(bool show) { show_window = show; }
 		public static void ToggleWindow() { show_window = !show_window; }
 
@@ -166,23 +168,30 @@ namespace GroundConstruction
 		void main_window(int WindowID)
 		{
 			GUILayout.BeginVertical(Styles.white);
-			workshops_scroll = GUILayout.BeginScrollView(workshops_scroll, GUILayout.Height(height), GUILayout.Width(width));
-			WorkshopInfo switchto = null;
-			foreach(var item in Workshops) 
+			if(Workshops.Count > 0)
 			{
-				var info = item.Value;
-				GUILayout.BeginHorizontal();
-				var style = info.Complete? Styles.green : (info.EndUT > 0? Styles.yellow : Styles.red);
-				GUILayout.Label(info.ToString(), style, GUILayout.ExpandWidth(true));
-				if(GUILayout.Button(new GUIContent("Focus", "Switch to this workshop"), 
-				                    Styles.active_button, GUILayout.ExpandWidth(false)))
-					switchto = info;
-				GUILayout.EndHorizontal();
+				workshops_scroll = GUILayout.BeginScrollView(workshops_scroll, GUILayout.Height(height), GUILayout.Width(width));
+				WorkshopInfo switchto = null;
+				foreach(var item in Workshops) 
+				{
+					var info = item.Value;
+					GUILayout.BeginHorizontal();
+					GUILayout.Label(info.ToString(), info.GetStyle(), GUILayout.ExpandWidth(true));
+					if(GUILayout.Button(new GUIContent("Focus", "Switch to this workshop"), 
+					                    Styles.active_button, GUILayout.ExpandWidth(false)))
+						switchto = info;
+					GUILayout.EndHorizontal();
+				}
+				if(switchto != null) 
+				{
+					if(!switchto.SwitchTo()) 
+						Workshops.Remove(switchto.id);
+				}
+				GUILayout.EndScrollView();
+				if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
+					show_window = false;
 			}
-			if(switchto != null) switchto.SwitchTo();
-			GUILayout.EndScrollView();
-			if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
-				show_window = false;
+			else GUILayout.Label("No Ground Workshops", Styles.white, GUILayout.ExpandWidth(true));
 			GUILayout.EndVertical();
 			GUIWindowBase.TooltipsAndDragWindow(WindowPos);
 		}
@@ -191,13 +200,13 @@ namespace GroundConstruction
 		void OnGUI()
 		{
 			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-			if(show_window && GUIWindowBase.HUD_enabled && Workshops.Count > 0)
+			if(show_window && GUIWindowBase.HUD_enabled)
 			{
 				Styles.Init();
 
 					Utils.LockIfMouseOver(LockName, WindowPos);
 					WindowPos = GUILayout.Window(GetInstanceID(), 
-				                                 WindowPos, main_window, "Active Ground Workshops",
+				                                 WindowPos, main_window, "Ground Workshops",
 					                             GUILayout.Width(width),
 					                             GUILayout.Height(height)).clampToScreen();
 			}

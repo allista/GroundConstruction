@@ -48,6 +48,8 @@ namespace GroundConstruction
 		}
 		#endregion
 
+		[Persistent] public bool  UseStockAppLauncher = true;
+
 		[Persistent] public float EnergyForMetalwork        = 10;
 		[Persistent] public float WorkshopShutdownThreshold = 0.99f;
 		[Persistent] public float MaxDistanceToWorkshop     = 300f;
