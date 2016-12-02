@@ -383,7 +383,7 @@ namespace GroundConstruction
 			Deployed = true;
 		}
 
-		[KSPEvent(guiName = "Deploy", guiActive = true, active = true)]
+		[KSPEvent(guiName = "Deploy", guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
 		public void Deploy()
 		{
 			if(!can_deploy()) return;
@@ -395,7 +395,7 @@ namespace GroundConstruction
 		#endregion
 
 		#region Launching
-		[KSPEvent(guiName = "Launch", guiActive = true, active = false)]
+		[KSPEvent(guiName = "Launch", guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
 		public void Launch()
 		{
 			if(!can_launch()) return;
@@ -427,7 +427,6 @@ namespace GroundConstruction
 			if(!HighLogic.LoadedSceneIsFlight) yield break;
 			while(!FlightGlobals.ready) yield return null;
 			launch_in_progress = true;
-//			this.Log("loading ship construct: {}", kit.Name);//debug
 			var construct = kit.LoadConstruct();
 			if(construct == null) 
 			{
@@ -449,8 +448,6 @@ namespace GroundConstruction
 			}
 			Utils.SaveGame(kit.Name+"-before_launch");
 			model.gameObject.SetActive(false);
-			FXMonger.Explode(part, part.partTransform.position, 0);
-//			this.Log("launching new vessel: {}", kit.Name);//debug
 			var launch_transform = Facility == EditorFacility.VAB? 
 				spawn_transform_VAB : spawn_transform_SPH;
 			if(FlightGlobals.ready)
@@ -461,14 +458,12 @@ namespace GroundConstruction
 			                                   FlightDriver.FlightStateCache,
 			                                   new VesselCrewManifest());
 			launched_vessel = FlightGlobals.Vessels[FlightGlobals.Vessels.Count - 1];
-//			this.Log("launched vessel: {}", launched_vessel);//debug
-			while(!launched_vessel.loaded || launched_vessel.packed) yield return null;
-//			this.Log("launched vessel loaded and unpacked: {}", launched_vessel);//debug
+			while(!launched_vessel.loaded) yield return null;
+			FXMonger.Explode(part, part.partTransform.position, 0);
 			FlightGlobals.ForceSetActiveVessel(launched_vessel);
 			StageManager.BeginFlight();
 			launch_in_progress = false;
 			launched_vessel = null;
-//			this.Log("dying...");//debug
 			vessel.Die();
 		}
 		#endregion
