@@ -57,7 +57,13 @@ namespace GroundConstruction
 		[Persistent] public float MaxDistanceEfficiency     = 0.2f;
 //		[Persistent] public float MaxMetalworkPerHour       = 0.01f;
 
-		[Persistent] public float Cost2ComplexityFactor = 1e-4f;
+
+		[Persistent] public float VolumePerKerbal           = 3;
+		[Persistent] public float PartVolumeFactor          = 0.3f;
+		[Persistent] public float MinGenericEfficiency      = 0.05f;
+		[Persistent] public float MaxGenericEfficiency      = 0.5f;
+
+		[Persistent] public float ComplexityFactor = 1e-4f;
 
 		[Persistent] public float ComplexityWeight = 110;
 		[Persistent] public float MetalworkWeight  = 100;

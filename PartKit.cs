@@ -66,7 +66,7 @@ namespace GroundConstruction
 			var res_mass = +part.GetResourceMass();
 			PartMass = part.mass+res_mass;
 			PartCost = part.partInfo.cost+part.GetModuleCosts(part.partInfo.cost);
-			Complexity = 1-1/((PartCost+part.Modules.Count*1000)*GLB.Cost2ComplexityFactor+1);
+			Complexity = 1-1/((PartCost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
 			Mass = KitMass = part.mass*Complexity+res_mass;
 			var add_mass = PartMass - Mass;
 			Cost = KitCost = Mathf.Max(0, PartCost - add_mass*GLB.StructureResource.unitCost);
