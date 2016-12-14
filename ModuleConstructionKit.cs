@@ -199,6 +199,7 @@ namespace GroundConstruction
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
+			Events["Detach"].active = part.parent != null;
 			Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
 			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
 			model = part.transform.Find("model");
@@ -391,6 +392,13 @@ namespace GroundConstruction
 			DeployingSpeed = GLB.DeploymentSpeed/kit.ShipMetric.volume;
 			Utils.SaveGame(kit.Name+"-before_deployment");
 			Deploying = true;
+		}
+
+		[KSPEvent(guiName = "Detach", guiActive = true, guiActiveUnfocused = true, externalToEVAOnly = true, active = true)]
+		public void Detach()
+		{
+			Events["Detach"].active = false;
+			if(part.parent) part.decouple(2);
 		}
 		#endregion
 
