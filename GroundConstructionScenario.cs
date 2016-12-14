@@ -6,6 +6,7 @@
 //  Copyright (c) 2016 Allis Tauri
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
@@ -47,9 +48,15 @@ namespace GroundConstruction
 				{
 					State = Status.ACTIVE;
 					KitName = workshop.KitUnderConstruction.KitName;
-					if(workshop.ETA > 0) EndUT = Planetarium.GetUniversalTime()+workshop.ETA;
+					if(workshop.ETA > 0 && workshop.LastUpdateTime > 0) 
+						EndUT = workshop.LastUpdateTime+workshop.ETA;
+					if(EndUT < Planetarium.GetUniversalTime())
+						State = Status.COMPLETE;
 				}
 			}
+
+			public bool Recheck()
+			{ return FlightGlobals.FindVessel(vesselID) != null; }
 
 			public bool SwitchTo()
 			{
@@ -68,15 +75,6 @@ namespace GroundConstruction
 				return true;
 			}
 
-			public GUIStyle GetStyle()
-			{
-				if(State == Status.COMPLETE) 
-					return Styles.green;
-				if(State == Status.ACTIVE)
-					return EndUT > 0? Styles.yellow : Styles.red;
-				return Styles.white;
-			}
-
 			public override string ToString()
 			{ 
 				if(State == Status.COMPLETE)
@@ -85,12 +83,35 @@ namespace GroundConstruction
 					return string.Format("[{0}] \"{1}\" is building \"{2}\". {3}", CB, Name, KitName, ETA);
 				return string.Format("[{0}] \"{1}\" is idle.", CB, Name);
 			}
+
+			public void Draw()
+			{
+				var style = Styles.white;
+				GUIContent status = null;
+				if(State == Status.COMPLETE)
+				{
+					style = Styles.green;
+					status = new GUIContent(KitName, "Complete");
+				}
+				else if(State == Status.ACTIVE)
+				{
+					style = EndUT > 0? Styles.yellow : Styles.red;
+					status = new GUIContent(KitName, "Under construction. "+ETA);
+				}
+				GUILayout.BeginHorizontal();
+				GUILayout.Label(CB, Styles.yellow, GUILayout.Width(60));
+				GUILayout.Label(Name, Styles.white, GUILayout.ExpandWidth(true));
+				if(status != null) GUILayout.Label(status, style, GUILayout.ExpandWidth(false));
+				GUILayout.EndHorizontal();
+			}
 		}
 
 		static SortedDictionary<uint,WorkshopInfo> Workshops = new SortedDictionary<uint,WorkshopInfo>();
+		double now = -1;
 
-		public static void RegisterWorkshop(GroundWorkshop workshop)
+		public static void CheckinWorkshop(GroundWorkshop workshop)
 		{
+			if(workshop.part == null || workshop.vessel == null) return;
 			Workshops[workshop.part.flightID] = new WorkshopInfo(workshop);
 			Utils.Log("Workshop registered: {} [{}], {}, ETA: {}", 
 			          workshop.vessel.vesselName, workshop.vessel.id, 
@@ -102,19 +123,33 @@ namespace GroundConstruction
 
 		IEnumerator<YieldInstruction> slow_update()
 		{
+			var recheck = true;
 			while(true)
 			{
-				var now = Planetarium.GetUniversalTime();
+				if(recheck && FlightGlobals.Vessels != null)
+				{
+					var _workshops = new SortedDictionary<uint, WorkshopInfo>();
+					foreach(var workshop in Workshops)
+					{
+						if(workshop.Value.Recheck())
+							_workshops.Add(workshop.Key, workshop.Value);
+					}
+					Workshops = _workshops;
+					recheck = false;
+					Utils.Log("Rechecked workshops.");//debug
+				}
+				now = Planetarium.GetUniversalTime();
 				var finished = false;
 				foreach(var workshop in Workshops.Values)
 				{
-					if(workshop.State == WorkshopInfo.Status.IDLE) continue;
+					if(workshop.State != WorkshopInfo.Status.ACTIVE) continue;
 					if(workshop.EndUT > 0 && 
 					   workshop.EndUT < now)
 					{
 						Utils.Message(10, "Engineers at '{0}' should have assembled the '{1}' by now.",
 						              workshop.Name, workshop.KitName);
-						workshop.State = WorkshopInfo.Status.IDLE;
+						workshop.State = WorkshopInfo.Status.COMPLETE;
+						workshop.EndUT = -1;
 						finished = true;
 					}
 					else
@@ -123,7 +158,7 @@ namespace GroundConstruction
 							"Time left: "+KSPUtil.PrintTimeCompact(workshop.EndUT-now, false) : "Stalled...";
 					}
 				}
-				if(finished) TimeWarp.SetRate(0, false);
+				if(finished) TimeWarp.SetRate(0, !HighLogic.LoadedSceneIsFlight);
 				yield return new WaitForSeconds(1);
 			}
 		}
@@ -157,7 +192,7 @@ namespace GroundConstruction
 
 		#region GUI
 		const float width = 500;
-		const float height = 50;
+		const float height = 120;
 
 		static bool show_window;
 		public static void ShowWindow(bool show) { show_window = show; }
@@ -172,16 +207,24 @@ namespace GroundConstruction
 			{
 				workshops_scroll = GUILayout.BeginScrollView(workshops_scroll, GUILayout.Height(height), GUILayout.Width(width));
 				WorkshopInfo switchto = null;
+//				WorkshopInfo warpto = null; //TODO: implement warp to
 				foreach(var item in Workshops) 
 				{
 					var info = item.Value;
 					GUILayout.BeginHorizontal();
-					GUILayout.Label(info.ToString(), info.GetStyle(), GUILayout.ExpandWidth(true));
+					info.Draw();
+//					if(info.EndUT < now)
+//					{
+//						if(GUILayout.Button(new GUIContent("Warp", "Warp to the end of construction"), 
+//						                    Styles.active_button, GUILayout.ExpandWidth(false)))
+//							warpto = info;
+//					}
 					if(GUILayout.Button(new GUIContent("Focus", "Switch to this workshop"), 
-					                    Styles.active_button, GUILayout.ExpandWidth(false)))
+					                    Styles.enabled_button, GUILayout.ExpandWidth(false)))
 						switchto = info;
 					GUILayout.EndHorizontal();
 				}
+//				if(warpto != null) pass
 				if(switchto != null) 
 				{
 					if(!switchto.SwitchTo()) 

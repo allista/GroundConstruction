@@ -73,6 +73,7 @@ namespace GroundConstruction
 			{
 				var kit_vsl = FlightGlobals.FindVessel(vesselID);
 				Module = kit_vsl == null? null : GetKitFromVessel(kit_vsl);
+				Utils.Log("FindKit: vsl {}, module {}, valid {}", kit_vsl, Module, ModuleValid);//debug
 				return Module;
 			}
 
@@ -89,6 +90,8 @@ namespace GroundConstruction
 			}
 		}
 
+		[KSPField] public bool AutoEfficiency;
+		[KSPField] public float Efficiency = 1;
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
@@ -98,6 +101,12 @@ namespace GroundConstruction
 
 		float workers = 0;
 		float distance_mod = -1;
+
+		public override string GetInfo()
+		{ 
+			if(AutoEfficiency) compute_part_efficiency();
+			return Efficiency.Equals(0)? "" : string.Format("Efficiency: {0:P}", Efficiency);
+		}
 
 		public override void OnAwake()
 		{
@@ -117,14 +126,48 @@ namespace GroundConstruction
 		}
 
 		void onGameStateSave(ConfigNode node)
-		{ GroundConstructionScenario.RegisterWorkshop(this); }
+		{ GroundConstructionScenario.CheckinWorkshop(this); }
+
+		public override void OnSave(ConfigNode node)
+		{
+			base.OnSave(node);
+			node.AddValue("WindowPos", new Vector4(WindowPos.x, WindowPos.y, WindowPos.width, WindowPos.height));
+		}
+
+		public override void OnLoad(ConfigNode node)
+		{
+			base.OnLoad(node);
+			var wpos = node.GetValue("WindowPos");
+			if(wpos != null)
+			{
+				var vpos = ConfigNode.ParseVector4(wpos);
+				WindowPos = new Rect(vpos.x, vpos.y, vpos.z, vpos.w);
+			}
+		}
+
 
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
 			LockName = "GroundWorkshop"+GetInstanceID();
-			update_workers();
-			GroundConstructionScenario.RegisterWorkshop(this);
+			if(AutoEfficiency) compute_part_efficiency();
+			if(Efficiency.Equals(0)) this.EnableModule(false);
+			else
+			{
+				update_workers();
+				GroundConstructionScenario.CheckinWorkshop(this);
+			}
+		}
+
+		void compute_part_efficiency()
+		{
+			Efficiency = 0;
+			if(part.CrewCapacity == 0) return;
+			var usefull_volume = (Metric.HullVolume(part)-part.mass)*GLB.PartVolumeFactor;
+			if(usefull_volume <= 0) return;
+			Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency, 
+			                        Mathf.Min(usefull_volume/part.CrewCapacity/GLB.VolumePerKerbal, 1));
+			if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
 		}
 
 		void update_queue()
@@ -173,6 +216,7 @@ namespace GroundConstruction
 				worker *= trait.CrewMemberExperienceLevel();
 				workers += worker;
 			}
+			workers *= Efficiency;
 			this.Log("workers: {}", workers);//debug
 		}
 
@@ -193,16 +237,11 @@ namespace GroundConstruction
 				Utils.Message("Cannot construct while mooving.");
 				return false;
 			}
-			if(vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
-			{
-				Utils.Message("Cannot construct while rotating.");
-				return false;
-			}
 			return true;
 		}
 
 		float dist2target(KitInfo kit)
-		{ return (kit.Module.vessel.vesselTransform.position-vessel.vesselTransform.position).magnitude; }
+		{ return (kit.Module.vessel.transform.position-vessel.transform.position).magnitude; }
 
 		void update_distance_mod()
 		{
@@ -219,6 +258,8 @@ namespace GroundConstruction
 			update_distance_mod();
 			if(workers > 0 && distance_mod > 0)
 			{
+				if(LastUpdateTime < 0) 
+					LastUpdateTime = Planetarium.GetUniversalTime();
 				ETA = KitUnderConstruction.Kit.WorkLeft;
 				if(KitUnderConstruction.Kit.PartUnderConstruction != null)
 					ETA -= KitUnderConstruction.Kit.PartUnderConstruction.WorkDone;
@@ -236,6 +277,7 @@ namespace GroundConstruction
 
 		void Update()
 		{
+			if(Time.timeSinceLevelLoad < 3) return;
 			if(Working && KitUnderConstruction.ModuleValid) 
 			{
 				if(can_construct()) update_ETA();
@@ -251,10 +293,8 @@ namespace GroundConstruction
 		void start()
 		{
 			Working = true;
-			distance_mod = -1;
-			LastUpdateTime = -1;
-			update_ETA();
-			GroundConstructionScenario.RegisterWorkshop(this);
+			if(KitUnderConstruction.Recheck()) update_ETA();
+			GroundConstructionScenario.CheckinWorkshop(this);
 		}
 
 		void stop()
@@ -262,11 +302,13 @@ namespace GroundConstruction
 			Working = false;
 			distance_mod = -1;
 			LastUpdateTime = -1;
-			GroundConstructionScenario.RegisterWorkshop(this);
+			GroundConstructionScenario.CheckinWorkshop(this);
 		}
 
 		bool start_next_kit()
 		{
+			this.Log("Starting next kit. Queue: {}", Queue);//debug
+			KitUnderConstruction = new KitInfo();
 			if(Queue.Count > 0)
 			{
 				while(Queue.Count > 0 && !KitUnderConstruction.ModuleValid)
@@ -276,6 +318,7 @@ namespace GroundConstruction
 				}
 				if(KitUnderConstruction.ModuleValid) 
 				{
+					this.Log("Next kit found: {}", KitUnderConstruction);//debug
 					start();
 					return true;
 				}
@@ -301,9 +344,9 @@ namespace GroundConstruction
 			var required_res = KitUnderConstruction.Module.RequiredMass(ref work, out required_ec)/GLB.StructureResource.density;
 			var have_res = part.RequestResource(GLB.StructureResourceID, required_res);
 			this.Log("work left {}, work {}, n.res {}, n.EC {}", KitUnderConstruction.Kit.WorkLeft, work, required_res, required_ec);//debug
-			if(have_res.Equals(0)) 
+			if(required_res > 0 && have_res.Equals(0)) 
 			{
-				Utils.Message("Not enough {0}. Construction of {0} was put on hold.", 
+				Utils.Message("Not enough {0}. Construction of {1} was put on hold.", 
 				              GLB.StructureResourceName, KitUnderConstruction.KitName);
 				stop();
 				return 0;
@@ -320,8 +363,10 @@ namespace GroundConstruction
 			//do the work, if any
 			have_res *= have_ec/required_ec;
 			work *= have_res/required_res;
-			this.Log("work {}, res {}/{}, EC {}/{}", work, have_res, required_res, have_ec, required_ec);//debug
 			KitUnderConstruction.Module.DoSomeWork(work);
+			this.Log("completeness {}, work {}, res {}/{}, EC {}/{}", 
+			         KitUnderConstruction.Module.Completeness,
+			         work, have_res, required_res, have_ec, required_ec);//debug
 			if(KitUnderConstruction.Module.Completeness >= 1)
 				start_next_kit();
 			//return unused structure resource
@@ -340,13 +385,20 @@ namespace GroundConstruction
 			//check current kit
 			if(!KitUnderConstruction.Recheck() && !start_next_kit()) return;
 			var available_work = workers*deltaTime;
-			while(Working && available_work > 0)
+			this.Log("work available {}", available_work);
+			while(Working && available_work > TimeWarp.fixedDeltaTime/10)
 				available_work = DoSomeWork(available_work);
+			if(deltaTime > TimeWarp.fixedDeltaTime*2)
+			{
+				update_ETA();
+				GroundConstructionScenario.CheckinWorkshop(this);
+			}
 		}
 
 		double GetDeltaTime()
 		{
 			if(Time.timeSinceLevelLoad < 1 || !FlightGlobals.ready) return -1;
+			this.Log("LastUpdateTime: {}", LastUpdateTime);//debug
 			if(LastUpdateTime < 0)
 			{
 				LastUpdateTime = Planetarium.GetUniversalTime();
@@ -390,7 +442,7 @@ namespace GroundConstruction
 
 		[KSPField(isPersistant = true)] public bool show_window;
 		const float width = 500;
-		const float height = 50;
+		const float height = 60;
 
 		[KSPEvent(guiName = "Construction Window", guiActive = true, active = true)]
 		public void ToggleConstructionWindow()
@@ -398,11 +450,6 @@ namespace GroundConstruction
 
 		void info_pane()
 		{
-			if(KitUnderConstruction.ModuleValid || Queue.Count > 0)
-			{
-				if(Utils.ButtonSwitch("Process the Queue", ref Working, "", GUILayout.ExpandWidth(true)))
-				{ Working &= can_construct(); }
-			}
 			if(KitUnderConstruction.ModuleValid) 
 			{
 				GUILayout.BeginVertical(Styles.white);
@@ -416,7 +463,7 @@ namespace GroundConstruction
 						GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
 					GUILayout.Label(ETA_Display, Styles.boxed_label, GUILayout.ExpandWidth(true));
                 }
-				if(GUILayout.Button("Move back to the Queue", 
+				if(GUILayout.Button(new GUIContent("Stop", " And move back to the Queue"), 
 				                    Styles.danger_button, GUILayout.ExpandWidth(true)))
 				{
 					if(Queue.Count == 0) stop();
@@ -426,6 +473,14 @@ namespace GroundConstruction
 				GUILayout.EndVertical();
 			}
 			else GUILayout.Label("Nothing is under construction now.", Styles.boxed_label, GUILayout.ExpandWidth(true));
+			if(KitUnderConstruction.ModuleValid || Queue.Count > 0)
+			{
+				if(Utils.ButtonSwitch("Construct Kit", ref Working, "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
+				{ 
+					if(Working && can_construct()) start(); 
+					else stop();
+				}
+			}
 		}
 
 		Vector2 queue_scroll = Vector2.zero;
@@ -540,6 +595,7 @@ namespace GroundConstruction
 		string LockName = ""; //inited OnStart
 		void OnGUI()
 		{
+			if(Time.timeSinceLevelLoad < 3) return;
 			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
 			if(show_window && GUIWindowBase.HUD_enabled && vessel.isActiveVessel)
 			{
