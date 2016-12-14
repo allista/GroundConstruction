@@ -113,9 +113,9 @@ namespace GroundConstruction
 		{
 			if(workshop.part == null || workshop.vessel == null) return;
 			Workshops[workshop.part.flightID] = new WorkshopInfo(workshop);
-			Utils.Log("Workshop registered: {} [{}], {}, ETA: {}", 
-			          workshop.vessel.vesselName, workshop.vessel.id, 
-			          workshop.KitUnderConstruction.KitName, workshop.ETA); //debug
+//			Utils.Log("Workshop registered: {} [{}], {}, ETA: {}", 
+//			          workshop.vessel.vesselName, workshop.vessel.id, 
+//			          workshop.KitUnderConstruction.KitName, workshop.ETA); //debug
 		}
 
 		public static bool DeregisterWorkshop(GroundWorkshop workshop)
@@ -136,7 +136,6 @@ namespace GroundConstruction
 					}
 					Workshops = _workshops;
 					recheck = false;
-					Utils.Log("Rechecked workshops.");//debug
 				}
 				now = Planetarium.GetUniversalTime();
 				var finished = false;

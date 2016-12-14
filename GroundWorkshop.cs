@@ -73,7 +73,7 @@ namespace GroundConstruction
 			{
 				var kit_vsl = FlightGlobals.FindVessel(vesselID);
 				Module = kit_vsl == null? null : GetKitFromVessel(kit_vsl);
-				Utils.Log("FindKit: vsl {}, module {}, valid {}", kit_vsl, Module, ModuleValid);//debug
+//				Utils.Log("FindKit: vsl {}, module {}, valid {}", kit_vsl, Module, ModuleValid);//debug
 				return Module;
 			}
 
@@ -217,7 +217,7 @@ namespace GroundConstruction
 				workers += worker;
 			}
 			workers *= Efficiency;
-			this.Log("workers: {}", workers);//debug
+//			this.Log("workers: {}", workers);//debug
 		}
 
 		bool can_construct()
@@ -249,7 +249,7 @@ namespace GroundConstruction
 			if(dist > GLB.MaxDistanceToWorkshop) distance_mod = 0;
 			else distance_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency, 
 			                               Mathf.Max((dist-GLB.MinDistanceToWorkshop)/GLB.MaxDistanceToWorkshop, 0));
-			this.Log("dist: {}, mod {}", dist, distance_mod);//debug
+//			this.Log("dist: {}, mod {}", dist, distance_mod);//debug
 		}
 
 		void update_ETA()
@@ -266,7 +266,7 @@ namespace GroundConstruction
 				if(ETA < 0) ETA = 0;
 				ETA /= workers*distance_mod;
 				ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
-				this.Log(ETA_Display);//debug
+//				this.Log(ETA_Display);//debug
 			}
 			else 
 			{
@@ -307,7 +307,7 @@ namespace GroundConstruction
 
 		bool start_next_kit()
 		{
-			this.Log("Starting next kit. Queue: {}", Queue);//debug
+//			this.Log("Starting next kit. Queue: {}", Queue);//debug
 			KitUnderConstruction = new KitInfo();
 			if(Queue.Count > 0)
 			{
@@ -318,7 +318,7 @@ namespace GroundConstruction
 				}
 				if(KitUnderConstruction.ModuleValid) 
 				{
-					this.Log("Next kit found: {}", KitUnderConstruction);//debug
+//					this.Log("Next kit found: {}", KitUnderConstruction);//debug
 					start();
 					return true;
 				}
@@ -343,7 +343,7 @@ namespace GroundConstruction
 			double required_ec;
 			var required_res = KitUnderConstruction.Module.RequiredMass(ref work, out required_ec)/GLB.StructureResource.density;
 			var have_res = part.RequestResource(GLB.StructureResourceID, required_res);
-			this.Log("work left {}, work {}, n.res {}, n.EC {}", KitUnderConstruction.Kit.WorkLeft, work, required_res, required_ec);//debug
+//			this.Log("work left {}, work {}, n.res {}, n.EC {}", KitUnderConstruction.Kit.WorkLeft, work, required_res, required_ec);//debug
 			if(required_res > 0 && have_res.Equals(0)) 
 			{
 				Utils.Message("Not enough {0}. Construction of {1} was put on hold.", 
@@ -364,15 +364,15 @@ namespace GroundConstruction
 			have_res *= have_ec/required_ec;
 			work *= have_res/required_res;
 			KitUnderConstruction.Module.DoSomeWork(work);
-			this.Log("completeness {}, work {}, res {}/{}, EC {}/{}", 
-			         KitUnderConstruction.Module.Completeness,
-			         work, have_res, required_res, have_ec, required_ec);//debug
+//			this.Log("completeness {}, work {}, res {}/{}, EC {}/{}", 
+//			         KitUnderConstruction.Module.Completeness,
+//			         work, have_res, required_res, have_ec, required_ec);//debug
 			if(KitUnderConstruction.Module.Completeness >= 1)
 				start_next_kit();
 			//return unused structure resource
 			if(have_res < required_res)
 				part.RequestResource(GLB.StructureResourceID, have_res-required_res);
-			this.Log("work still available {}", available_work-work/distance_mod);
+//			this.Log("work still available {}", available_work-work/distance_mod);//debug
 			return available_work-work/distance_mod;
 		}
 
@@ -380,12 +380,12 @@ namespace GroundConstruction
 		{
 			if(!HighLogic.LoadedSceneIsFlight || !Working || workers.Equals(0)) return;
 			var deltaTime = GetDeltaTime();
-			this.Log("deltaTime: {}, fixedDeltaTime {}", deltaTime, TimeWarp.fixedDeltaTime);//debug
+//			this.Log("deltaTime: {}, fixedDeltaTime {}", deltaTime, TimeWarp.fixedDeltaTime);//debug
 			if(deltaTime < 0) return;
 			//check current kit
 			if(!KitUnderConstruction.Recheck() && !start_next_kit()) return;
 			var available_work = workers*deltaTime;
-			this.Log("work available {}", available_work);
+//			this.Log("work available {}", available_work);
 			while(Working && available_work > TimeWarp.fixedDeltaTime/10)
 				available_work = DoSomeWork(available_work);
 			if(deltaTime > TimeWarp.fixedDeltaTime*2)
@@ -398,7 +398,7 @@ namespace GroundConstruction
 		double GetDeltaTime()
 		{
 			if(Time.timeSinceLevelLoad < 1 || !FlightGlobals.ready) return -1;
-			this.Log("LastUpdateTime: {}", LastUpdateTime);//debug
+//			this.Log("LastUpdateTime: {}", LastUpdateTime);//debug
 			if(LastUpdateTime < 0)
 			{
 				LastUpdateTime = Planetarium.GetUniversalTime();
