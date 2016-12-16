@@ -163,7 +163,7 @@ namespace GroundConstruction
 		{
 			Efficiency = 0;
 			if(part.CrewCapacity == 0) return;
-			var usefull_volume = (Metric.HullVolume(part)-part.mass)*GLB.PartVolumeFactor;
+			var usefull_volume = (Metric.Volume(part)-part.mass)*GLB.PartVolumeFactor;
 			if(usefull_volume <= 0) return;
 			Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency, 
 			                        Mathf.Min(usefull_volume/part.CrewCapacity/GLB.VolumePerKerbal, 1));
