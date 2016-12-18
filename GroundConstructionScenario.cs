@@ -121,24 +121,29 @@ namespace GroundConstruction
 		public static bool DeregisterWorkshop(GroundWorkshop workshop)
 		{ return Workshops.Remove(workshop.part.flightID); }
 
+		bool reckeck_workshops()
+		{
+			if(FlightGlobals.Vessels != null && FlightGlobals.Vessels.Count > 0)
+			{
+				var _workshops = new SortedDictionary<uint, WorkshopInfo>();
+				foreach(var workshop in Workshops)
+				{
+					if(workshop.Value.Recheck())
+						_workshops.Add(workshop.Key, workshop.Value);
+				}
+				Workshops = _workshops;
+				return true;
+			}
+			return false;
+		}
+
 		IEnumerator<YieldInstruction> slow_update()
 		{
-			var recheck = true;
 			while(true)
 			{
-				if(recheck && FlightGlobals.Vessels != null)
-				{
-					var _workshops = new SortedDictionary<uint, WorkshopInfo>();
-					foreach(var workshop in Workshops)
-					{
-						if(workshop.Value.Recheck())
-							_workshops.Add(workshop.Key, workshop.Value);
-					}
-					Workshops = _workshops;
-					recheck = false;
-				}
-				now = Planetarium.GetUniversalTime();
+				reckeck_workshops();
 				var finished = false;
+				now = Planetarium.GetUniversalTime();
 				foreach(var workshop in Workshops.Values)
 				{
 					if(workshop.State != WorkshopInfo.Status.ACTIVE) continue;
