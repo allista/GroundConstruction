@@ -453,10 +453,11 @@ namespace GroundConstruction
 			if(KitUnderConstruction.ModuleValid) 
 			{
 				GUILayout.BeginVertical(Styles.white);
-				GUILayout.Label("Constructing: "+KitUnderConstruction.KitName, Styles.green, GUILayout.ExpandWidth(true));
-				GUILayout.Label(KitUnderConstruction.Module.KitStatus, Styles.fracStyle(KitUnderConstruction.Module.Completeness), GUILayout.ExpandWidth(true));
+				var label = (Working? "Constructing: " : "Paused: ")+KitUnderConstruction.KitName;
+				GUILayout.Label(label, Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
+				GUILayout.Label(KitUnderConstruction.Module.KitStatus, Styles.white, GUILayout.ExpandWidth(true));
 				if(KitUnderConstruction.Module.Completeness < 1)
-					GUILayout.Label(KitUnderConstruction.Module.PartStatus, Styles.fracStyle(KitUnderConstruction.Module.PartCompleteness), GUILayout.ExpandWidth(true));
+					GUILayout.Label(KitUnderConstruction.Module.PartStatus, Styles.white, GUILayout.ExpandWidth(true));
 				if(Working)
 				{
 					if(distance_mod < 1)
