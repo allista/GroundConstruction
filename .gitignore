@@ -8,3 +8,4 @@ bin
 obj
 Assets/**/*.png
 /Assets/src/stk59gms-02.jpg
+/Releases
