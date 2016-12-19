@@ -40,8 +40,8 @@ namespace GroundConstruction
 	{
 		public ModInfo()
 		{
-			MinKSPVersion = new Version(1,2,1);
-			MaxKSPVersion = new Version(1,2,1);
+			MinKSPVersion = new Version(1,2,2);
+			MaxKSPVersion = new Version(1,2,2);
 
 			VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
 			UpgradeURL   = "https://github.com/allista/GroundConstruction/releases";
