@@ -19,7 +19,7 @@ This mod allows you to build any vessel directly on a surface of any planet from
 
 ## Downloads
 
-* [**Spacedock**]() is the main download site for releases
+* [**Spacedock**](http://spacedock.info/mod/1123/Ground%20Construction) is the main download site for releases
 * [GitHub](https://github.com/allista/GroundConstruction) have sources (MIT), assets (CCBY-4.0) and also releases
 * CKAN is supported
 
