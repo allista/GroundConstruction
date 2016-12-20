@@ -1,0 +1,40 @@
+{
+    "spec_version" : "v1.4",
+    "identifier"   : "GroundConstruction",
+    "$kref"        : "#/ckan/spacedock/1123",
+    "$vref"        : "#/ckan/ksp-avc",
+    "abstract"     : "Build vessels directly on another planet using light-weight kits of high-tech components, with energy and raw materials produced on-site from Ore.",
+    "author"       : [ "allista" ],
+    "license"      : "MIT",
+
+    "resources":
+    {
+    	"homepage"     : "http://forum.kerbalspaceprogram.com/index.php?/topic/80225-12-hangar",
+        "bugtracker"   : "https://github.com/allista/GroundConstruction/issues",
+        "repository"   : "https://github.com/allista/GroundConstruction",
+    },
+
+    "depends":
+    [
+        { "name": "ModuleManager" },
+        { "name": "AT-Utils" },
+        { "name": "ConfigurableContainers-Core" },
+        { "name": "CommunityResourcePack" }
+    ],
+
+    "suggests":
+    [
+        { "name": "ThrottleControlledAvionics" },
+        { "name": "ConfigurableContainers" },
+        { "name": "Hangar" },
+        { "name": "KSP-AVC" }
+    ],
+
+    "install":
+    [
+        {
+            "file": "GameData/GroundConstruction",
+            "install_to": "GameData"
+        }
+    ]
+}
