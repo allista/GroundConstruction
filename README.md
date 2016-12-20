@@ -10,6 +10,7 @@ This mod allows you to build any vessel directly on a surface of any planet from
 * Build anywhere on the surface: the assembled ship will appear right where you've placed the Kit.
 * No complex logistics, no special production parts required: all you need is a habitable compartment with enough space, raw materials and qualified kerbal personnel.
 * Background operation: fly other missions while construction takes place on a far-away planet. Days, even weeks may be required to build something complex, but you don't have to babysit your workers.
+* Centralized UI for progress trakcing and fast switching to construction sites.
 
 ## Requirements
 
