@@ -55,6 +55,8 @@ namespace GroundConstruction
 
 		[Persistent] public float Complexity; //fraction
 
+		public float MassLeft { get { return PartMass-Mass; } }
+
 		public PartKit() {}
 
 		public PartKit(Part part)
@@ -71,6 +73,7 @@ namespace GroundConstruction
 			var add_mass = PartMass - Mass;
 			Cost = KitCost = Mathf.Max(0, PartCost - add_mass*GLB.StructureResource.unitCost);
 			TotalWork = (Complexity*GLB.ComplexityWeight + add_mass*GLB.MetalworkWeight)*3600;
+//			Utils.Log("{}: complexity {}, KitMass {}/{} = {}", part, Complexity, KitMass, PartMass, KitMass/PartMass);//debug
 		}
 
 		public override double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
