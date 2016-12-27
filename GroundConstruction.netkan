@@ -27,6 +27,8 @@
         { "name": "ThrottleControlledAvionics" },
         { "name": "ConfigurableContainers" },
         { "name": "Hangar" },
+        { "name": "KIS" },
+        { "name": "KAS" },
         { "name": "KSP-AVC" }
     ],
 
