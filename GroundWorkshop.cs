@@ -77,13 +77,26 @@ namespace GroundConstruction
 				return Module;
 			}
 
+			public string StructureStatus
+			{
+				get
+				{
+					return Module.kit.WorkLeft > 0? 
+						string.Format("Reqires: {0:F1} {1}", 
+						              Module.kit.StructureLeft, GLB.StructureResourceName) : "";
+				}
+			}
+
 			public override string ToString()
 			{
 				var s = string.Format("\"{0}\"", KitName);
 				if(ModuleValid)
 				{
 					s += Module.kit.WorkLeft > 0? 
-						string.Format(" needs {0:F1} SKH, {1}", Module.kit.WorkLeft/3600, Module.KitStatus) : 
+						string.Format(" needs: {0:F1} {1}, {2:F1} SKH. {3}", 
+						              Module.kit.StructureLeft, GLB.StructureResourceName,
+						              Module.kit.WorkLeft/3600, 
+						              Module.KitStatus) : 
 						" Complete.";
 				}
 				return s;
@@ -91,7 +104,9 @@ namespace GroundConstruction
 		}
 
 		[KSPField] public bool AutoEfficiency;
-		[KSPField] public float Efficiency = 1;
+		[KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "P1")] 
+		public float Efficiency = 1;
+
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
@@ -368,7 +383,10 @@ namespace GroundConstruction
 //			         KitUnderConstruction.Module.Completeness,
 //			         work, have_res, required_res, have_ec, required_ec);//debug
 			if(KitUnderConstruction.Module.Completeness >= 1)
+			{
+				KitUnderConstruction.Module.AllowLaunch();
 				start_next_kit();
+			}
 			//return unused structure resource
 			if(have_res < required_res)
 				part.RequestResource(GLB.StructureResourceID, have_res-required_res);
@@ -410,14 +428,11 @@ namespace GroundConstruction
 			return dT;
 		}
 
-		#region Resource Transfer
-		bool transfer_resources;
-		readonly ResourceManifestList transfer_list = new ResourceManifestList();
-		VesselResources host_resources, kit_resources;
+		#region Target Actions
 		KitInfo target_kit;
-
-		void setup_resource_transfer(KitInfo target)
+		void check_target_kit(KitInfo target)
 		{
+			target_kit = null;
 			if(!target.Recheck()) return;
 			if(dist2target(target) > GLB.MaxDistanceToWorkshop)
 			{
@@ -426,6 +441,18 @@ namespace GroundConstruction
 				return;
 			}
 			target_kit = target;
+		}
+		#endregion
+
+		#region Resource Transfer
+		bool transfer_resources;
+		readonly ResourceManifestList transfer_list = new ResourceManifestList();
+		VesselResources host_resources, kit_resources;
+
+		void setup_resource_transfer(KitInfo target)
+		{
+			check_target_kit(target);
+			if(target_kit == null) return;
 			host_resources = new VesselResources(vessel);
 			kit_resources = target_kit.Module.GetConstructResources();
 			transfer_list.NewTransfer(host_resources, kit_resources);
@@ -437,11 +464,27 @@ namespace GroundConstruction
 		}
 		#endregion
 
+		#region Resource Transfer
+		bool transfer_crew;
+		int kit_crew_capacity;
+
+		void setup_crew_transfer(KitInfo target)
+		{
+			check_target_kit(target);
+			if(target_kit == null) return;
+			target_kit.Module.CrewSource = vessel;
+			target_kit.Module.KitCrew = new List<ProtoCrewMember>();
+			kit_crew_capacity = target_kit.Module.KitCrewCapacity();
+			transfer_crew = true;
+		}
+		#endregion
+
 		#region GUI
 		readonly ResourceTransferWindow resources_window = new ResourceTransferWindow();
+		readonly CrewTransferWindow crew_window = new CrewTransferWindow();
 
 		[KSPField(isPersistant = true)] public bool show_window;
-		const float width = 500;
+		const float width = 550;
 		const float height = 60;
 
 		[KSPEvent(guiName = "Construction Window", guiActive = true, active = true)]
@@ -455,7 +498,11 @@ namespace GroundConstruction
 				GUILayout.BeginVertical(Styles.white);
 				var label = (Working? "Constructing: " : "Paused: ")+KitUnderConstruction.KitName;
 				GUILayout.Label(label, Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
+				GUILayout.BeginHorizontal();
+				if(KitUnderConstruction.Module.Completeness < 1)
+					GUILayout.Label(KitUnderConstruction.StructureStatus, Styles.white, GUILayout.ExpandWidth(true));
 				GUILayout.Label(KitUnderConstruction.Module.KitStatus, Styles.white, GUILayout.ExpandWidth(true));
+				GUILayout.EndHorizontal();
 				if(KitUnderConstruction.Module.Completeness < 1)
 					GUILayout.Label(KitUnderConstruction.Module.PartStatus, Styles.white, GUILayout.ExpandWidth(true));
 				if(Working)
@@ -520,6 +567,7 @@ namespace GroundConstruction
 			GUILayout.Label("Complete DIY kits nearby:", GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
+			KitInfo crew = null;
 			KitInfo resources = null;
 			KitInfo launch = null;
 			foreach(var info in nearby_built_kits)
@@ -529,6 +577,9 @@ namespace GroundConstruction
 				if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"), 
 				                    Styles.active_button, GUILayout.ExpandWidth(false)))
 					resources = info;
+				if(GUILayout.Button(new GUIContent("Crew", "Select crew for the assembled vessel"), 
+				                    Styles.active_button, GUILayout.ExpandWidth(false)))
+					crew = info;
 				if(GUILayout.Button(new GUIContent("Launch", "Launch assembled vessel"), 
 				                    Styles.danger_button, GUILayout.ExpandWidth(false)))
 					launch = info;
@@ -536,6 +587,8 @@ namespace GroundConstruction
 			}
 			if(resources != null) 
 				setup_resource_transfer(resources);
+			if(crew != null)
+				setup_crew_transfer(crew);
 			if(launch != null && launch.Recheck())
 				launch.Module.Launch();
 			GUILayout.EndScrollView();
@@ -561,9 +614,7 @@ namespace GroundConstruction
 					                    Styles.enabled_button, GUILayout.ExpandWidth(false)))
 						add = info;
 				}
-				else if(info.Module.Deploying)
-					GUILayout.Label(info.Module.KitStatus, GUILayout.ExpandWidth(false));
-				else
+				else if(!info.Module.Deploying)
 				{
 					if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"), 
 					                    Styles.active_button, GUILayout.ExpandWidth(false)))
@@ -606,27 +657,37 @@ namespace GroundConstruction
 				                             WindowPos, main_window, part.partInfo.title,
 				                             GUILayout.Width(width),
 				                             GUILayout.Height(height)).clampToScreen();
-				if(transfer_resources)
+				if(target_kit != null && target_kit.Recheck())
 				{
-					resources_window.Draw(string.Format("Transfer resources to {0}", target_kit.KitName), transfer_list);
-					if(resources_window.transferNow && target_kit.Recheck())
+					if(transfer_resources)
 					{
-						double dM, dC;
-						transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
-						target_kit.Kit.Mass += (float)dM;
-						target_kit.Kit.Cost += (float)dC;
+						resources_window.Draw(string.Format("Transfer resources to {0}", target_kit.KitName), transfer_list);
+						if(resources_window.transferNow && target_kit.Recheck())
+						{
+							double dM, dC;
+							transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
+							target_kit.Kit.Mass += (float)dM;
+							target_kit.Kit.Cost += (float)dC;
+						}
+						transfer_resources = !resources_window.Closed;
 					}
-					if(resources_window.Closed)
+					if(transfer_crew)
 					{
-						resources_window.UnlockControls();
-						transfer_resources = false;
+						crew_window.Draw(vessel.GetVesselCrew(), target_kit.Module.KitCrew, kit_crew_capacity);
+						transfer_crew = !crew_window.Closed;
 					}
+				}
+				else
+				{
+					resources_window.UnlockControls();
+					crew_window.UnlockControls();
 				}
 			}
 			else
 			{
 				Utils.LockIfMouseOver(LockName, WindowPos, false);
 				resources_window.UnlockControls();
+				crew_window.UnlockControls();
 			}
 		}
 		#endregion
