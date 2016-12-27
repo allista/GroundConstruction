@@ -1,7 +1,6 @@
 UseStockAppLauncher = true
 
 StructureResourceName = Metals
-KeepResources = SolidFuel, Ablator, EnrichedUranium, Plutonium-238, Uraninite, UraniumNitride, UF4, ThF4, Actinides
 
 EnergyForMetalwork        = 100
 WorkshopShutdownThreshold = 0.99

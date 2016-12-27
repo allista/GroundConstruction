@@ -27,7 +27,7 @@ namespace GroundConstruction
 		}
 		public int StructureResourceID { get { return StructureResource.id; } }
 
-		[Persistent] public string KeepResources = "SolidFuel, Ablator";
+		const string RESOURCES_NODE = "GC_KIT_RESOURCES";
 		HashSet<int> keep_res_ids;
 		public HashSet<int> KeepResourcesIDs
 		{
@@ -36,11 +36,14 @@ namespace GroundConstruction
 				if(keep_res_ids == null)
 				{
 					keep_res_ids = new HashSet<int>();
-					var names = Utils.ParseLine(KeepResources, Utils.Comma);
-					foreach(var n in names)
+					var nodes = GameDatabase.Instance.GetConfigNodes(RESOURCES_NODE);
+					foreach(var node in nodes)
 					{
-						var res = PartResourceLibrary.Instance.GetDefinition(n);
-						if(res != null) keep_res_ids.Add(res.id);
+						foreach(ConfigNode.Value val in node.values)
+						{
+							var res = PartResourceLibrary.Instance.GetDefinition(val.value);
+							if(res != null) keep_res_ids.Add(res.id);
+						}
 					}
 				}
 				return keep_res_ids;
