@@ -10,6 +10,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.UI;
 using KSP.UI.Screens;
 using AT_Utils;
 
@@ -20,10 +21,10 @@ namespace GroundConstruction
 		static Globals GLB { get { return Globals.Instance; } }
 
 		Transform model;
-		Transform spawn_transform_VAB;
-		Transform spawn_transform_SPH;
-		[KSPField] public string SpawnTransformVAB;
-		[KSPField] public string SpawnTransformSPH;
+		List<Transform> spawn_transforms;
+		[KSPField] public string SpawnTransforms;
+
+//		[KSPField] public string DetachableNode;
 
 		TextureSwitcherServer texture_switcher;
 		[KSPField] public string TextureVAB;
@@ -74,6 +75,10 @@ namespace GroundConstruction
 			if(Completeness < 1) return null;
 			return new VesselResources(kit.Blueprint);
 		}
+
+		public Vessel CrewSource;
+		public List<ProtoCrewMember> KitCrew;
+		public int KitCrewCapacity() { return kit.CrewCapacity(); }
 		#endregion
 
 		#region Anchor
@@ -188,23 +193,43 @@ namespace GroundConstruction
 			}
 		}
 
-		void setup_transform(string transform_name, out Transform T)
+		Transform get_spawn_transform()
 		{
-			T = null;
-			if(!string.IsNullOrEmpty(transform_name))
-				T = part.FindModelTransform(transform_name);
-			if(T == null) T = part.transform;
+			Transform minT = null;
+			var alt = double.MaxValue;
+			foreach(var T in spawn_transforms)
+			{
+				var t_alt = vessel.mainBody.GetAltitude(T.position)-vessel.mainBody.TerrainAltitude(T.position);
+				if(t_alt < alt) { alt = t_alt; minT = T; }
+			}
+			return minT;
 		}
+
+//		Part get_part_to_detach()
+//		{
+//			if(string.IsNullOrEmpty(DetachableNode)) return null;
+//			var an = part.FindAttachNode(DetachableNode);
+//			return an == null? null : an.attachedPart;
+//		}
 
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
-			Events["Detach"].active = part.parent != null;
+//			Events["Detach"].active = get_part_to_detach() != null;
 			Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
 			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
+			update_unfocusedRange("Deploy", "Launch");
 			model = part.transform.Find("model");
-			setup_transform(SpawnTransformVAB, out spawn_transform_VAB);
-			setup_transform(SpawnTransformSPH, out spawn_transform_SPH);
+			spawn_transforms = new List<Transform>();
+			if(!string.IsNullOrEmpty(SpawnTransforms))
+			{
+				foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
+				{
+					var transforms = part.FindModelTransforms(t);
+					if(transforms == null || transforms.Length == 0) continue;
+					spawn_transforms.AddRange(transforms);
+				}
+			}
 			if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
 				texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
 		}
@@ -237,6 +262,14 @@ namespace GroundConstruction
 			{
 				if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
 					attach_anchor();
+				#if DEBUG
+//				if(kit.Completeness < 1)//debug
+//				{
+//					kit.DoSomeWork(125*TimeWarp.deltaTime);
+//					if(kit.Completeness >= 1)
+//						AllowLaunch();
+//				}
+				#endif
 			}
 			else if(Deploying)
 			{
@@ -271,7 +304,7 @@ namespace GroundConstruction
 			KitMass = kit.Mass;
 			KitCost = kit.Cost;
 			var V = OrigSize.x*OrigSize.y*OrigSize.z;
-			Size = OrigSize * Mathf.Pow(V/kit.Mass*GLB.VesselKitDensity, 1/3f);
+			Size = OrigSize * Mathf.Pow(kit.Mass/GLB.VesselKitDensity/V, 1/3f);
 			Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
 			Facility = construct.shipFacility;
 			update_texture();
@@ -297,13 +330,6 @@ namespace GroundConstruction
 				Utils.Message("Unable to load {0}", filename);
 				return;
 			}
-			//check if the construct contains launch clamps
-//			if(construct.HasLaunchClamp())
-//			{
-//				Utils.Message("\"{0}\" has launch clamps. Remove them before storing.", construct.shipName);
-//				construct.Unload();
-//				return;
-//			}
 			//check if it's possible to launch such vessel
 			bool cant_launch = false;
 			var preFlightCheck = new PreFlightCheck(new Callback(() => cant_launch = false), new Callback(() => cant_launch = true));
@@ -364,11 +390,14 @@ namespace GroundConstruction
 			var decoupler = decouple_attached_parts();
 			while(decoupler.MoveNext())
 				yield return decoupler.Current;
+			var spawnT = get_spawn_transform() ?? part.transform;
 			yield return null;
 			var start = Size;
 			var start_time = DeploymentTime;
 			var start_local_size = Vector3.Scale(OrigScale, OrigSize.Inverse());
 			var end = kit.ShipMetric.size;
+			if(Facility == EditorFacility.SPH) end = new Vector3(end.x, end.z, end.y);
+			end = model.InverseTransformDirection(spawnT.TransformDirection(end)).AbsComponents();
 			while(DeploymentTime < 1)
 			{
 				DeploymentTime += DeployingSpeed*TimeWarp.deltaTime;
@@ -379,12 +408,17 @@ namespace GroundConstruction
 				yield return null;
 			}
 			Size = end;
+			update_unfocusedRange("Launch");
 			attach_anchor();
 			Deploying = false;
 			Deployed = true;
 		}
 
-		[KSPEvent(guiName = "Deploy", guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
+		[KSPEvent(guiName = "Deploy", 
+		          #if DEBUG
+		          guiActive = true,
+		          #endif
+		          guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
 		public void Deploy()
 		{
 			if(!can_deploy()) return;
@@ -394,16 +428,23 @@ namespace GroundConstruction
 			Deploying = true;
 		}
 
-		[KSPEvent(guiName = "Detach", guiActive = true, guiActiveUnfocused = true, externalToEVAOnly = true, active = true)]
-		public void Detach()
-		{
-			Events["Detach"].active = false;
-			if(part.parent) part.decouple(2);
-		}
+//		[KSPEvent(guiName = "Detach", guiActive = true, guiActiveUnfocused = true, externalToEVAOnly = true, unfocusedRange = 2f, active = true)]
+//		public void Detach()
+//		{
+//			Events["Detach"].active = false;
+//			var other_part = get_part_to_detach();
+//			if(other_part == null) return;
+//			if(other_part == part.parent) part.decouple(2);
+//			else other_part.decouple(2);
+//		}
 		#endregion
 
 		#region Launching
-		[KSPEvent(guiName = "Launch", guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
+		[KSPEvent(guiName = "Launch", 
+		          #if DEBUG
+		          guiActive = true,
+		          #endif
+		          guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
 		public void Launch()
 		{
 			if(!can_launch()) return;
@@ -416,6 +457,18 @@ namespace GroundConstruction
 			Events["Launch"].active = allow; 
 		}
 
+		void update_unfocusedRange(params string[] events)
+		{
+			var range = Size.magnitude+1;
+			for(int i = 0, len = events.Length; i < len; i++)
+			{
+				var ename = events[i];
+				var evt = Events[ename];
+				if(evt == null) continue;
+				evt.unfocusedRange = range;
+			}
+		}
+
 		bool can_launch()
 		{
 			if(launch_in_progress) return false;
@@ -425,7 +478,41 @@ namespace GroundConstruction
 				Utils.Message("The assembly is not complete yet.");
 				return false;
 			}
-			return true;
+			return LaunchAllowed;
+		}
+
+		public void PutShipToGround(ShipConstruct ship, Transform spawnPoint)
+		{
+			var partHeightQuery = new PartHeightQuery(float.MaxValue);
+			int count = ship.parts.Count;
+			for (int i = 0; i < count; i++)
+			{
+				var p = ship[i];
+				partHeightQuery.lowestOnParts.Add(p, float.MaxValue);
+				Collider[] componentsInChildren = p.GetComponentsInChildren<Collider>();
+				int num = componentsInChildren.Length;
+				for (int j = 0; j < num; j++)
+				{
+					Collider collider = componentsInChildren[j];
+					if(collider.enabled && collider.gameObject.layer != 21)
+					{
+						partHeightQuery.lowestPoint = Mathf.Min(partHeightQuery.lowestPoint, collider.bounds.min.y);
+						partHeightQuery.lowestOnParts[p] = Mathf.Min(partHeightQuery.lowestOnParts[p], collider.bounds.min.y);
+					}
+				}
+			}
+			count = ship.parts.Count;
+			for (int k = 0; k < count; k++)
+				ship[k].SendMessage("OnPutToGround", partHeightQuery, SendMessageOptions.DontRequireReceiver);
+			Utils.Log("putting ship to ground: " + partHeightQuery.lowestPoint);
+			float angle;
+			Vector3 axis;
+			spawnPoint.rotation.ToAngleAxis(out angle, out axis);
+			var root = ship.parts[0].localRoot.transform;
+			var offset  = spawnPoint.position;
+			offset -= new Vector3(root.position.x, partHeightQuery.lowestPoint, root.position.z);
+			root.Translate(offset, Space.World);
+			root.RotateAround(spawnPoint.position, axis, angle);
 		}
 
 		bool launch_in_progress;
@@ -433,8 +520,23 @@ namespace GroundConstruction
 		IEnumerator<YieldInstruction> launch_complete_construct()
 		{
 			if(!HighLogic.LoadedSceneIsFlight) yield break;
-			while(!FlightGlobals.ready) yield return null;
 			launch_in_progress = true;
+			yield return null;
+			while(!FlightGlobals.ready) yield return null;
+			//check if all the parts were indeed constructed
+			if(!kit.BlueprintComplete())
+			{
+				Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+				launch_in_progress = false;
+				yield break;
+			}
+			//hide UI
+			GameEvents.onHideUI.Fire();
+			yield return null;
+			//save the game
+			Utils.SaveGame(kit.Name+"-before_launch");
+			yield return null;
+			//load ship construct and launch it
 			var construct = kit.LoadConstruct();
 			if(construct == null) 
 			{
@@ -442,37 +544,48 @@ namespace GroundConstruction
 				          "This usually means that some parts are missing " +
 				          "or some modules failed to initialize.", kit.Name);
 				Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+				GameEvents.onShowUI.Fire();
 				launch_in_progress = false;
 				yield break;
 			}
-			//check if all the parts were indeed constructed
-			var parts_state = kit.BuiltPartsState();
-			if(construct.Parts.Any(p => !parts_state.ContainsKey(p.craftID) || parts_state[p.craftID] < 1))
-			{
-				Utils.Message("Something whent wrong. Not all parts were properly constructed.");
-				construct.Unload();
-				launch_in_progress = false;
-				yield break;
-			}
-			Utils.SaveGame(kit.Name+"-before_launch");
 			model.gameObject.SetActive(false);
-			var launch_transform = Facility == EditorFacility.VAB? 
-				spawn_transform_VAB : spawn_transform_SPH;
+			var launch_transform = get_spawn_transform();
+			FlightCameraOverride.HoldCameraStillForSeconds(FlightGlobals.ActiveVessel.transform, 1);
 			if(FlightGlobals.ready)
 				FloatingOrigin.SetOffset(launch_transform.position);
-			ShipConstruction.PutShipToGround(construct, launch_transform);
+			PutShipToGround(construct, launch_transform);
 			ShipConstruction.AssembleForLaunch(construct, 
 			                                   vessel.landedAt, part.flagURL, 
 			                                   FlightDriver.FlightStateCache,
 			                                   new VesselCrewManifest());
 			launched_vessel = FlightGlobals.Vessels[FlightGlobals.Vessels.Count - 1];
-			while(!launched_vessel.loaded) yield return null;
-			FXMonger.Explode(part, part.partTransform.position, 0);
-			FlightGlobals.ForceSetActiveVessel(launched_vessel);
 			StageManager.BeginFlight();
+			while(!launched_vessel.loaded) 
+			{
+				FlightCameraOverride.UpdateDurationSeconds(1);
+				yield return new WaitForFixedUpdate();
+			}
+			FXMonger.Explode(part, part.partTransform.position, 0);
+			while(launched_vessel.packed) 
+			{
+				launched_vessel.situation = Vessel.Situations.PRELAUNCH;
+				FlightCameraOverride.UpdateDurationSeconds(1);
+				yield return new WaitForFixedUpdate();
+			}
+			if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
+				CrewTransferBatch.moveCrew(CrewSource, launched_vessel, KitCrew);
+			GameEvents.onShowUI.Fire();
 			launch_in_progress = false;
 			launched_vessel = null;
 			vessel.Die();
+		}
+
+		void OnGUI()
+		{
+			if(launch_in_progress)
+				GUI.Label(new Rect(Screen.width/2-190, 30, 380, 70),
+				          "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
+				          Styles.rich_label);
 		}
 		#endregion
 
@@ -508,6 +621,22 @@ namespace GroundConstruction
 		public ModifierChangeWhen GetModuleMassChangeWhen()
 		{ return ModifierChangeWhen.CONSTANTLY; }
 		#endregion
+
+		#if DEBUG
+		void OnRenderObject()
+		{
+			if(vessel == null) return;
+			var T = get_spawn_transform();
+			if(T != null) 
+			{
+				Utils.GLVec(T.position, T.up, Color.green);
+				Utils.GLVec(T.position, T.forward, Color.blue);
+				Utils.GLVec(T.position, T.right, Color.red);
+			}
+			if(launched_vessel != null)
+				Utils.GLDrawPoint(launched_vessel.vesselTransform.position, Color.magenta);
+		}
+		#endif
 	}
 }
 
