@@ -142,7 +142,7 @@ Material:
       second: {r: 0, g: 0, b: 0, a: 0}
     - first:
         name: _SpecColor
-      second: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+      second: {r: 0, g: 0, b: 0, a: 1}
     - first:
         name: _TemperatureColor
       second: {r: 0, g: 0, b: 0, a: 0}
