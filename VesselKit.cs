@@ -27,6 +27,16 @@ namespace GroundConstruction
 		float unbuilt_mass, built_mass;
 		float unbuilt_cost, built_cost;
 
+		public float StructureLeft 
+		{ 
+			get 
+			{ 
+				var part_mass = PartUnderConstruction != null && PartUnderConstruction.Valid? 
+					PartUnderConstruction.MassLeft : 0;
+				return (unbuilt_mass+part_mass)/GLB.StructureResource.density; 
+			} 
+		}
+
 		static void strip_resources(ShipConstruct ship)
 		{
 			ship.Parts.ForEach(p => 
@@ -79,6 +89,37 @@ namespace GroundConstruction
 			var db = new Dictionary<uint,float>(BuiltParts.Count);
 			BuiltParts.ForEach(p => db.Add(p.craftID, p.Completeness));
 			return db;
+		}
+
+		public int CrewCapacity()
+		{
+			if(!Valid || Completeness < 1) return 0;
+			var capacity = 0;
+			foreach(ConfigNode p in Blueprint.nodes)
+			{
+				var name_id = p.GetValue("part");
+				if(string.IsNullOrEmpty(name_id)) continue;
+				string name = KSPUtil.GetPartName(name_id);
+				var kit_part = PartLoader.getPartInfoByName(name);
+				if(kit_part == null || kit_part.partPrefab == null) continue;
+				capacity += kit_part.partPrefab.CrewCapacity;
+			}
+			return capacity;
+		}
+
+		public bool BlueprintComplete()
+		{
+			var db = new HashSet<uint>();
+			BuiltParts.ForEach(p => { if(p.Completeness >= 1) db.Add(p.craftID); });
+			foreach(ConfigNode p in Blueprint.nodes)
+			{
+				var name_id = p.GetValue("part");
+				if(string.IsNullOrEmpty(name_id)) continue;
+				string name = "", cid = "0";
+				KSPUtil.GetPartInfo(name_id, ref name, ref cid);
+				if(!db.Contains(uint.Parse(cid))) return false;
+			}
+			return true;
 		}
 
 		public override void Load(ConfigNode node)
