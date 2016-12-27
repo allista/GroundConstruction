@@ -145,7 +145,7 @@ Material:
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
         name: _EmissiveColor
-      second: {r: 0.33823532, g: 0, b: 0, a: 1}
+      second: {r: 0.3602941, g: 0, b: 0, a: 1}
     - first:
         name: _RimColor
       second: {r: 0, g: 0, b: 0, a: 0}
