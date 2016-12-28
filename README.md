@@ -4,7 +4,7 @@
 
 This mod allows you to build any vessel directly on a surface of any planet from a DIY (Do It Yourself) Kit that contains all the high-tech components, needed equipment and blueprints, using only raw materials produced on-site, energy and kerbal workforce.
 
-The major benefit of the Ground Constrution is that it allows you to build big, heavy, assymmetrical contraptions that aren't meant to fly at all. Buildings, or even blocks of buildings; heavy rovers; huge rockets held by launch clamps -- all this could be built with Ground Construction anywhere on any planet.
+The major benefit of the Ground Construction is that it allows you to build big, heavy, asymmetrical contraptions that aren't meant to fly at all. Buildings, or even blocks of buildings; heavy rovers; huge rockets held by launch clamps -- all this could be built with Ground Construction anywhere on any planet.
 
 ## Features
 
@@ -12,8 +12,8 @@ The major benefit of the Ground Constrution is that it allows you to build big, 
 * Build **anywhere on the surface**: the assembled ship will appear right where you've placed the Kit.
 * **No complex logistics**, no special production parts required: all you need is a habitable compartment with enough space, raw materials and qualified kerbal personnel.
 * **Background operation**: fly other missions while construction takes place on a far-away planet. Days, even weeks may be required to build something complex, but you don't have to babysit your workers.
-* **Wireless transfers**: fill the assembled ship with resources and crew befor you launch it using dedicated UI.
-* **Centralized UI** for progress trakcing and fast switching to construction sites.
+* **Wireless transfers**: fill the assembled ship with resources and crew before you launch it using dedicated UI.
+* **Centralized UI** for progress tracking and fast switching to construction sites.
 
 ## Requirements
 
@@ -49,11 +49,11 @@ A DIY Kit usually weights much less than a ship that is constructed from it, but
 
 ### How a DIY Kit is converted back into the (new) ship
 
-First of all, you need to land the kit somewhere on a flat surface, and, preferrably, detach it from the carrier. For that DIY Kit Containers are equipped with their own simple decoupling mechanism, which is located on the top side, marked with yellow arrows.
+First of all, you need to land the kit somewhere on a flat surface, and, preferably, detach it from the carrier. For that DIY Kit Containers are equipped with their own simple decoupling mechanism, which is located on the top side, marked with yellow arrows.
 
 Then you need to *Deploy* the Kit. This could be done by a kerbal in an EVA suit or remotely from a nearby Workshop. A deploying kit **detaches any part** that is still attached to it, then gradually "grows" (imagine that kerbals assemble working scaffolds inside the box) until it have the size of the ship that will be constructed; then it is attached to the surface, so **it cannot be moved any more**.
 
-It doesn't matter how the Kit was oriented. As far as it lies on one of its sides, the deployment dimensions and the orientation of the launched vessel will be automatically choosen to correspond to the surface.
+It doesn't matter how the Kit was oriented. As far as it lies on one of its sides, the deployment dimensions and the orientation of the launched vessel will be automatically chosen to correspond to the surface.
 
 A deployed Kit can be processed by a *nearby* workshop with kerbals, but there are some limitations:
 
