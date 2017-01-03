@@ -45,14 +45,17 @@ namespace GroundConstruction
 		[KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true)]
 		public string KitName = "None";
 
-		[KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0t")]
+		[KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
 		public float KitMass;
 
-		[KSPField(guiName = "Kit Cost", guiActive = true, guiActiveEditor = true, guiFormat = "0.0F")]
+		[KSPField(guiName = "Kit Cost", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 F")]
 		public float KitCost;
 
 		[KSPField(guiName = "Kit Work", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 SKH")]
 		public float KitWork;
+
+		[KSPField(guiName = "Kit Res.", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
+		public float KitRes;
 
 		[KSPField(guiName = "Kit Status", guiActive = true)]
 		public string KitStatus = "Empty Kit";
@@ -122,6 +125,7 @@ namespace GroundConstruction
 				KitMass = kit.Mass;
 				KitCost = kit.Cost;
 				KitWork = (float)(kit.WorkLeft)/3600;
+				KitRes  = kit.StructureLeft;
 				if(Deploying) KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
 				else if(Deployed) 
 				{
