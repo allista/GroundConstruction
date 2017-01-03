@@ -167,7 +167,7 @@ namespace GroundConstruction
 			LockName = "GroundWorkshop"+GetInstanceID();
 			if(AutoEfficiency) compute_part_efficiency();
 			if(Efficiency.Equals(0)) this.EnableModule(false);
-			else
+			else if(HighLogic.LoadedSceneIsFlight)
 			{
 				update_workers();
 				GroundConstructionScenario.CheckinWorkshop(this);
