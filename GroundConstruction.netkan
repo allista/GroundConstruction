@@ -18,14 +18,13 @@
     [
         { "name": "ModuleManager" },
         { "name": "AT-Utils" },
-        { "name": "ConfigurableContainers-Core" },
+        { "name": "ConfigurableContainers" },
         { "name": "CommunityResourcePack" }
     ],
 
     "suggests":
     [
         { "name": "ThrottleControlledAvionics" },
-        { "name": "ConfigurableContainers" },
         { "name": "Hangar" },
         { "name": "KIS" },
         { "name": "KAS" },
