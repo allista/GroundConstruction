@@ -59,6 +59,7 @@
     <Compile Include="GroundWorkshop.cs" />
     <Compile Include="GroundConstructionScenario.cs" />
     <Compile Include="ToolbarManager.cs" />
+    <Compile Include="ConstructionSkill.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

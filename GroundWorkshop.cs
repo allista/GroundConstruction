@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
 using Experience;
-using Experience.Effects;
 
 namespace GroundConstruction
 {
@@ -223,9 +222,7 @@ namespace GroundConstruction
 				var trait = kerbal.experienceTrait;
 				foreach(var effect in trait.Effects)
 				{
-					if(effect is DrillSkill ||
-					   effect is ConverterSkill ||
-					   effect is RepairSkill)
+					if(effect is ConstructionSkill)
 					{ worker = 1; break; }
 				}
 				worker *= trait.CrewMemberExperienceLevel();
