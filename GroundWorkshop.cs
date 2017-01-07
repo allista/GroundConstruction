@@ -373,8 +373,12 @@ namespace GroundConstruction
 				return 0;
 			}
 			//do the work, if any
-			have_res *= have_ec/required_ec;
-			work *= have_res/required_res;
+			if(required_res > 0 && required_ec > 0)
+			{
+				have_res *= have_ec/required_ec;
+				work *= have_res/required_res;
+			}
+			else work = 0;
 			KitUnderConstruction.Module.DoSomeWork(work);
 //			this.Log("completeness {}, work {}, res {}/{}, EC {}/{}", 
 //			         KitUnderConstruction.Module.Completeness,
