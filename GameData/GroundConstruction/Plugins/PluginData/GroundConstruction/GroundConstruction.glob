@@ -1,6 +1,6 @@
 UseStockAppLauncher = true
 
-StructureResourceName = Metals
+StructureResourceName = MaterialKits 
 
 EnergyForMetalwork        = 100
 WorkshopShutdownThreshold = 0.99
@@ -25,3 +25,4 @@ VesselKitMinSize = 0.5
 DeployMaxSpeed   = 0.5
 DeployMaxAV      = 1E-03
 DeploymentSpeed  = 50
+MinDeploymentTime = 3
