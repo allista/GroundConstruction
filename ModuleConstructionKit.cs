@@ -386,7 +386,31 @@ namespace GroundConstruction
 			}
 		}
 
-		ActionDamper message_damper = new ActionDamper(1.5f);
+		bool kit_is_settled
+		{
+			get 
+			{
+				return vessel.srfSpeed < GLB.DeployMaxSpeed &&
+					vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
+			}
+		}
+
+		RealTimer settled_timer = new RealTimer(3);
+		IEnumerable wait_for_ground_contact(string wait_message)
+		{
+			settled_timer.Reset();
+			while(!settled_timer.RunIf(part.GroundContact && kit_is_settled))
+			{
+				if(!part.GroundContact)
+					message_damper.Run(() => Utils.Message(1, "{0} Kit: no ground contact!", kit.Name));
+				else if(!kit_is_settled)
+					message_damper.Run(() => Utils.Message(1, "{0} Kit is moving...", kit.Name));
+				else message_damper.Run(() => Utils.Message(1, "{0} {1:F1}s", wait_message, settled_timer.Remaining));
+				yield return null;
+			}
+		}
+
+		ActionDamper message_damper = new ActionDamper(1);
 		IEnumerator deployment;
 		IEnumerator deploy()
 		{
@@ -395,15 +419,9 @@ namespace GroundConstruction
 			while(decoupler.MoveNext())
 				yield return decoupler.Current;
 			//check if the kit has GroundContact and is not mooving
-			while(!part.GroundContact ||
-			      vessel.srfSpeed > GLB.DeployMaxSpeed ||
-			      vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
-			{
-				if(!part.GroundContact)
-					message_damper.Run(() => Utils.Message(1, "{0} Kit: no ground contact!", kit.Name));
-				else message_damper.Run(() => Utils.Message(1, "{0} Kit is moving...", kit.Name));
-				yield return null;
-			}
+			foreach(object w in wait_for_ground_contact(string.Format("Deploing {0} Kit in", kit.Name)))
+				yield return w;
+			//get the spawn transform and compute the resizing path
 			var spawnT = get_spawn_transform() ?? part.transform;
 			yield return null;
 			var start = Size;
@@ -412,6 +430,7 @@ namespace GroundConstruction
 			var end = kit.ShipMetric.size;
 			if(Facility == EditorFacility.SPH) end = new Vector3(end.x, end.z, end.y);
 			end = model.InverseTransformDirection(spawnT.TransformDirection(end)).AbsComponents();
+			//resize the kit gradually
 			while(DeploymentTime < 1)
 			{
 				DeploymentTime += DeployingSpeed*TimeWarp.deltaTime;
@@ -423,6 +442,7 @@ namespace GroundConstruction
 			}
 			DeploymentTime = 1;
 			Size = end;
+			//setup anchor, permanent ground contact and unfocused ranges
 			update_unfocusedRange("Launch");
 			setup_ground_contact();
 			attach_anchor();
@@ -440,7 +460,7 @@ namespace GroundConstruction
 		{
 			if(!can_deploy()) return;
 			Events["Deploy"].active = false;
-			DeployingSpeed = GLB.DeploymentSpeed/kit.ShipMetric.volume;
+			DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed/kit.ShipMetric.volume, 1/GLB.MinDeploymentTime);
 			Utils.SaveGame(kit.Name+"-before_deployment");
 			Deploying = true;
 		}
