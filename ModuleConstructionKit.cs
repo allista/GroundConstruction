@@ -6,11 +6,9 @@
 //  Copyright (c) 2016 Allis Tauri
 
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using KSP.UI;
 using KSP.UI.Screens;
 using AT_Utils;
 
@@ -87,6 +85,12 @@ namespace GroundConstruction
 		#region Anchor
 		FixedJoint anchorJoint;
 		GameObject anchor;
+
+		void setup_ground_contact()
+		{
+			part.PermanentGroundContact = true;
+			if(vessel != null) vessel.permanentGroundContact = true;
+		}
 
 		void attach_anchor()
 		{
@@ -209,17 +213,10 @@ namespace GroundConstruction
 			return minT;
 		}
 
-//		Part get_part_to_detach()
-//		{
-//			if(string.IsNullOrEmpty(DetachableNode)) return null;
-//			var an = part.FindAttachNode(DetachableNode);
-//			return an == null? null : an.attachedPart;
-//		}
-
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
-//			Events["Detach"].active = get_part_to_detach() != null;
+			if(Deployed) setup_ground_contact();
 			Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
 			Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
 			update_unfocusedRange("Deploy", "Launch");
@@ -239,7 +236,7 @@ namespace GroundConstruction
 		}
 
 		void OnPartPack() { detach_anchor(); }
-		void OnPartUnpack() { if(Deployed) attach_anchor(); }
+		void OnPartUnpack() { if(Deployed) { attach_anchor(); setup_ground_contact(); } }
 		void OnDestroy() { detach_anchor(); }
 
 		public override void OnLoad(ConfigNode node)
@@ -264,6 +261,7 @@ namespace GroundConstruction
 				update_model(true);
 			if(Deployed)
 			{
+				setup_ground_contact();
 				if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
 					attach_anchor();
 				#if DEBUG
@@ -388,12 +386,24 @@ namespace GroundConstruction
 			}
 		}
 
+		ActionDamper message_damper = new ActionDamper(1.5f);
 		IEnumerator deployment;
 		IEnumerator deploy()
 		{
+			//decouple anything that is still attached to the Kit
 			var decoupler = decouple_attached_parts();
 			while(decoupler.MoveNext())
 				yield return decoupler.Current;
+			//check if the kit has GroundContact and is not mooving
+			while(!part.GroundContact ||
+			      vessel.srfSpeed > GLB.DeployMaxSpeed ||
+			      vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
+			{
+				if(!part.GroundContact)
+					message_damper.Run(() => Utils.Message(1, "{0} Kit: no ground contact!", kit.Name));
+				else message_damper.Run(() => Utils.Message(1, "{0} Kit is moving...", kit.Name));
+				yield return null;
+			}
 			var spawnT = get_spawn_transform() ?? part.transform;
 			yield return null;
 			var start = Size;
@@ -411,9 +421,12 @@ namespace GroundConstruction
 				part.transform.hasChanged = true;
 				yield return null;
 			}
+			DeploymentTime = 1;
 			Size = end;
 			update_unfocusedRange("Launch");
+			setup_ground_contact();
 			attach_anchor();
+			Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
 			Deploying = false;
 			Deployed = true;
 		}
@@ -431,16 +444,6 @@ namespace GroundConstruction
 			Utils.SaveGame(kit.Name+"-before_deployment");
 			Deploying = true;
 		}
-
-//		[KSPEvent(guiName = "Detach", guiActive = true, guiActiveUnfocused = true, externalToEVAOnly = true, unfocusedRange = 2f, active = true)]
-//		public void Detach()
-//		{
-//			Events["Detach"].active = false;
-//			var other_part = get_part_to_detach();
-//			if(other_part == null) return;
-//			if(other_part == part.parent) part.decouple(2);
-//			else other_part.decouple(2);
-//		}
 		#endregion
 
 		#region Launching
