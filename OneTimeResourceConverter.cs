@@ -25,6 +25,11 @@ namespace GroundConstruction
 			if(!HighLogic.LoadedSceneIsFlight || 
 			   old_res == null || old_res.name == Globals.Instance.StructureResource.name)
 				this.EnableModule(false);
+			else 
+			{
+				this.EnableModule(true);
+				part.UpdatePartMenu();
+			}
 		}
 
 		Vessel to_convert = null;
@@ -44,23 +49,41 @@ namespace GroundConstruction
 					var new_amount = res.amount*ratio;
 					var new_max = res.maxAmount*ratio;
 					if(new_amount > new_max) new_amount = new_max;
-					p.Resources.Add(
-						GLB.StructureResource.name,
-						new_amount,
-						new_max,
-						res.flowState,
-						res.isTweakable,
-						res.hideFlow,
-						res.isVisible,
-						res.flowMode
-					);
-					p.RemoveResource(old_res.id);
+					var existing_res = p.Resources.Get(GLB.StructureResource.id);
+					//if there's already new resource in this part, transfer to it as much mass as possible
+					if(existing_res != null)
+					{
+						var space = existing_res.maxAmount - existing_res.amount;
+						if(space > new_amount) existing_res.amount += new_amount;
+						else
+						{
+							existing_res.amount = existing_res.maxAmount;
+							new_amount -= space;
+						}
+						res.amount = new_amount/ratio;
+						if(res.amount.Equals(0))
+							p.RemoveResource(res);
+					}
+					else //convert all by mass, then remove resource
+					{
+						p.Resources.Add(
+							GLB.StructureResource.name,
+							new_amount,
+							new_max,
+							res.flowState,
+							res.isTweakable,
+							res.hideFlow,
+							res.isVisible,
+							res.flowMode
+						);
+						p.RemoveResource(res);
+					}
 				}
 				else
 				{
 					var new_amount = tank.Resource.amount*ratio;
 					var existing_tank = tanks.Find(t => t.Resource != null && t.Resource.resourceName == GLB.StructureResource.name);
-					//if already have such tank, transfer new resource into it, as much as possible
+					//if there's already such a tank, transfer new resource into it, as much as possible
 					if(existing_tank != null)
 					{
 						var space = existing_tank.MaxAmount-existing_tank.Amount;
@@ -79,22 +102,22 @@ namespace GroundConstruction
 							tank.Amount = new_amount;
 						else //if failed, try to switch back and revert
 						{
-							Utils.Message("WARNING: Unable to switch the SwitchableTank in the '{0}' to the new resource.", part.name);
+							Utils.Message("WARNING: Unable to switch the SwitchableTank in the '{0}' to the new resource.", p.name);
 							if(tank.ForceSwitchResource(res.resourceName))
 								tank.Amount = old_amount;
-							else Utils.Message("ERROR: Unable to switch the SwitchableTank in the '{0}' back to its original resource.", part.name);
+							else Utils.Message("ERROR: Unable to switch the SwitchableTank in the '{0}' back to its original resource.", p.name);
 						}
 					}
 				}
 			}
 		}
 
-		[KSPEvent(guiName = "Convert Old GC Resources", guiActive = true, active = true)]
+		[KSPEvent(guiName = "Old GC Resources", guiActive = true, active = true)]
 		public void Convert() { show_window = true; }
 
 		bool show_window;
-		const float width = 150;
-		const float height = 60;
+		const float width = 350;
+		const float height = 150;
 		Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
 		Vector2 vessels_scroll = Vector2.zero;
 		SimpleDialog warning = new SimpleDialog();
@@ -108,7 +131,7 @@ namespace GroundConstruction
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(vsl.vesselName, Styles.white, GUILayout.ExpandWidth(true));
 				if(GUILayout.Button("Convert", Styles.danger_button, GUILayout.ExpandWidth(false)))
-				{ if(to_convert != null) to_convert = vsl; }
+				{ if(to_convert == null) to_convert = vsl; }
 				GUILayout.EndHorizontal();
 			}
 			GUILayout.EndScrollView();
@@ -125,7 +148,8 @@ namespace GroundConstruction
 			{
 				Styles.Init();
 				WindowPos = GUILayout.Window(GetInstanceID(), 
-				                             WindowPos, main_window, part.partInfo.title,
+				                             WindowPos, main_window, 
+				                             "Convert old GC resources in nearby vessels",
 				                             GUILayout.Width(width),
 				                             GUILayout.Height(height)).clampToScreen();
 				if(to_convert != null)
