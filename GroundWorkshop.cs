@@ -314,6 +314,7 @@ namespace GroundConstruction
 			Working = false;
 			distance_mod = -1;
 			LastUpdateTime = -1;
+			TimeWarp.SetRate(0, false);
 			GroundConstructionScenario.CheckinWorkshop(this);
 		}
 
