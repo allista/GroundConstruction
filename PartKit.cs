@@ -61,18 +61,29 @@ namespace GroundConstruction
 
 		public PartKit(Part part)
 		{
-			var GLB = Globals.Instance;
 			Name = part.partInfo.name;
 			Title = part.partInfo.title;
 			craftID  = part.craftID;
-			var res_mass = +part.GetResourceMass();
+			var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
+			var res_mass = part.GetResourceMass();
 			PartMass = part.mass+res_mass;
 			PartCost = part.partInfo.cost+part.GetModuleCosts(part.partInfo.cost);
-			Complexity = 1-1/((PartCost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
-			Mass = KitMass = part.mass*Complexity+res_mass;
-			var add_mass = PartMass - Mass;
-			Cost = KitCost = Mathf.Max(0, PartCost - add_mass*GLB.StructureResource.unitCost);
-			TotalWork = (Complexity*GLB.ComplexityWeight + add_mass*GLB.MetalworkWeight)*3600;
+			if(is_DIY_Kit)
+			{
+				Mass = KitMass = part.mass+res_mass;
+				Cost = KitCost = PartCost;
+				Complexity = 1;
+				TotalWork = 0;
+				Completeness = 1;
+			}
+			else 
+			{
+				Complexity = 1-1/((PartCost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
+				Mass = KitMass = part.mass*Complexity+res_mass;
+				var add_mass = PartMass - Mass;
+				Cost = KitCost = Mathf.Max(0, PartCost - add_mass*GLB.StructureResource.unitCost);
+				TotalWork = (Complexity*GLB.ComplexityWeight + add_mass*GLB.MetalworkWeight)*3600;
+			}
 //			Utils.Log("{}: complexity {}, KitMass {}/{} = {}", part, Complexity, KitMass, PartMass, KitMass/PartMass);//debug
 		}
 
