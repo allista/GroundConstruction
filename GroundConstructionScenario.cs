@@ -65,10 +65,11 @@ namespace GroundConstruction
 					Utils.Message("{0} was not found in the game", Name);
 					return false;
 				}
-				if(FlightGlobals.ready) FlightGlobals.SetActiveVessel(vsl);
+				if(HighLogic.LoadedSceneIsFlight) 
+					FlightGlobals.SetActiveVessel(vsl);
 				else
 				{
-					GamePersistence.SaveGame("persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
+					GamePersistence.SaveGame(HighLogic.CurrentGame.Updated(), "persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
 					FlightDriver.StartAndFocusVessel("persistent", FlightGlobals.Vessels.IndexOf(vsl));
 				}
 				return true;
@@ -136,6 +137,7 @@ namespace GroundConstruction
 			return false;
 		}
 
+		// Analysis disable once FunctionNeverReturns
 		IEnumerator<YieldInstruction> slow_update()
 		{
 			while(true)
@@ -172,6 +174,11 @@ namespace GroundConstruction
 			StartCoroutine(slow_update());
 		}
 
+		void OnDestroy()
+		{
+			Utils.LockIfMouseOver(LockName, WindowPos, false);
+		}
+
 		public override void OnSave(ConfigNode node)
 		{
 			base.OnSave(node);
@@ -193,6 +200,16 @@ namespace GroundConstruction
 			}
 		}
 
+		void Update()
+		{
+			if(switchto != null) 
+			{
+				if(!switchto.SwitchTo()) 
+					Workshops.Remove(switchto.id);
+				switchto = null;
+			}
+		}
+
 		#region GUI
 		const float width = 500;
 		const float height = 120;
@@ -200,6 +217,8 @@ namespace GroundConstruction
 		static bool show_window;
 		public static void ShowWindow(bool show) { show_window = show; }
 		public static void ToggleWindow() { show_window = !show_window; }
+
+		WorkshopInfo switchto = null;
 
 		Vector2 workshops_scroll = Vector2.zero;
 		Rect WindowPos = new Rect(Screen.width-width-100, 0, Screen.width/4, Screen.height/4);
@@ -209,7 +228,6 @@ namespace GroundConstruction
 			if(Workshops.Count > 0)
 			{
 				workshops_scroll = GUILayout.BeginScrollView(workshops_scroll, GUILayout.Height(height), GUILayout.Width(width));
-				WorkshopInfo switchto = null;
 //				WorkshopInfo warpto = null; //TODO: implement warp to
 				foreach(var item in Workshops) 
 				{
@@ -228,18 +246,13 @@ namespace GroundConstruction
 					GUILayout.EndHorizontal();
 				}
 //				if(warpto != null) pass
-				if(switchto != null) 
-				{
-					if(!switchto.SwitchTo()) 
-						Workshops.Remove(switchto.id);
-				}
 				GUILayout.EndScrollView();
 				if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
 					show_window = false;
 			}
 			else GUILayout.Label("No Ground Workshops", Styles.white, GUILayout.ExpandWidth(true));
 			GUILayout.EndVertical();
-			GUIWindowBase.TooltipsAndDragWindow(WindowPos);
+			GUIWindowBase.TooltipsAndDragWindow();
 		}
 
 		const string LockName = "GroundConstructionScenario";
@@ -249,12 +262,11 @@ namespace GroundConstruction
 			if(show_window && GUIWindowBase.HUD_enabled)
 			{
 				Styles.Init();
-
-					Utils.LockIfMouseOver(LockName, WindowPos);
-					WindowPos = GUILayout.Window(GetInstanceID(), 
-				                                 WindowPos, main_window, "Ground Workshops",
-					                             GUILayout.Width(width),
-					                             GUILayout.Height(height)).clampToScreen();
+				Utils.LockIfMouseOver(LockName, WindowPos);
+				WindowPos = GUILayout.Window(GetInstanceID(), 
+			                                 WindowPos, main_window, "Ground Workshops",
+				                             GUILayout.Width(width),
+				                             GUILayout.Height(height)).clampToScreen();
 			}
 			else Utils.LockIfMouseOver(LockName, WindowPos, false);
 		}
