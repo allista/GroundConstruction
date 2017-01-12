@@ -125,11 +125,16 @@ namespace GroundConstruction
 		public override void OnAwake()
 		{
 			base.OnAwake();
+			resources_window = gameObject.AddComponent<ResourceTransferWindow>();
+			crew_window = gameObject.AddComponent<CrewTransferWindow>();
 			GameEvents.onGameStateSave.Add(onGameStateSave);
 		}
 
 		void OnDestroy()
 		{
+			Utils.LockIfMouseOver(LockName, WindowPos, false);
+			Destroy(resources_window);
+			Destroy(crew_window);
 			GameEvents.onGameStateSave.Remove(onGameStateSave);
 		}
 
@@ -482,8 +487,8 @@ namespace GroundConstruction
 		#endregion
 
 		#region GUI
-		readonly ResourceTransferWindow resources_window = new ResourceTransferWindow();
-		readonly CrewTransferWindow crew_window = new CrewTransferWindow();
+		ResourceTransferWindow resources_window;
+		CrewTransferWindow crew_window;
 
 		[KSPField(isPersistant = true)] public bool show_window;
 		const float width = 550;
@@ -643,7 +648,7 @@ namespace GroundConstruction
 			if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
 				show_window = false;
 			GUILayout.EndVertical();
-			GUIWindowBase.TooltipsAndDragWindow(WindowPos);
+			GUIWindowBase.TooltipsAndDragWindow();
 		}
 
 		string LockName = ""; //inited OnStart

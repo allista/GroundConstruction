@@ -18,6 +18,17 @@ namespace GroundConstruction
 		[KSPField] public string ConvertFrom = "";
 		PartResourceDefinition old_res;
 
+		public override void OnAwake()
+		{
+			base.OnAwake();
+			warning = gameObject.AddComponent<SimpleDialog>();
+		}
+
+		void OnDestroy()
+		{
+			Destroy(warning);
+		}
+
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
@@ -120,7 +131,7 @@ namespace GroundConstruction
 		const float height = 150;
 		Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
 		Vector2 vessels_scroll = Vector2.zero;
-		SimpleDialog warning = new SimpleDialog();
+		SimpleDialog warning;
 
 		void main_window(int WindowID)
 		{
@@ -138,7 +149,7 @@ namespace GroundConstruction
 			if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
 				show_window = false;
 			GUILayout.EndVertical();
-			GUIWindowBase.TooltipsAndDragWindow(WindowPos);
+			GUIWindowBase.TooltipsAndDragWindow();
 		}
 
 		void OnGUI()
