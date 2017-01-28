@@ -21,7 +21,7 @@ namespace GroundConstruction
 		public override void OnAwake()
 		{
 			base.OnAwake();
-			warning = gameObject.AddComponent<SimpleDialog>();
+			warning = gameObject.AddComponent<SimpleWarning>();
 		}
 
 		void OnDestroy()
@@ -131,7 +131,7 @@ namespace GroundConstruction
 		const float height = 150;
 		Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
 		Vector2 vessels_scroll = Vector2.zero;
-		SimpleDialog warning;
+		SimpleWarning warning;
 
 		void main_window(int WindowID)
 		{
