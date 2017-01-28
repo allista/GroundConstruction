@@ -40,8 +40,9 @@ namespace GroundConstruction
 		[KSPField(isPersistant = true)] public bool Deployed;
 		[KSPField(isPersistant = true)] public bool LaunchAllowed;
 
-		[KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true)]
+		[KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
 		public string KitName = "None";
+		SimpleTextEntry kitname_editor;
 
 		[KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
 		public float KitMass;
@@ -125,7 +126,6 @@ namespace GroundConstruction
 		{
 			if(kit.Valid)
 			{
-				KitName = kit.Name;
 				KitMass = kit.Mass;
 				KitCost = kit.Cost;
 				KitWork = (float)(kit.WorkLeft)/3600;
@@ -213,6 +213,13 @@ namespace GroundConstruction
 			return minT;
 		}
 
+		public override void OnAwake()
+		{
+			base.OnAwake();
+			kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
+			kitname_editor.Show(false);
+		}
+
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
@@ -250,6 +257,8 @@ namespace GroundConstruction
 			{
 				update_model(true);
 				update_part_info();
+				if(KitName == "None")
+					KitName = kit.Name;
 			}
 //			this.Log("OnLoad: node: {}\n\nkit: {}", node, kit);//debug
 		}
@@ -478,6 +487,14 @@ namespace GroundConstruction
 			StartCoroutine(launch_complete_construct());
 		}
 
+		[KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true, 
+		          guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
+		public void EditName() 
+		{ 
+			kitname_editor.Text = KitName;
+			kitname_editor.Toggle();
+		}
+
 		public void AllowLaunch(bool allow = true)
 		{ 
 			LaunchAllowed = allow;
@@ -609,10 +626,15 @@ namespace GroundConstruction
 
 		void OnGUI()
 		{
+			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
+			Styles.Init();
 			if(launch_in_progress)
 				GUI.Label(new Rect(Screen.width/2-190, 30, 380, 70),
 				          "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
 				          Styles.rich_label);
+			//rename the kit
+			if(kitname_editor.Show("Rename Kit") == SimpleDialog.Answer.Yes)
+				KitName = kitname_editor.Text;
 		}
 		#endregion
 
