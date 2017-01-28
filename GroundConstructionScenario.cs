@@ -28,7 +28,8 @@ namespace GroundConstruction
 
 			[Persistent] public uint   id;
 			[Persistent] public string CB;
-			[Persistent] public string Name;
+			[Persistent] public string VesselName;
+			[Persistent] public string PartName;
 			[Persistent] public string KitName;
 			[Persistent] public Status State;
 			[Persistent] public double EndUT;
@@ -40,7 +41,8 @@ namespace GroundConstruction
 				vesselID = workshop.vessel.id;
 				id = workshop.part.flightID;
 				CB = workshop.vessel.mainBody.bodyName;
-				Name = workshop.vessel.vesselName;
+				VesselName = workshop.vessel.vesselName;
+				PartName = workshop.part.partInfo.title;
 				State = Status.IDLE;
 				EndUT = -1;
 				if(workshop.KitUnderConstruction.Valid) 
@@ -62,7 +64,7 @@ namespace GroundConstruction
 				var vsl = FlightGlobals.FindVessel(vesselID);
 				if(vsl == null) 
 				{
-					Utils.Message("{0} was not found in the game", Name);
+					Utils.Message("{0} was not found in the game", VesselName);
 					return false;
 				}
 				if(HighLogic.LoadedSceneIsFlight) 
@@ -78,10 +80,10 @@ namespace GroundConstruction
 			public override string ToString()
 			{ 
 				if(State == Status.COMPLETE)
-					return string.Format("[{0}] \"{1}\" assembled \"{2}\".", CB, Name, KitName);
+					return string.Format("[{0}] \"{1}\" assembled \"{2}\".", CB, VesselName, KitName);
 				if(State == Status.ACTIVE)
-					return string.Format("[{0}] \"{1}\" is building \"{2}\". {3}", CB, Name, KitName, ETA);
-				return string.Format("[{0}] \"{1}\" is idle.", CB, Name);
+					return string.Format("[{0}] \"{1}\" is building \"{2}\". {3}", CB, VesselName, KitName, ETA);
+				return string.Format("[{0}] \"{1}\" is idle.", CB, VesselName);
 			}
 
 			public void Draw()
@@ -100,7 +102,8 @@ namespace GroundConstruction
 				}
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(CB, Styles.yellow, GUILayout.Width(60));
-				GUILayout.Label(Name, Styles.white, GUILayout.ExpandWidth(true));
+				GUILayout.Label(new GUIContent(VesselName, PartName), 
+				                Styles.white, GUILayout.ExpandWidth(true));
 				if(status != null) GUILayout.Label(status, style, GUILayout.ExpandWidth(false));
 				GUILayout.EndHorizontal();
 			}
@@ -152,7 +155,7 @@ namespace GroundConstruction
 					   workshop.EndUT < now)
 					{
 						Utils.Message(10, "Engineers at '{0}' should have assembled the '{1}' by now.",
-						              workshop.Name, workshop.KitName);
+						              workshop.VesselName, workshop.KitName);
 						workshop.State = WorkshopInfo.Status.COMPLETE;
 						workshop.EndUT = -1;
 						finished = true;
