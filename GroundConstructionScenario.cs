@@ -86,6 +86,30 @@ namespace GroundConstruction
 				return string.Format("[{0}] \"{1}\" is idle.", CB, VesselName);
 			}
 
+			void focusCB()
+			{
+				var cb = FlightGlobals.Bodies.Find(body => body.bodyName == CB);
+				if(cb != null) toMapView(cb.MapObject);
+			}
+
+			void focusVessel()
+			{
+				var vsl = FlightGlobals.FindVessel(vesselID);
+				if(vsl != null) toMapView(vsl.mapObject);
+			}
+
+			static void toMapView(MapObject target)
+			{
+				if(HighLogic.LoadedSceneIsFlight)
+				{ 
+					if(!MapView.MapIsEnabled) 
+						MapView.EnterMapView(); 
+				}
+				if(HighLogic.LoadedSceneHasPlanetarium)
+					PlanetariumCamera.fetch.SetTarget(target);
+				else Utils.Message("Go to Tracking Station to do this");
+			}
+
 			public void Draw()
 			{
 				var style = Styles.white;
@@ -101,9 +125,12 @@ namespace GroundConstruction
 					status = new GUIContent(KitName, "Under construction. "+ETA);
 				}
 				GUILayout.BeginHorizontal();
-				GUILayout.Label(CB, Styles.yellow, GUILayout.Width(60));
-				GUILayout.Label(new GUIContent(VesselName, PartName), 
-				                Styles.white, GUILayout.ExpandWidth(true));
+				if(GUILayout.Button(new GUIContent(CB, "Press to focus on the Map"), 
+				                    Styles.yellow, GUILayout.Width(60)))
+					focusCB();
+				if(GUILayout.Button(new GUIContent(VesselName, PartName+"\nPress to focus on the Map"), 
+				                    Styles.white, GUILayout.ExpandWidth(true)))
+					focusVessel();
 				if(status != null) GUILayout.Label(status, style, GUILayout.ExpandWidth(false));
 				GUILayout.EndHorizontal();
 			}
@@ -243,7 +270,7 @@ namespace GroundConstruction
 //						                    Styles.active_button, GUILayout.ExpandWidth(false)))
 //							warpto = info;
 //					}
-					if(GUILayout.Button(new GUIContent("Focus", "Switch to this workshop"), 
+					if(GUILayout.Button(new GUIContent("Switch To", "Switch to this workshop"), 
 					                    Styles.enabled_button, GUILayout.ExpandWidth(false)))
 						switchto = info;
 					GUILayout.EndHorizontal();
