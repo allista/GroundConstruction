@@ -100,14 +100,18 @@ namespace GroundConstruction
 
 			static void toMapView(MapObject target)
 			{
+				if(target == null) goto end;
 				if(HighLogic.LoadedSceneIsFlight)
 				{ 
 					if(!MapView.MapIsEnabled) 
 						MapView.EnterMapView(); 
 				}
-				if(HighLogic.LoadedSceneHasPlanetarium)
+				if(HighLogic.LoadedSceneIsFlight ||
+				   HighLogic.LoadedScene == GameScenes.TRACKSTATION)
 					PlanetariumCamera.fetch.SetTarget(target);
-				else Utils.Message("Go to Tracking Station to do this");
+				else goto end;
+				return;
+				end: Utils.Message("Go to Tracking Station to do this.");
 			}
 
 			public void Draw()
