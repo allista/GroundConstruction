@@ -165,7 +165,7 @@ namespace GroundConstruction
 				                             GUILayout.Height(height)).clampToScreen();
 				if(to_convert != null)
 				{
-					warning.Show(string.Format("This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
+					warning.Draw(string.Format("This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
 					                           "<color=red><b>This cannot be undone!</b></color>\n" +
 					                           "It is best that you <b>save the game</b> before doing this.\n" +
 					                           "Are you sure you wish to continue?", old_res.name, Globals.Instance.StructureResource.name));

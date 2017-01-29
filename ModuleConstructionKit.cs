@@ -308,7 +308,7 @@ namespace GroundConstruction
 		IEnumerator<YieldInstruction> delayed_store_construct(ShipConstruct construct)
 		{
 			if(construct == null) yield break;
-			Utils.LockEditor("construct_loading");
+			Utils.LockControls("construct_loading");
 			for(int i = 0; i < 3; i++) yield return null;
 			kit = new VesselKit(construct);
 			KitName = kit.Name;
@@ -321,7 +321,7 @@ namespace GroundConstruction
 			update_texture();
 			update_model(false);
 			construct.Unload();
-			Utils.LockEditor("construct_loading", false);
+			Utils.LockControls("construct_loading", false);
 		}
 
 		void vessel_selected(string filename, CraftBrowserDialog.LoadType t)
@@ -633,7 +633,7 @@ namespace GroundConstruction
 				          "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
 				          Styles.rich_label);
 			//rename the kit
-			if(kitname_editor.Show("Rename Kit") == SimpleDialog.Answer.Yes)
+			if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
 				KitName = kitname_editor.Text;
 		}
 		#endregion
