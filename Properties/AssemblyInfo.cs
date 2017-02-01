@@ -25,7 +25,11 @@ using AT_Utils;
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
+#if NIGHTBUILD
+[assembly: AssemblyVersion("1.1.*")]
+#else
 [assembly: AssemblyVersion("1.1.0.0")]
+#endif
 [assembly: KSPAssembly("GroundConstruction", 1, 1)]
 
 // The following attributes are used to specify the signing key for the assembly,
