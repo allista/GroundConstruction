@@ -57,7 +57,18 @@ namespace GroundConstruction
 			}
 
 			public bool Recheck()
-			{ return FlightGlobals.FindVessel(vesselID) != null; }
+			{ 
+                var vsl = FlightGlobals.FindVessel(vesselID); 
+                if(vsl == null) return false;
+                if(vsl.loaded)
+                {
+                    var workshop = vsl[id];
+                    if(workshop == null) return false;
+                    var module = workshop.Modules.GetModule<GroundWorkshop>();
+                    return module != null && module.isEnabled && module.Efficiency > 0;
+                }
+                return true;
+            }
 
 			public bool SwitchTo()
 			{
