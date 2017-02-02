@@ -18,6 +18,8 @@ namespace GroundConstruction
 	{
 		[Persistent] public Guid vesselID;
 
+        public bool Valid { get { return vesselID != Guid.Empty; } }
+
 		public override void Save(ConfigNode node)
 		{
 			node.AddValue("vesselID", vesselID.ToString("N"));
@@ -43,7 +45,6 @@ namespace GroundConstruction
 			public ModuleConstructionKit Module { get; private set; }
 			public VesselKit Kit { get { return ModuleValid? Module.kit: null; } }
 
-			public bool Valid { get { return vesselID != Guid.Empty; } }
 			public bool ModuleValid { get { return Module != null && Module.Valid; } }
 
 			public KitInfo() {}
@@ -53,7 +54,6 @@ namespace GroundConstruction
 				Module = kit_module;
 				KitName = kit_module.KitName;
 			}
-
 
 			public bool Recheck()
 			{
@@ -103,7 +103,7 @@ namespace GroundConstruction
 		}
 
 		[KSPField] public bool AutoEfficiency;
-		[KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "P1")] 
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Workshop Efficiency", guiFormat = "P1")] 
 		public float Efficiency = 1;
 
 		[KSPField(isPersistant = true)] public bool Working;
@@ -119,7 +119,8 @@ namespace GroundConstruction
 		public override string GetInfo()
 		{ 
 			if(AutoEfficiency) compute_part_efficiency();
-			return Efficiency.Equals(0)? "" : string.Format("Efficiency: {0:P}", Efficiency);
+            return isEnabled && Efficiency > 0? 
+                string.Format("Efficiency: {0:P}", Efficiency) : "";
 		}
 
 		public override void OnAwake()
@@ -145,7 +146,10 @@ namespace GroundConstruction
 		}
 
 		void onGameStateSave(ConfigNode node)
-		{ GroundConstructionScenario.CheckinWorkshop(this); }
+		{ 
+            if(part.started && isEnabled && Efficiency > 0)
+                GroundConstructionScenario.CheckinWorkshop(this); 
+        }
 
 		public override void OnSave(ConfigNode node)
 		{
@@ -168,6 +172,7 @@ namespace GroundConstruction
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
+            if(!isEnabled) { enabled = false; return; }
 			LockName = "GroundWorkshop"+GetInstanceID();
 			if(AutoEfficiency) compute_part_efficiency();
 			if(Efficiency.Equals(0)) this.EnableModule(false);
