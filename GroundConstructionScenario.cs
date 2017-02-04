@@ -56,6 +56,14 @@ namespace GroundConstruction
 				}
 			}
 
+            //deprecated config conversion
+            public override void Load(ConfigNode node)
+            {
+                base.Load(node);
+                if(string.IsNullOrEmpty(VesselName) && node.HasValue("Name"))
+                    VesselName = node.GetValue("Name");
+            }
+
 			public bool Recheck()
 			{ 
                 var vsl = FlightGlobals.FindVessel(vesselID); 
