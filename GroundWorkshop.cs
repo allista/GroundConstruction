@@ -467,9 +467,19 @@ namespace GroundConstruction
 			kit_resources = target_kit.Module.GetConstructResources();
 			transfer_list.NewTransfer(host_resources, kit_resources);
 			if(transfer_list.Count > 0)
+            {
 				resources_window.Show(true);
+                resources_window.TransferAction = delegate
+                {
+                    double dM, dC;
+                    transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
+                    target_kit.Kit.Mass += (float)dM;
+                    target_kit.Kit.Cost += (float)dC;
+                };
+            }
 			else
 			{
+                resources_window.TransferAction = null;
 				host_resources = null;
 				kit_resources = null;
 				target_kit = null;
@@ -700,13 +710,6 @@ namespace GroundConstruction
 				if(target_kit != null && target_kit.Recheck())
 				{
 					resources_window.Draw(string.Format("Transfer resources to {0}", target_kit.KitName), transfer_list);
-					if(resources_window.transferNow && target_kit.Recheck())
-					{
-						double dM, dC;
-						transfer_list.TransferResources(host_resources, kit_resources, out dM, out dC);
-						target_kit.Kit.Mass += (float)dM;
-						target_kit.Kit.Cost += (float)dC;
-					}
 					crew_window.Draw(vessel.GetVesselCrew(), target_kit.Module.KitCrew, kit_crew_capacity);
 				}
 				else
