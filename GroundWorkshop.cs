@@ -19,6 +19,8 @@ namespace GroundConstruction
 		[Persistent] public Guid vesselID;
 
         public bool Valid { get { return vesselID != Guid.Empty; } }
+        public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vesselID == FlightGlobals.ActiveVessel.id; } }
+        public Vessel GetVessel() { return FlightGlobals.FindVessel(vesselID); }
 
 		public override void Save(ConfigNode node)
 		{
@@ -70,7 +72,7 @@ namespace GroundConstruction
 
 			public ModuleConstructionKit FindKit()
 			{
-				var kit_vsl = FlightGlobals.FindVessel(vesselID);
+                var kit_vsl = GetVessel();
 				Module = kit_vsl == null? null : GetKitFromVessel(kit_vsl);
 //				Utils.Log("FindKit: vsl {}, module {}, valid {}", kit_vsl, Module, ModuleValid);//debug
 				return Module;
@@ -331,6 +333,7 @@ namespace GroundConstruction
 		void stop()
 		{
 			Working = false;
+            ETA = -1;
 			distance_mod = -1;
 			LastUpdateTime = -1;
 			TimeWarp.SetRate(0, false);
@@ -519,12 +522,16 @@ namespace GroundConstruction
 		{
 			if(highlighted_kits.Count > 0)
 			{
+//                this.Log("highlight: {}, {}", highlight_kit, highlighted_kits);//debug
 				foreach(var kit in highlighted_kits)
 				{
 					if(kit.Module != null &&
 					   (highlight_kit == null ||
 					    kit.Module != highlight_kit.Module))
+                    {
+//                        this.Log("disabling: {}", kit);//debug
 						kit.Module.part.SetHighlightDefault();
+                    }
 				}
 				highlighted_kits.Clear();
 			}
@@ -560,9 +567,9 @@ namespace GroundConstruction
 				if(GUILayout.Button(new GUIContent("Stop", " And move back to the Queue"), 
 				                    Styles.danger_button, GUILayout.ExpandWidth(true)))
 				{
-					if(Queue.Count == 0) stop();
 					Queue.Enqueue(KitUnderConstruction);
 					KitUnderConstruction = new KitInfo();
+                    stop();
 				}
 				GUILayout.EndVertical();
 			}
