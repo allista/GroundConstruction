@@ -454,6 +454,8 @@ namespace GroundConstruction
 			//setup anchor, permanent ground contact and unfocused ranges
 			update_unfocusedRange("Launch");
 			setup_ground_contact();
+            foreach(object w in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
+                yield return w;
 			attach_anchor();
 			Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
 			Deploying = false;
