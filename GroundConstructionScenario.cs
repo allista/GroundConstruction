@@ -327,8 +327,9 @@ namespace GroundConstruction
                                 Styles.yellow, GUILayout.Width(60)))
                 focusCB();
             GUILayout.BeginVertical();
-            if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on the Map"), 
-                                Styles.white, GUILayout.ExpandWidth(true)))
+            if(IsActive) GUILayout.Label(VesselName, Styles.white, GUILayout.ExpandWidth(true));
+            else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on the Map"), 
+                                     Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
             foreach(var ws in WorkshopParts) ws.Value.Draw();
             GUILayout.EndVertical();
@@ -347,6 +348,7 @@ namespace GroundConstruction
         [Persistent] public Status State;
         [Persistent] public double EndUT;
         [Persistent] public string ETA;
+        [Persistent] public string Workforce;
 
         public WorkshopInfo() {}
         public WorkshopInfo(GroundWorkshop workshop) 
@@ -356,6 +358,7 @@ namespace GroundConstruction
             CB = workshop.vessel.mainBody.bodyName;
             VesselName = workshop.vessel.vesselName;
             PartName = workshop.part.partInfo.title;
+            Workforce = workshop.Workforce_Display;
             State = Status.IDLE;
             EndUT = -1;
             if(workshop.KitUnderConstruction.Valid) 
@@ -423,20 +426,30 @@ namespace GroundConstruction
 
         public void Draw()
         {
-            var tooltip = PartName;
             var style = Styles.white;
             GUIContent status = null;
-            if(IsActive)
-                tooltip += "\nPress to open Construction Window";
-            if(State == Status.COMPLETE)
+            var tooltip = "\nPress to open Construction Window";
+            if(State == Status.IDLE)
             {
-                style = Styles.green;
-                status = new GUIContent(KitName+": Complete", tooltip);
+                if(IsActive) 
+                {
+                    tooltip = Workforce+tooltip;
+                    status = new GUIContent(PartName+": Idle", tooltip);
+                }
             }
-            else if(State == Status.ACTIVE)
+            else
             {
-                style = EndUT > 0? Styles.yellow : Styles.red;
-                status = new GUIContent(KitName+": "+ETA, tooltip);
+                tooltip = PartName+(IsActive? tooltip : "");
+                if(State == Status.ACTIVE)
+                {
+                    style = EndUT > 0? Styles.yellow : Styles.red;
+                    status = new GUIContent(KitName+": "+ETA, tooltip);
+                }
+                else
+                {
+                    style = Styles.green;
+                    status = new GUIContent(KitName+": Complete", tooltip);
+                }
             }
             if(status == null) return;
             if(GUILayout.Button(status, style, GUILayout.ExpandWidth(true)))
