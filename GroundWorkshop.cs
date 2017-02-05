@@ -107,6 +107,7 @@ namespace GroundConstruction
 		[KSPField] public bool AutoEfficiency;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Workshop Efficiency", guiFormat = "P1")] 
 		public float Efficiency = 1;
+        float distance_mod = -1;
 
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
@@ -115,14 +116,22 @@ namespace GroundConstruction
 		[KSPField(isPersistant = true)] public double ETA = -1;
 		public string ETA_Display { get; private set; } = "Stalled...";
 
-		float workers = 0;
-		float distance_mod = -1;
+		float workforce = 0;
+        float max_workforce = 0;
+        public string Workforce_Display 
+        { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
 
 		public override string GetInfo()
 		{ 
 			if(AutoEfficiency) compute_part_efficiency();
-            return isEnabled && Efficiency > 0? 
-                string.Format("Efficiency: {0:P}", Efficiency) : "";
+            if(isEnabled && Efficiency > 0)
+            {
+                update_max_workforce();
+                return string.Format("Efficiency: {0:P}\n" +
+                                     "Max Workforce: {1:F1} SK", 
+                                     Efficiency, max_workforce);
+            }
+            return "";
 		}
 
 		public override void OnAwake()
@@ -131,6 +140,7 @@ namespace GroundConstruction
 			resources_window = gameObject.AddComponent<ResourceTransferWindow>();
 			crew_window = gameObject.AddComponent<CrewTransferWindow>();
 			GameEvents.onGameStateSave.Add(onGameStateSave);
+            GameEvents.onVesselCrewWasModified.Add(update_workforce);
 		}
 
 		void OnDestroy()
@@ -139,6 +149,7 @@ namespace GroundConstruction
 			Destroy(resources_window);
 			Destroy(crew_window);
 			GameEvents.onGameStateSave.Remove(onGameStateSave);
+            GameEvents.onVesselCrewWasModified.Remove(update_workforce);
 		}
 
 		public override void OnInactive()
@@ -180,7 +191,8 @@ namespace GroundConstruction
 			if(Efficiency.Equals(0)) this.EnableModule(false);
 			else if(HighLogic.LoadedSceneIsFlight)
 			{
-				update_workers();
+				update_workforce();
+                update_max_workforce();
 				GroundConstructionScenario.CheckinWorkshop(this);
 			}
 		}
@@ -225,9 +237,14 @@ namespace GroundConstruction
 			}
 		}
 
-		void update_workers()
+        void update_max_workforce()
+        {
+            max_workforce = part.CrewCapacity*Efficiency*5;
+        }
+
+		void update_workforce()
 		{
-			workers = 0;
+            workforce = 0;
 			foreach(var kerbal in part.protoModuleCrew)
 			{
 				var worker = 0;
@@ -238,10 +255,22 @@ namespace GroundConstruction
 					{ worker = 1; break; }
 				}
 				worker *= trait.CrewMemberExperienceLevel();
-				workers += worker;
+                workforce += worker;
 			}
-			workers *= Efficiency;
+			workforce *= Efficiency;
 		}
+
+        void update_workforce(Vessel vsl)
+        {
+            if(vsl != null && vsl == vessel)
+            {
+                if(Working && KitUnderConstruction.Recheck()) 
+                    update_ETA();
+                else 
+                    update_workforce();
+                GroundConstructionScenario.CheckinWorkshop(this);
+            }
+        }
 
 		bool can_construct()
 		{
@@ -250,7 +279,7 @@ namespace GroundConstruction
 				Utils.Message("Cannot construct unless landed.");
 				return false;
 			}
-			if(workers.Equals(0))
+			if(workforce.Equals(0))
 			{
 				Utils.Message("No engineers in the workshop.");
 				return false;
@@ -276,9 +305,9 @@ namespace GroundConstruction
 
 		void update_ETA()
 		{
-			update_workers();
+			update_workforce();
 			update_distance_mod();
-			if(workers > 0 && distance_mod > 0)
+			if(workforce > 0 && distance_mod > 0)
 			{
 				if(LastUpdateTime < 0) 
 					LastUpdateTime = Planetarium.GetUniversalTime();
@@ -286,7 +315,7 @@ namespace GroundConstruction
 				if(KitUnderConstruction.Kit.PartUnderConstruction != null)
 					ETA -= KitUnderConstruction.Kit.PartUnderConstruction.WorkDone;
 				if(ETA < 0) ETA = 0;
-				ETA /= workers*distance_mod;
+				ETA /= workforce*distance_mod;
 				ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
 //				this.Log(ETA_Display);//debug
 			}
@@ -413,12 +442,12 @@ namespace GroundConstruction
 
 		void FixedUpdate()
 		{
-			if(!HighLogic.LoadedSceneIsFlight || !Working || workers.Equals(0)) return;
+			if(!HighLogic.LoadedSceneIsFlight || !Working || workforce.Equals(0)) return;
 			var deltaTime = GetDeltaTime();
 			if(deltaTime < 0) return;
 			//check current kit
 			if(!KitUnderConstruction.Recheck() && !start_next_kit()) return;
-			var available_work = workers*deltaTime;
+			var available_work = workforce*deltaTime;
 			while(Working && available_work > TimeWarp.fixedDeltaTime/10)
 				available_work = DoSomeWork(available_work);
 			if(deltaTime > TimeWarp.fixedDeltaTime*2)
@@ -544,7 +573,17 @@ namespace GroundConstruction
 				highlight_kit = info;
 		}
 
-		void info_pane()
+        void info_pane()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(string.Format("<color=silver>Efficiency:</color> <b>{0:P1}</b> " +
+                                          "<color=silver>Workforce:</color> <b>{1:F1}</b>/{2:F1} SK", 
+                                          Efficiency, workforce, max_workforce), 
+                            Styles.boxed_label, GUILayout.ExpandWidth(true));
+            GUILayout.EndHorizontal();
+        }
+
+		void construction_pane()
 		{
 			if(KitUnderConstruction.ModuleValid) 
 			{
@@ -573,7 +612,6 @@ namespace GroundConstruction
 				}
 				GUILayout.EndVertical();
 			}
-			else GUILayout.Label("Nothing is under construction now.", Styles.boxed_label, GUILayout.ExpandWidth(true));
 			if(KitUnderConstruction.ModuleValid || Queue.Count > 0)
 			{
 				if(Utils.ButtonSwitch("Construct Kit", ref Working, "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
@@ -589,7 +627,7 @@ namespace GroundConstruction
 		{
 			if(Queue.Count > 0)
 			{
-				GUILayout.Label("Construction Queue:", GUILayout.ExpandWidth(true));
+                GUILayout.Label("Construction Queue", Styles.label, GUILayout.ExpandWidth(true));
 				GUILayout.BeginVertical(Styles.white);
 				queue_scroll = GUILayout.BeginScrollView(queue_scroll, GUILayout.Height(height), GUILayout.Width(width));
 				KitInfo del = null;
@@ -618,7 +656,7 @@ namespace GroundConstruction
 		void built_kits_pane()
 		{
 			if(nearby_built_kits.Count == 0) return;
-			GUILayout.Label("Complete DIY kits nearby:", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Complete DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo crew = null;
@@ -654,7 +692,7 @@ namespace GroundConstruction
 		void nearby_kits_pane()
 		{
 			if(nearby_unbuilt_kits.Count == 0) return;
-			GUILayout.Label("Uncomplete DIY kits nearby:", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Uncomplete DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo add = null;
@@ -690,9 +728,10 @@ namespace GroundConstruction
 		void main_window(int WindowID)
 		{
 			GUILayout.BeginVertical();
+            info_pane();
 			nearby_kits_pane();
 			queue_pane();
-			info_pane();
+			construction_pane();
 			built_kits_pane();
 			if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
 				show_window = false;
