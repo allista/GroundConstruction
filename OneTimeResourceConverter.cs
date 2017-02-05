@@ -142,7 +142,7 @@ namespace GroundConstruction
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(vsl.vesselName, Styles.white, GUILayout.ExpandWidth(true));
 				if(GUILayout.Button("Convert", Styles.danger_button, GUILayout.ExpandWidth(false)))
-				{ if(to_convert == null) to_convert = vsl; }
+                { if(to_convert == null) { to_convert = vsl; warning.Show(true); } }
 				GUILayout.EndHorizontal();
 			}
 			GUILayout.EndScrollView();
