@@ -1,0 +1,46 @@
+{
+    "spec_version" : "v1.4",
+    "identifier"   : "GroundConstructionMKS",
+    "$kref"        : "#/ckan/spacedock/1123",
+    "$vref"        : "#/ckan/ksp-avc",
+    "abstract"     : "This is a package with tuned dependencies for MKS. Use the GroundConstruction package to install the standalone mod.",
+    "author"       : [ "allista" ],
+    "license"      : "MIT",
+
+    "resources":
+    {
+    	"homepage"     : "http://forum.kerbalspaceprogram.com/index.php?/topic/154167-122-ground-construction",
+        "bugtracker"   : "https://github.com/allista/GroundConstruction/issues",
+        "repository"   : "https://github.com/allista/GroundConstruction",
+    },
+
+    "depends":
+    [
+        { "name": "ModuleManager" },
+        { "name": "AT-Utils" },
+        { "name": "CommunityResourcePack" }
+    ],
+
+    "suggests":
+    [
+        { "name": "ThrottleControlledAvionics" },
+        { "name": "ConfigurableContainers" },
+        { "name": "Hangar" },
+        { "name": "KIS" },
+        { "name": "KAS" },
+        { "name": "KSP-AVC" }
+    ],
+    
+    "conflicts":
+    [
+    	{ "name": "GroundConstruction" }
+    ],
+
+    "install":
+    [
+        {
+            "file": "GameData/GroundConstruction",
+            "install_to": "GameData"
+        }
+    ]
+}
