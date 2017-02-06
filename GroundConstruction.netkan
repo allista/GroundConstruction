@@ -11,15 +11,19 @@
     {
     	"homepage"     : "http://forum.kerbalspaceprogram.com/index.php?/topic/154167-122-ground-construction",
         "bugtracker"   : "https://github.com/allista/GroundConstruction/issues",
-        "repository"   : "https://github.com/allista/GroundConstruction",
+        "repository"   : "https://github.com/allista/GroundConstruction"
     },
 
     "depends":
     [
         { "name": "ModuleManager" },
         { "name": "AT-Utils" },
-        { "name": "ConfigurableContainers" },
         { "name": "CommunityResourcePack" }
+    ],
+    
+    "recommends":
+    [
+        { "name": "ConfigurableContainers" }
     ],
 
     "suggests":
