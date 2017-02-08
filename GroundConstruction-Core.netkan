@@ -1,0 +1,46 @@
+{
+    "spec_version" : "v1.4",
+    "identifier"   : "GroundConstruction-Core",
+    "$kref"        : "#/ckan/spacedock/1123",
+    "$vref"        : "#/ckan/ksp-avc",
+    "abstract"     : "This is the core component of the Ground Construction mod. It should only be installed as a dependency by other mods.",
+    "author"       : [ "allista" ],
+    "license"      : "MIT",
+
+    "resources":
+    {
+    	"homepage"     : "http://forum.kerbalspaceprogram.com/index.php?/topic/154167-122-ground-construction",
+        "bugtracker"   : "https://github.com/allista/GroundConstruction/issues",
+        "repository"   : "https://github.com/allista/GroundConstruction"
+    },
+
+    "depends":
+    [
+        { "name": "AT-Utils" },
+        { "name": "CommunityResourcePack" }
+    ],
+
+    "install":
+    [
+        {
+            "file": "GameData/GroundConstruction/Icons",
+            "install_to": "GameData/GroundConstruction"
+        },
+        {
+            "file": "GameData/GroundConstruction/Plugins",
+            "install_to": "GameData/GroundConstruction"
+        },
+        {
+            "file": "GameData/GroundConstruction/GroundConstruction.version",
+            "install_to": "GameData/GroundConstruction"
+        },
+        {
+            "file": "GameData/GroundConstruction/KitResources.cfg",
+            "install_to": "GameData/GroundConstruction"
+        },
+        {
+            "file": "GameData/GroundConstruction/Parts/DIYKit",
+            "install_to": "GameData/GroundConstruction/Parts"
+        }
+    ]
+}

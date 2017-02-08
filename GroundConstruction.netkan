@@ -16,9 +16,8 @@
 
     "depends":
     [
-        { "name": "ModuleManager" },
-        { "name": "AT-Utils" },
-        { "name": "CommunityResourcePack" }
+    	{ "name": "ModuleManager" },
+        { "name": "GroundConstruction-Core" }
     ],
     
     "recommends":
@@ -38,8 +37,13 @@
     "install":
     [
         {
-            "file": "GameData/GroundConstruction",
-            "install_to": "GameData"
+            "file": "GameData/GroundConstruction/Patches",
+            "install_to": "GameData/GroundConstruction"
+        },
+        {
+            "file": "GameData/GroundConstruction/Parts",
+            "install_to": "GameData/GroundConstruction",
+            "filter": ["DIYKit"]
         }
     ]
 }
