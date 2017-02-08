@@ -116,6 +116,8 @@ namespace GroundConstruction
 		[KSPField(isPersistant = true)] public double ETA = -1;
 		public string ETA_Display { get; private set; } = "Stalled...";
 
+        double loadedUT = -1;
+
 		float workforce = 0;
         float max_workforce = 0;
         public string Workforce_Display 
@@ -141,6 +143,8 @@ namespace GroundConstruction
 			crew_window = gameObject.AddComponent<CrewTransferWindow>();
 			GameEvents.onGameStateSave.Add(onGameStateSave);
             GameEvents.onVesselCrewWasModified.Add(update_workforce);
+            GameEvents.onVesselGoOnRails.Add(onVesselPacked);
+            GameEvents.onVesselGoOffRails.Add(onVesselUpacked);
 		}
 
 		void OnDestroy()
@@ -150,6 +154,8 @@ namespace GroundConstruction
 			Destroy(crew_window);
 			GameEvents.onGameStateSave.Remove(onGameStateSave);
             GameEvents.onVesselCrewWasModified.Remove(update_workforce);
+            GameEvents.onVesselGoOnRails.Remove(onVesselPacked);
+            GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
 		}
 
 		public override void OnInactive()
@@ -162,6 +168,18 @@ namespace GroundConstruction
 		{ 
             if(part.started && isEnabled && Efficiency > 0)
                 GroundConstructionScenario.CheckinWorkshop(this); 
+        }
+
+        void onVesselPacked(Vessel vsl)
+        {
+            if(vsl != vessel) return;
+            loadedUT = -1;
+        }
+
+        void onVesselUpacked(Vessel vsl)
+        {
+            if(vsl != vessel) return;
+            loadedUT = Planetarium.GetUniversalTime();
         }
 
 		public override void OnSave(ConfigNode node)
@@ -181,7 +199,6 @@ namespace GroundConstruction
 			}
 		}
 
-
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
@@ -191,6 +208,7 @@ namespace GroundConstruction
 			if(Efficiency.Equals(0)) this.EnableModule(false);
 			else if(HighLogic.LoadedSceneIsFlight)
 			{
+                loadedUT = -1;
 				update_workforce();
                 update_max_workforce();
 				GroundConstructionScenario.CheckinWorkshop(this);
@@ -328,12 +346,20 @@ namespace GroundConstruction
 
 		void Update()
 		{
-			if(Time.timeSinceLevelLoad < 3) return;
+            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3) return;
+            //check the kit under construction
+            if(KitUnderConstruction.Valid && !KitUnderConstruction.Recheck())
+            {
+                KitUnderConstruction = new KitInfo();
+                GroundConstructionScenario.CheckinWorkshop(this);
+            }
+            //update ETA if working
 			if(Working && KitUnderConstruction.ModuleValid) 
 			{
 				if(can_construct()) update_ETA();
 				else stop();
 			}
+            //if UI is opened, update info about nearby kits
 			if(show_window)
 			{
 				update_queue();
