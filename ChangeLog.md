@@ -1,6 +1,14 @@
 #Ground Construction ChangeLog
 
-* **v1.1.1**
+* **v1.1.2**
+    * Added custom part subcategory for GC workshops.
+    * Added separate CKAN package for MKS bundle. Now GC is provided in two packages: GroundConstruction-Core and GroundConstruction (full). MKS only depends on the Core part.
+    * Increased the **VolumePerKerbal** from 3 to **8 m3**. This effectively removes workshop capability from small cockpits, leaving it only in parts like Cupola or Science Lab.
+    * Fixed the "cannot construct while moving" issue. Fixed zombie kits under construction.
+    * Fixed vessel name loss in GC UI after undocking/decoupling.
+    * Moved to the new DIY Kit model made by @BobPalmer.
+
+* v1.1.1
     * **DIY Kit renaming** in editor and in flight.
     * **Improved User Interface**
     	* DIY Kits are higlighted when mouse is hovered over their respective infos in Construction Window.
