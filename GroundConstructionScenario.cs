@@ -238,6 +238,7 @@ namespace GroundConstruction
         {
             if(info.vesselID == vesselID)
             {
+                VesselName = info.VesselName;
                 WorkshopParts[info.id] = info;
                 return true;
             }
