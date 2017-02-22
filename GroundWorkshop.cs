@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
 using Experience;
+using System.Collections;
 
 namespace GroundConstruction
 {
@@ -142,9 +143,11 @@ namespace GroundConstruction
 			resources_window = gameObject.AddComponent<ResourceTransferWindow>();
 			crew_window = gameObject.AddComponent<CrewTransferWindow>();
 			GameEvents.onGameStateSave.Add(onGameStateSave);
-            GameEvents.onVesselCrewWasModified.Add(update_workforce);
+            GameEvents.onVesselCrewWasModified.Add(update_and_checkin);
             GameEvents.onVesselGoOnRails.Add(onVesselPacked);
             GameEvents.onVesselGoOffRails.Add(onVesselUpacked);
+            GameEvents.onVesselWasModified.Add(onVesselNullName);
+            GameEvents.onVesselRename.Add(onVesselRename);
 		}
 
 		void OnDestroy()
@@ -153,9 +156,11 @@ namespace GroundConstruction
 			Destroy(resources_window);
 			Destroy(crew_window);
 			GameEvents.onGameStateSave.Remove(onGameStateSave);
-            GameEvents.onVesselCrewWasModified.Remove(update_workforce);
+            GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
             GameEvents.onVesselGoOnRails.Remove(onVesselPacked);
             GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
+            GameEvents.onVesselWasModified.Remove(onVesselNullName);
+            GameEvents.onVesselRename.Remove(onVesselRename);
 		}
 
 		public override void OnInactive()
@@ -166,8 +171,7 @@ namespace GroundConstruction
 
 		void onGameStateSave(ConfigNode node)
 		{ 
-            if(part.started && isEnabled && Efficiency > 0)
-                GroundConstructionScenario.CheckinWorkshop(this); 
+            update_and_checkin(vessel);
         }
 
         void onVesselPacked(Vessel vsl)
@@ -180,6 +184,35 @@ namespace GroundConstruction
         {
             if(vsl != vessel) return;
             loadedUT = Planetarium.GetUniversalTime();
+        }
+
+        void update_and_checkin(Vessel vsl)
+        {
+            if(vsl != null && vsl == vessel &&
+               part.started && isEnabled && Efficiency > 0)
+            {
+                if(Working && KitUnderConstruction.Recheck()) 
+                    update_ETA();
+                else 
+                    update_workforce();
+                GroundConstructionScenario.CheckinWorkshop(this);
+            }
+        }
+        void onVesselRename(GameEvents.HostedFromToAction<Vessel,string> data)
+        {
+            update_and_checkin(data.host);
+        }
+
+        IEnumerator update_and_checkin_coroutine(Vessel vsl)
+        {
+            if(vsl == null || vsl != vessel) yield break;
+            while(string.IsNullOrEmpty(vsl.vesselName)) yield return null;
+            update_and_checkin(vsl);
+        }
+
+        void onVesselNullName(Vessel vsl)
+        {
+            StartCoroutine(update_and_checkin_coroutine(vsl));
         }
 
 		public override void OnSave(ConfigNode node)
@@ -277,18 +310,6 @@ namespace GroundConstruction
 			}
 			workforce *= Efficiency;
 		}
-
-        void update_workforce(Vessel vsl)
-        {
-            if(vsl != null && vsl == vessel)
-            {
-                if(Working && KitUnderConstruction.Recheck()) 
-                    update_ETA();
-                else 
-                    update_workforce();
-                GroundConstructionScenario.CheckinWorkshop(this);
-            }
-        }
 
 		bool can_construct()
 		{
