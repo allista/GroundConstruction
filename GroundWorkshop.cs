@@ -703,7 +703,7 @@ namespace GroundConstruction
 		void built_kits_pane()
 		{
 			if(nearby_built_kits.Count == 0) return;
-            GUILayout.Label("Complete DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.Label("Completed DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo crew = null;
@@ -739,7 +739,7 @@ namespace GroundConstruction
 		void nearby_kits_pane()
 		{
 			if(nearby_unbuilt_kits.Count == 0) return;
-            GUILayout.Label("Uncomplete DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.Label("Uncompleted DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
 			GUILayout.BeginVertical(Styles.white);
 			unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
 			KitInfo add = null;
