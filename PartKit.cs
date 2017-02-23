@@ -66,11 +66,12 @@ namespace GroundConstruction
 			craftID  = part.craftID;
 			var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
 			var res_mass = part.GetResourceMass();
+            var dry_cost = part.DryCost();
 			PartMass = part.mass+res_mass;
-			PartCost = part.partInfo.cost+part.GetModuleCosts(part.partInfo.cost);
+            PartCost = dry_cost+part.ResourcesCost();
 			if(is_DIY_Kit)
 			{
-				Mass = KitMass = part.mass+res_mass;
+                Mass = KitMass = PartMass;
 				Cost = KitCost = PartCost;
 				Complexity = 1;
 				TotalWork = 0;
@@ -78,13 +79,16 @@ namespace GroundConstruction
 			}
 			else 
 			{
-				Complexity = 1-1/((PartCost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
+                Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
 				Mass = KitMass = part.mass*Complexity+res_mass;
 				var add_mass = PartMass - Mass;
-				Cost = KitCost = Mathf.Max(0, PartCost - add_mass*GLB.StructureResource.unitCost);
+                Cost = KitCost = Mathf.Max(0, PartCost - add_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost);
 				TotalWork = (Complexity*GLB.ComplexityWeight + add_mass*GLB.MetalworkWeight)*3600;
 			}
-//			Utils.Log("{}: complexity {}, KitMass {}/{} = {}", part, Complexity, KitMass, PartMass, KitMass/PartMass);//debug
+//            Utils.Log("{}: complexity {}, KitMass {}/{} = {}, KitCost {}/{} = {}", 
+//                      part, Complexity, 
+//                      KitMass, PartMass, KitMass/PartMass,
+//                      KitCost, PartCost, KitCost/PartCost);//debug
 		}
 
 		public override double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
