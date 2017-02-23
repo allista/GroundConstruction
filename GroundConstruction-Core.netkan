@@ -1,8 +1,8 @@
 {
     "spec_version" : "v1.4",
     "identifier"   : "GroundConstruction-Core",
+    "name"         : "Ground Construction Core",
     "$kref"        : "#/ckan/spacedock/1123",
-    "$vref"        : "#/ckan/ksp-avc",
     "abstract"     : "This is the core component of the Ground Construction mod. It should only be installed as a dependency by other mods.",
     "author"       : [ "allista" ],
     "license"      : "MIT",
