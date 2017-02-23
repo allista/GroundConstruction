@@ -1,6 +1,10 @@
 #Ground Construction ChangeLog
 
-* **v1.1.2**
+* **v1.1.2.1**
+    * Fixed double cost bug.
+    * Fixed complexity and kit mass calculation.
+
+* v1.1.2
     * Added custom part subcategory for GC workshops.
     * Added separate CKAN package for MKS bundle. Now GC is provided in two packages: GroundConstruction-Core and GroundConstruction (full). MKS only depends on the Core part.
     * Increased the **VolumePerKerbal** from 3 to **8 m3**. This effectively removes workshop capability from small cockpits, leaving it only in parts like Cupola or Science Lab.
