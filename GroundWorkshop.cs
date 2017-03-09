@@ -212,7 +212,8 @@ namespace GroundConstruction
 
         void onVesselNullName(Vessel vsl)
         {
-            StartCoroutine(update_and_checkin_coroutine(vsl));
+            if(isActiveAndEnabled)
+                StartCoroutine(update_and_checkin_coroutine(vsl));
         }
 
 		public override void OnSave(ConfigNode node)
@@ -298,14 +299,14 @@ namespace GroundConstruction
             workforce = 0;
 			foreach(var kerbal in part.protoModuleCrew)
 			{
-				var worker = 0;
+				var worker = 0f;
 				var trait = kerbal.experienceTrait;
 				foreach(var effect in trait.Effects)
 				{
 					if(effect is ConstructionSkill)
 					{ worker = 1; break; }
 				}
-				worker *= trait.CrewMemberExperienceLevel();
+                worker *= Mathf.Max(trait.CrewMemberExperienceLevel(), 0.5f);
                 workforce += worker;
 			}
 			workforce *= Efficiency;
