@@ -110,7 +110,7 @@ namespace GroundConstruction
 		public bool BlueprintComplete()
 		{
 			var db = new HashSet<uint>();
-			BuiltParts.ForEach(p => { if(p.Completeness >= 1) db.Add(p.craftID); });
+			BuiltParts.ForEach(p => db.Add(p.craftID));
 			foreach(ConfigNode p in Blueprint.nodes)
 			{
 				var name_id = p.GetValue("part");
