@@ -596,7 +596,7 @@ namespace GroundConstruction
 			}
 			model.gameObject.SetActive(false);
 			var launch_transform = get_spawn_transform();
-			FlightCameraOverride.HoldCameraStillForSeconds(FlightGlobals.ActiveVessel.transform, 1);
+            FlightCameraOverride.AnchorForSeconds(FlightCameraOverride.Mode.Hold, FlightGlobals.ActiveVessel.transform, 1);
 			if(FlightGlobals.ready)
 				FloatingOrigin.SetOffset(launch_transform.position);
 			PutShipToGround(construct, launch_transform);
