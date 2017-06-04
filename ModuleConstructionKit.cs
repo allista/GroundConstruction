@@ -601,7 +601,7 @@ namespace GroundConstruction
 				FloatingOrigin.SetOffset(launch_transform.position);
 			PutShipToGround(construct, launch_transform);
 			ShipConstruction.AssembleForLaunch(construct, 
-			                                   vessel.landedAt, part.flagURL, 
+                                               vessel.landedAt, vessel.displaylandedAt, part.flagURL, 
 			                                   FlightDriver.FlightStateCache,
 			                                   new VesselCrewManifest());
 			launched_vessel = FlightGlobals.Vessels[FlightGlobals.Vessels.Count - 1];
