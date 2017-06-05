@@ -263,7 +263,7 @@ namespace GroundConstruction
 		void update_queue()
 		{
 			if(Queue.Count == 0) return;
-			Queue = new PersistentQueue<KitInfo>(Queue.Where(kit => kit.Recheck()));
+            Queue = new PersistentQueue<KitInfo>(Queue.Where(kit => kit.Recheck() && kit.Module.Completeness < 1));
 		}
 
 		List<KitInfo> nearby_unbuilt_kits = new List<KitInfo>();
@@ -314,6 +314,9 @@ namespace GroundConstruction
 
 		bool can_construct()
 		{
+            //pass the check when a vessel has just been unpacked
+            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3) 
+                return true;
 			if(!vessel.Landed)
 			{
 				Utils.Message("Cannot construct unless landed.");
@@ -357,7 +360,7 @@ namespace GroundConstruction
 				if(ETA < 0) ETA = 0;
 				ETA /= workforce*distance_mod;
 				ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
-//				this.Log(ETA_Display);//debug
+                this.Log(ETA_Display);//debug
 			}
 			else 
 			{
@@ -368,36 +371,37 @@ namespace GroundConstruction
 
 		void Update()
 		{
-            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3) return;
+            //highlight kit under the mouse
+            disable_highlights();
+            if(highlight_kit != null)
+            {
+                if(highlight_kit.Module != null)
+                {
+                    highlight_kit.Module.part.HighlightAlways(Color.yellow);
+                    highlighted_kits.Add(highlight_kit);
+                }
+            }
+            highlight_kit = null;
             //check the kit under construction
             if(KitUnderConstruction.Valid && !KitUnderConstruction.Recheck())
+                reset_current_kit();
+            if(KitUnderConstruction.ModuleValid)
             {
-                KitUnderConstruction = new KitInfo();
-                GroundConstructionScenario.CheckinWorkshop(this);
+                //update ETA if working
+    			if(Working)
+    			{
+    				if(can_construct()) update_ETA();
+    				else stop();
+    			}
+                else if(KitUnderConstruction.Module.Completeness >= 1)
+                    reset_current_kit();
             }
-            //update ETA if working
-			if(Working && KitUnderConstruction.ModuleValid) 
-			{
-				if(can_construct()) update_ETA();
-				else stop();
-			}
             //if UI is opened, update info about nearby kits
 			if(show_window)
 			{
 				update_queue();
 				update_nearby_kits();
 			}
-			//highlight kit under the mouse
-			disable_highlights();
-			if(highlight_kit != null)
-			{
-				if(highlight_kit.Module != null)
-				{
-					highlight_kit.Module.part.HighlightAlways(Color.yellow);
-					highlighted_kits.Add(highlight_kit);
-				}
-			}
-			highlight_kit = null;
 		}
 
 		void start()
@@ -416,6 +420,12 @@ namespace GroundConstruction
 			TimeWarp.SetRate(0, false);
 			GroundConstructionScenario.CheckinWorkshop(this);
 		}
+
+        void reset_current_kit()
+        {
+            KitUnderConstruction = new KitInfo();
+            stop();
+        }
 
 		bool start_next_kit()
 		{
