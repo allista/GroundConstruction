@@ -2,10 +2,11 @@
 
 * **v1.1.2.2**
 	* Compatible with KSP-1.3
-	* Fixed the coroutine bug.
 	* Engineers with lvl 0 are now also capable of kit construction.
+	* Main GC Window now shows only landed workshops.
 	* Hopefully fixed the issue with inability to launch some finished constructs.
 	* Moved engineer patch to separate top-level config.
+	* Fixed the coroutine bug.
 
 * v1.1.2.1
     * Fixed double cost bug.
