@@ -63,7 +63,7 @@ namespace GroundConstruction
 
 		public static void CheckinWorkshop(GroundWorkshop workshop)
 		{
-			if(workshop.part == null || workshop.vessel == null) return;
+            if(workshop.part == null || workshop.vessel == null) return;
             add_workshop(new WorkshopInfo(workshop));
 		}
 
@@ -168,6 +168,7 @@ namespace GroundConstruction
                 foreach(var item in DisplayOrder.Values) 
 				{
 					var info = Workshops[item];
+                    if(!info.IsLanded) continue;
 					GUILayout.BeginHorizontal();
 					info.Draw();
                     if(info.IsActive)
@@ -216,6 +217,7 @@ namespace GroundConstruction
         SortedDictionary<uint,WorkshopInfo> WorkshopParts = new SortedDictionary<uint, WorkshopInfo>();
         public IEnumerable<WorkshopInfo> Parts { get { return WorkshopParts.Values; } }
         public bool Empty { get { return WorkshopParts.Count == 0; } }
+        public bool IsLanded { get; private set; }
 
         public string DisplayID { get; private set; }
 
@@ -226,6 +228,9 @@ namespace GroundConstruction
             VesselName = workshop.VesselName;
             WorkshopParts[workshop.id] = workshop;
             DisplayID = CB+VesselName+vesselID;
+            var vsl = GetVessel();
+            if(vsl != null) 
+                IsLanded = vsl.Landed;
         }
 
         public WorkshopVesselInfo(GroundWorkshop workshop)
@@ -260,6 +265,7 @@ namespace GroundConstruction
         { 
             var vsl = GetVessel();
             if(vsl == null) return false;
+            IsLanded = vsl.Landed;
             if(vsl.loaded)
             {
                 var del = new List<uint>();
