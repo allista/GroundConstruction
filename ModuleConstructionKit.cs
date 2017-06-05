@@ -22,8 +22,6 @@ namespace GroundConstruction
 		List<Transform> spawn_transforms;
 		[KSPField] public string SpawnTransforms;
 
-//		[KSPField] public string DetachableNode;
-
 		TextureSwitcherServer texture_switcher;
 		[KSPField] public string TextureVAB;
 		[KSPField] public string TextureSPH;
@@ -555,8 +553,9 @@ namespace GroundConstruction
 			Vector3 axis;
 			spawnPoint.rotation.ToAngleAxis(out angle, out axis);
 			var root = ship.parts[0].localRoot.transform;
-			var offset  = spawnPoint.position;
-			offset -= new Vector3(root.position.x, partHeightQuery.lowestPoint, root.position.z);
+			var offset = spawnPoint.position;
+            var CoG = root.TransformDirection(ship.Bounds(root).center);
+            offset -= new Vector3(root.position.x+CoG.x, partHeightQuery.lowestPoint, root.position.z+CoG.z);
 			root.Translate(offset, Space.World);
 			root.RotateAround(spawnPoint.position, axis, angle);
 		}
