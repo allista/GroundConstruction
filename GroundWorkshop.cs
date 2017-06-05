@@ -360,7 +360,6 @@ namespace GroundConstruction
 				if(ETA < 0) ETA = 0;
 				ETA /= workforce*distance_mod;
 				ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
-                this.Log(ETA_Display);//debug
 			}
 			else 
 			{
