@@ -27,6 +27,17 @@ namespace GroundConstruction
 		float unbuilt_mass, built_mass;
 		float unbuilt_cost, built_cost;
 
+        public double WorkLeftFull
+        {
+            get
+            {
+                var work = WorkLeft;
+                if(PartUnderConstruction != null)
+                    work -= PartUnderConstruction.WorkDone;
+                return work < 0? 0 : work;
+            }
+        }
+
 		public float StructureLeft 
 		{ 
 			get 
