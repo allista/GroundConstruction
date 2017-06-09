@@ -35,6 +35,17 @@ namespace GroundConstruction
 				KitName = kit_module.KitName;
 			}
 
+            protected KitInfo(KitInfo other) : base(other)
+            {
+                Module = other.Module;
+                KitName = other.KitName;
+            }
+
+            public new KitInfo Clone()
+            { 
+                return new KitInfo(this); 
+            }
+
 			public bool Recheck()
 			{
 				if(ModuleValid) return true;
@@ -418,10 +429,20 @@ namespace GroundConstruction
 					return true;
 				}
 			}
-			KitUnderConstruction = new KitInfo();
-			stop();
+            reset_current_kit();
 			return false;
 		}
+
+        public void ConstructThisKit(KitInfo kit)
+        {
+            if(KitUnderConstruction.Valid)
+                Queue.Enqueue(KitUnderConstruction);
+            KitUnderConstruction = kit.Clone();
+            if(KitUnderConstruction.Recheck()) 
+                start();
+            else 
+                reset_current_kit();
+        }
 
 		double DoSomeWork(double available_work)
 		{
