@@ -30,6 +30,18 @@ namespace GroundConstruction
             var svid = node.GetValue("vesselID");
             vesselID = string.IsNullOrEmpty(svid)? Guid.Empty : new Guid(svid);
         }
+
+        public VesselInfo() {}
+
+        protected VesselInfo(VesselInfo other)
+        {
+            vesselID = other.vesselID;
+        }
+
+        public VesselInfo Clone()
+        {
+            return new VesselInfo(this);
+        }
     }
 }
 
