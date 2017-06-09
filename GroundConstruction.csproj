@@ -67,6 +67,9 @@
     <Compile Include="ToolbarManager.cs" />
     <Compile Include="ConstructionSkill.cs" />
     <Compile Include="GCFilterManager.cs" />
+    <Compile Include="WorkshopManager.cs" />
+    <Compile Include="ProtoGroundWorkshop.cs" />
+    <Compile Include="VesselInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

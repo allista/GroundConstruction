@@ -11,32 +11,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
 using Experience;
-using System.Collections;
 
 namespace GroundConstruction
 {
-	public class VesselInfo : ConfigNodeObject
-	{
-		[Persistent] public Guid vesselID;
-
-        public bool Valid { get { return vesselID != Guid.Empty; } }
-        public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vesselID == FlightGlobals.ActiveVessel.id; } }
-        public Vessel GetVessel() { return FlightGlobals.FindVessel(vesselID); }
-
-		public override void Save(ConfigNode node)
-		{
-			node.AddValue("vesselID", vesselID.ToString("N"));
-			base.Save(node);
-		}
-
-		public override void Load(ConfigNode node)
-		{
-			base.Load(node);
-			var svid = node.GetValue("vesselID");
-			vesselID = string.IsNullOrEmpty(svid)? Guid.Empty : new Guid(svid);
-		}
-	}
-
 	public class GroundWorkshop : PartModule
 	{
 		static Globals GLB { get { return Globals.Instance; } }
@@ -112,9 +89,11 @@ namespace GroundConstruction
 
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
+        [KSPField(isPersistant = true)] public double LastETAUpdateTime = -1;
+        [KSPField(isPersistant = true)] public double LastWorkLeft = -1;
+        [KSPField(isPersistant = true)] public double EndUT = -1;
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
 		[KSPField(isPersistant = true)] public KitInfo KitUnderConstruction = new KitInfo();
-		[KSPField(isPersistant = true)] public double ETA = -1;
 		public string ETA_Display { get; private set; } = "Stalled...";
 
         double loadedUT = -1;
@@ -123,6 +102,8 @@ namespace GroundConstruction
         float max_workforce = 0;
         public string Workforce_Display 
         { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
+
+        WorkshopManager manager;
 
 		public override string GetInfo()
 		{ 
@@ -142,12 +123,9 @@ namespace GroundConstruction
 			base.OnAwake();
 			resources_window = gameObject.AddComponent<ResourceTransferWindow>();
 			crew_window = gameObject.AddComponent<CrewTransferWindow>();
-			GameEvents.onGameStateSave.Add(onGameStateSave);
             GameEvents.onVesselCrewWasModified.Add(update_and_checkin);
             GameEvents.onVesselGoOnRails.Add(onVesselPacked);
             GameEvents.onVesselGoOffRails.Add(onVesselUpacked);
-            GameEvents.onVesselWasModified.Add(onVesselNullName);
-            GameEvents.onVesselRename.Add(onVesselRename);
 		}
 
 		void OnDestroy()
@@ -155,24 +133,17 @@ namespace GroundConstruction
 			Utils.LockIfMouseOver(LockName, WindowPos, false);
 			Destroy(resources_window);
 			Destroy(crew_window);
-			GameEvents.onGameStateSave.Remove(onGameStateSave);
             GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
             GameEvents.onVesselGoOnRails.Remove(onVesselPacked);
             GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
-            GameEvents.onVesselWasModified.Remove(onVesselNullName);
-            GameEvents.onVesselRename.Remove(onVesselRename);
 		}
 
 		public override void OnInactive()
 		{
 			base.OnInactive();
-			GroundConstructionScenario.DeregisterWorkshop(this);
+            manager.CheckoutWorkshop(this);
 		}
 
-		void onGameStateSave(ConfigNode node)
-		{ 
-            update_and_checkin(vessel);
-        }
 
         void onVesselPacked(Vessel vsl)
         {
@@ -195,31 +166,15 @@ namespace GroundConstruction
                     update_ETA();
                 else 
                     update_workforce();
-                GroundConstructionScenario.CheckinWorkshop(this);
+                manager.CheckinWorkshop(this);
             }
-        }
-        void onVesselRename(GameEvents.HostedFromToAction<Vessel,string> data)
-        {
-            update_and_checkin(data.host);
-        }
-
-        IEnumerator update_and_checkin_coroutine(Vessel vsl)
-        {
-            if(vsl == null || vsl != vessel) yield break;
-            while(string.IsNullOrEmpty(vsl.vesselName)) yield return null;
-            update_and_checkin(vsl);
-        }
-
-        void onVesselNullName(Vessel vsl)
-        {
-            if(isActiveAndEnabled)
-                StartCoroutine(update_and_checkin_coroutine(vsl));
         }
 
 		public override void OnSave(ConfigNode node)
 		{
 			base.OnSave(node);
 			node.AddValue("WindowPos", new Vector4(WindowPos.x, WindowPos.y, WindowPos.width, WindowPos.height));
+            node.AddValue("Workforce_Display", Workforce_Display);
 		}
 
 		public override void OnLoad(ConfigNode node)
@@ -245,7 +200,8 @@ namespace GroundConstruction
                 loadedUT = -1;
 				update_workforce();
                 update_max_workforce();
-				GroundConstructionScenario.CheckinWorkshop(this);
+                manager = vessel.vesselModules.FirstOrDefault(m => m is WorkshopManager) as WorkshopManager;
+                manager.CheckinWorkshop(this);
 			}
 		}
 
@@ -314,9 +270,6 @@ namespace GroundConstruction
 
 		bool can_construct()
 		{
-            //pass the check when a vessel has just been unpacked
-            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3) 
-                return true;
 			if(!vessel.Landed)
 			{
 				Utils.Message("Cannot construct unless landed.");
@@ -350,26 +303,40 @@ namespace GroundConstruction
 		{
 			update_workforce();
 			update_distance_mod();
+            var lastEndUT = EndUT;
 			if(workforce > 0 && distance_mod > 0)
 			{
-				if(LastUpdateTime < 0) 
-					LastUpdateTime = Planetarium.GetUniversalTime();
-				ETA = KitUnderConstruction.Kit.WorkLeft;
-				if(KitUnderConstruction.Kit.PartUnderConstruction != null)
-					ETA -= KitUnderConstruction.Kit.PartUnderConstruction.WorkDone;
-				if(ETA < 0) ETA = 0;
-				ETA /= workforce*distance_mod;
-				ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
-			}
-			else 
-			{
-				ETA = -1;
-				ETA_Display = "Stalled...";
-			}
+				if(LastETAUpdateTime < 0) 
+                {
+					LastETAUpdateTime = Planetarium.GetUniversalTime();
+                    LastWorkLeft = KitUnderConstruction.Kit.WorkLeftFull;
+                }
+                else
+                {
+                    var work = KitUnderConstruction.Kit.WorkLeftFull;
+                    var dWork = LastWorkLeft-work;
+                    LastWorkLeft = work;
+    				if(dWork > 0)
+                    {
+                        var time = Planetarium.GetUniversalTime();
+                        EndUT = work*(time-LastETAUpdateTime)/dWork;
+                        ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(EndUT, false);
+                        EndUT += time;
+                        LastETAUpdateTime = time;
+                    }
+                }
+            }
+            else 
+                EndUT = -1;
+			if(EndUT < 0) 
+                ETA_Display = "Stalled...";
+            if(Math.Abs(EndUT-lastEndUT) > 1)
+                manager.CheckinWorkshop(this);
 		}
 
 		void Update()
 		{
+            if(!HighLogic.LoadedSceneIsFlight) return;
             //highlight kit under the mouse
             disable_highlights();
             if(highlight_kit != null)
@@ -382,18 +349,25 @@ namespace GroundConstruction
             }
             highlight_kit = null;
             //check the kit under construction
-            if(KitUnderConstruction.Valid && !KitUnderConstruction.Recheck())
-                reset_current_kit();
-            if(KitUnderConstruction.ModuleValid)
+            if(!FlightDriver.Pause)
             {
-                //update ETA if working
-    			if(Working)
-    			{
-    				if(can_construct()) update_ETA();
-    				else stop();
-    			}
-                else if(KitUnderConstruction.Module.Completeness >= 1)
-                    reset_current_kit();
+                if(KitUnderConstruction.Valid &&
+                   loadedUT > 0 && Planetarium.GetUniversalTime()-loadedUT > 3)
+                {
+                    if(KitUnderConstruction.Recheck())
+                    {
+                        //update ETA if working
+            			if(Working)
+            			{
+            				if(can_construct()) update_ETA();
+            				else stop();
+            			}
+                        else if(KitUnderConstruction.Module.Completeness >= 1)
+                            reset_current_kit();
+                    }
+                    else 
+                        reset_current_kit();
+                }
             }
             //if UI is opened, update info about nearby kits
 			if(show_window)
@@ -407,17 +381,19 @@ namespace GroundConstruction
 		{
 			Working = true;
 			if(KitUnderConstruction.Recheck()) update_ETA();
-			GroundConstructionScenario.CheckinWorkshop(this);
+            manager.CheckinWorkshop(this);
 		}
 
 		void stop()
 		{
 			Working = false;
-            ETA = -1;
+            EndUT = -1;
+            ETA_Display = "";
 			distance_mod = -1;
 			LastUpdateTime = -1;
+            LastETAUpdateTime = -1;
 			TimeWarp.SetRate(0, false);
-			GroundConstructionScenario.CheckinWorkshop(this);
+            manager.CheckinWorkshop(this);
 		}
 
         void reset_current_kit()
@@ -510,7 +486,7 @@ namespace GroundConstruction
 			if(deltaTime > TimeWarp.fixedDeltaTime*2)
 			{
 				update_ETA();
-				GroundConstructionScenario.CheckinWorkshop(this);
+                manager.CheckinWorkshop(this);
 			}
 		}
 
