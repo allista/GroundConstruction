@@ -361,7 +361,7 @@ namespace GroundConstruction
 			}
 			if(vessel.packed)
 			{
-				Utils.Message("Cannot deploy construction kit now.");
+				Utils.Message("Cannot deploy a packed construction kit.");
 				return false;
 			}
 			if(!vessel.Landed)
@@ -516,7 +516,31 @@ namespace GroundConstruction
 		bool can_launch()
 		{
 			if(launch_in_progress) return false;
-			if(!can_deploy()) return false;
+            if(!kit.Valid)
+            {
+                Utils.Message("Nothing to launch: construction kit is empty.");
+                return false;
+            }
+            if(vessel.packed)
+            {
+                Utils.Message("Cannot launch from a packed construction kit.");
+                return false;
+            }
+            if(!vessel.Landed)
+            {
+                Utils.Message("Cannot launch constructed ship unless landed.");
+                return false;
+            }
+            if(vessel.srfSpeed > GLB.DeployMaxSpeed)
+            {
+                Utils.Message("Cannot launch constructed ship while mooving.");
+                return false;
+            }
+            if(vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
+            {
+                Utils.Message("Cannot launch constructed ship while rotating.");
+                return false;
+            }
 			if(kit.Completeness < 1)
 			{
 				Utils.Message("The assembly is not complete yet.");
