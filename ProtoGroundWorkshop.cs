@@ -102,15 +102,6 @@ namespace GroundConstruction
             return false;
         }
 
-        public override string ToString()
-        { 
-            if(State == Status.COMPLETE)
-                return string.Format("\"{0}\" assembled \"{1}\".", VesselName, KitName);
-            if(State == Status.ACTIVE)
-                return string.Format("\"{0}\" is building \"{1}\". {2}", VesselName, KitName, ETA);
-            return string.Format("\"{0}\" is idle.", VesselName);
-        }
-
         public void Draw()
         {
             var style = Styles.white;
@@ -141,6 +132,15 @@ namespace GroundConstruction
             if(status == null) return;
             if(GUILayout.Button(status, style, GUILayout.ExpandWidth(true)))
                 ToggleConstructionWindow();
+        }
+
+        public override string ToString()
+        { 
+            if(State == Status.COMPLETE)
+                return Utils.Format("\"{}:{}\" assembled \"{}\".", VesselName, PartName, KitName);
+            if(State == Status.ACTIVE)
+                return Utils.Format("\"{}:{}\" is building \"{}\". {}", VesselName, PartName, KitName, ETA);
+            return Utils.Format("\"{}:{}\" is idle.", VesselName, PartName);
         }
     }
 }
