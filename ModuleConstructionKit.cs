@@ -91,9 +91,21 @@ namespace GroundConstruction
 			if(vessel != null) vessel.permanentGroundContact = true;
 		}
 
+        void dump_velocity()
+        {
+            if(vessel == null || !vessel.loaded) return;
+            for (int i = 0, nparts = vessel.parts.Count; i < nparts; i++)
+            {
+                var r = vessel.parts[i].Rigidbody;
+                r.angularVelocity *= 0;
+                r.velocity *= 0;
+            }
+        }
+
 		void attach_anchor()
 		{
 			detach_anchor();
+            dump_velocity();
 			anchor = new GameObject("AnchorBody");
 			var rb = anchor.AddComponent<Rigidbody>();
 			rb.isKinematic = true;
@@ -271,14 +283,7 @@ namespace GroundConstruction
 				setup_ground_contact();
 				if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
 					attach_anchor();
-				#if DEBUG
-//				if(kit.Completeness < 1)//debug
-//				{
-//					kit.DoSomeWork(125*TimeWarp.deltaTime);
-//					if(kit.Completeness >= 1)
-//						AllowLaunch();
-//				}
-				#endif
+                else dump_velocity();
 			}
 			else if(Deploying)
 			{
@@ -637,17 +642,48 @@ namespace GroundConstruction
 			FXMonger.Explode(part, part.partTransform.position, 0);
 			while(launched_vessel.packed) 
 			{
+                launched_vessel.precalc.isEasingGravity = true;
 				launched_vessel.situation = Vessel.Situations.PRELAUNCH;
+                stabilize_launched_vessel(0);
 				FlightCameraOverride.UpdateDurationSeconds(1);
 				yield return new WaitForFixedUpdate();
 			}
-			if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
-				CrewTransferBatch.moveCrew(CrewSource, launched_vessel, KitCrew);
+            foreach(var n in stabilize_launched_vessel(GLB.EasingFrames))
+            {
+                FlightCameraOverride.UpdateDurationSeconds(1);
+                yield return new WaitForFixedUpdate();
+            }
+            if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
+                CrewTransferBatch.moveCrew(CrewSource, launched_vessel, KitCrew);
 			GameEvents.onShowUI.Fire();
 			launch_in_progress = false;
 			launched_vessel = null;
 			vessel.Die();
 		}
+
+        void stabilize_launched_vessel(float mult)
+        {
+            launched_vessel.permanentGroundContact = true;
+            for(int j = 0, nparts = launched_vessel.parts.Count; j < nparts; j++)
+            {
+                var p = launched_vessel.parts[j];
+                var r = p.Rigidbody;
+                r.angularVelocity *= mult;
+                r.velocity *= mult;
+            }
+        }
+
+        IEnumerable stabilize_launched_vessel(int frames)
+        {
+            if(launched_vessel == null) yield break;
+            var step = 1f/frames;
+            for(int i = 0; i < frames; i++)
+            {
+                stabilize_launched_vessel(step*i);
+                yield return null;
+            }
+            launched_vessel.permanentGroundContact = false;
+        }
 
 		void OnGUI()
 		{
