@@ -240,7 +240,7 @@ namespace GroundConstruction
             {
                 GUILayout.BeginHorizontal();
                 ProtoWorkshops[item.Value].Draw();
-                if(IsActive)
+                if(IsActive && ProtoWorkshops.Count > 1)
                 {
                     var kit = Workshops[item.Value].KitUnderConstruction;
                     if(!kit.Valid) 
