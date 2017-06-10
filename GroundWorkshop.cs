@@ -100,8 +100,6 @@ namespace GroundConstruction
 
 		[KSPField(isPersistant = true)] public bool Working;
 		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
-        [KSPField(isPersistant = true)] public double LastETAUpdateTime = -1;
-        [KSPField(isPersistant = true)] public double LastWorkLeft = -1;
         [KSPField(isPersistant = true)] public double EndUT = -1;
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
 		[KSPField(isPersistant = true)] public KitInfo KitUnderConstruction = new KitInfo();
@@ -113,6 +111,8 @@ namespace GroundConstruction
         float max_workforce = 0;
         public string Workforce_Display 
         { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
+
+        public float EffectiveWorkforce { get { return workforce * distance_mod; } }
 
         public WorkshopManager Manager;
 
@@ -314,24 +314,15 @@ namespace GroundConstruction
             var lastEndUT = EndUT;
 			if(workforce > 0 && distance_mod > 0)
 			{
-				if(LastETAUpdateTime < 0) 
+				if(LastUpdateTime < 0) 
+					LastUpdateTime = Planetarium.GetUniversalTime();
+                KitUnderConstruction.Module.CheckinWorker(this);
+                var ETA = KitUnderConstruction.Module.GetETA();
+				if(ETA > 0)
                 {
-					LastETAUpdateTime = Planetarium.GetUniversalTime();
-                    LastWorkLeft = KitUnderConstruction.Kit.WorkLeftFull;
-                }
-                else
-                {
-                    var work = KitUnderConstruction.Kit.WorkLeftFull;
-                    var dWork = LastWorkLeft-work;
-                    LastWorkLeft = work;
-    				if(dWork > 0)
-                    {
-                        var time = Planetarium.GetUniversalTime();
-                        EndUT = work*(time-LastETAUpdateTime)/dWork;
-                        ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(EndUT, false);
-                        EndUT += time;
-                        LastETAUpdateTime = time;
-                    }
+                    var time = Planetarium.GetUniversalTime();
+                    EndUT = time+ETA;
+                    ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
                 }
             }
             else 
@@ -371,10 +362,10 @@ namespace GroundConstruction
             				else stop();
             			}
                         else if(KitUnderConstruction.Module.Completeness >= 1)
-                            reset_current_kit();
+                            stop(true);
                     }
                     else 
-                        reset_current_kit();
+                        stop(true);
                 }
             }
             //if UI is opened, update info about nearby kits
@@ -388,27 +379,25 @@ namespace GroundConstruction
 		void start()
 		{
 			Working = true;
-			if(KitUnderConstruction.Recheck()) update_ETA();
+            if(KitUnderConstruction.Recheck()) 
+                update_ETA();
             checkin();
 		}
 
-		void stop()
+        void stop(bool reset = false)
 		{
 			Working = false;
             EndUT = -1;
             ETA_Display = "";
 			distance_mod = -1;
 			LastUpdateTime = -1;
-            LastETAUpdateTime = -1;
 			TimeWarp.SetRate(0, false);
+            if(KitUnderConstruction.Recheck())
+                KitUnderConstruction.Module.CheckoutWorker(this);
+            if(reset)
+                KitUnderConstruction = new KitInfo();
             checkin();
 		}
-
-        void reset_current_kit()
-        {
-            KitUnderConstruction = new KitInfo();
-            stop();
-        }
 
 		bool start_next_kit()
 		{
@@ -426,7 +415,7 @@ namespace GroundConstruction
 					return true;
 				}
 			}
-            reset_current_kit();
+            stop(true);
 			return false;
 		}
 
@@ -440,7 +429,7 @@ namespace GroundConstruction
             if(KitUnderConstruction.Recheck()) 
                 start();
             else 
-                reset_current_kit();
+                stop(true);
         }
 
 		double DoSomeWork(double available_work)
@@ -604,14 +593,12 @@ namespace GroundConstruction
 		{
 			if(highlighted_kits.Count > 0)
 			{
-//                this.Log("highlight: {}, {}", highlight_kit, highlighted_kits);//debug
 				foreach(var kit in highlighted_kits)
 				{
 					if(kit.Module != null &&
 					   (highlight_kit == null ||
 					    kit.Module != highlight_kit.Module))
                     {
-//                        this.Log("disabling: {}", kit);//debug
 						kit.Module.part.SetHighlightDefault();
                     }
 				}
@@ -660,8 +647,7 @@ namespace GroundConstruction
 				                    Styles.danger_button, GUILayout.ExpandWidth(true)))
 				{
 					Queue.Enqueue(KitUnderConstruction);
-					KitUnderConstruction = new KitInfo();
-                    stop();
+                    stop(true);
 				}
 				GUILayout.EndVertical();
 			}

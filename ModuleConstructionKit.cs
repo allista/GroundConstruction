@@ -6,6 +6,7 @@
 //  Copyright (c) 2016 Allis Tauri
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -79,6 +80,25 @@ namespace GroundConstruction
 		public Vessel CrewSource;
 		public List<ProtoCrewMember> KitCrew;
 		public int KitCrewCapacity() { return kit.CrewCapacity(); }
+
+        Dictionary<uint,float> workers = new Dictionary<uint, float>();
+        public void CheckinWorker(GroundWorkshop module)
+        {
+            workers[module.part.flightID] = module.EffectiveWorkforce;
+        }
+
+        public void CheckoutWorker(GroundWorkshop module)
+        {
+            workers.Remove(module.part.flightID);
+        }
+
+        public double GetETA()
+        {
+            if(!kit.Valid) return -1;
+            if(kit.Completeness >= 1) return 0;
+            var workforce = workers.Values.Sum();
+            return workforce > 0? kit.WorkLeftFull/workforce : -1;
+        }
 		#endregion
 
 		#region Anchor
