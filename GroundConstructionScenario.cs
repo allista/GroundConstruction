@@ -33,6 +33,7 @@ namespace GroundConstruction
         {
             if(workshop_manager.Vessel == null || workshop_manager.Empty) return;
             Workshops[workshop_manager.VesselID] = workshop_manager;
+            remove_display_entry(workshop_manager.VesselID);
             DisplayOrder[workshop_manager.DisplayID] = workshop_manager.VesselID;
         }
 
@@ -46,9 +47,13 @@ namespace GroundConstruction
         public static void CheckoutVessel(Guid vesselID)
         {
             Workshops.Remove(vesselID);
+            remove_display_entry(vesselID);
+        }
+
+        static void remove_display_entry(Guid vesselID)
+        {
             var del = DisplayOrder.FirstOrDefault(i => i.Value == vesselID);
-            if(del.Value != Guid.Empty) 
-                DisplayOrder.Remove(del.Key);
+            if(!string.IsNullOrEmpty(del.Key)) DisplayOrder.Remove(del.Key);
         }
 
 		static bool reckeck_workshops()
@@ -62,6 +67,7 @@ namespace GroundConstruction
                 { 
                     if(workshop.Value != null && 
                        workshop.Value.Vessel != null &&
+                       workshop.Value.VesselID == workshop.Key &&
                        !workshop.Value.Empty) 
                     {
                         if(workshop.Value.IsLanded)
