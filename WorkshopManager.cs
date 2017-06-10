@@ -38,6 +38,7 @@ namespace GroundConstruction
             var info = new ProtoGroundWorkshop(workshop);
             Workshops[info.id] = workshop;
             add_protoworkshop(info);
+            workshop.Manager = this;
         }
 
         void remove_workshop(GroundWorkshop workshop)
@@ -80,7 +81,7 @@ namespace GroundConstruction
                 }
                 if(!Empty)
                     GroundConstructionScenario.CheckinVessel(this);
-                show_window &= ProtoWorkshops.Count > 1;
+//                this.Log("update_and_checkin.ProtoWorkshops: {}", ProtoWorkshops);//debug
             }
         }
 
@@ -88,7 +89,6 @@ namespace GroundConstruction
         {
             base.OnStart();
             update_and_checkin(vessel);
-            LockName = vessel.id.ToString();
         }
 
         protected override void OnAwake()
@@ -112,7 +112,6 @@ namespace GroundConstruction
         {
             base.OnSave(node);
             update_and_checkin(vessel);
-            node.AddValue("WindowPos", new Vector4(WindowPos.x, WindowPos.y, WindowPos.width, WindowPos.height));
             var workshops = new PersistentList<ProtoGroundWorkshop>(ProtoWorkshops.Values);
             workshops.Save(node.AddNode("Workshops"));
         }
@@ -122,12 +121,6 @@ namespace GroundConstruction
             base.OnLoad(node);
             ProtoWorkshops.Clear();
             DisplayOrder.Clear();
-            var wpos = node.GetValue("WindowPos");
-            if(wpos != null)
-            {
-                var vpos = ConfigNode.ParseVector4(wpos);
-                WindowPos = new Rect(vpos.x, vpos.y, vpos.z, vpos.w);
-            }
             var wnode = node.GetNode("Workshops");
             if(wnode != null)
             {
@@ -175,12 +168,14 @@ namespace GroundConstruction
         public void CheckinWorkshop(GroundWorkshop workshop)
         {
             if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
+//            this.Log("Checked In:  {}:{}", workshop, workshop.part.flightID);//debug
             add_workshop(workshop);
         }
 
         public void CheckoutWorkshop(GroundWorkshop workshop)
         {
             if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
+//            this.Log("Checked Out: {}:{}", workshop, workshop.part.flightID);//debug
             remove_workshop(workshop);
         }
 
@@ -195,18 +190,12 @@ namespace GroundConstruction
         #region UI
         public bool SwitchTo()
         {
-            var vsl = FlightGlobals.FindVessel(vessel.id);
-            if(vsl == null) 
-            {
-                Utils.Message("{0} was not found in the game", VesselName);
-                return false;
-            }
             if(HighLogic.LoadedSceneIsFlight) 
-                FlightGlobals.SetActiveVessel(vsl);
+                FlightGlobals.SetActiveVessel(vessel);
             else
             {
                 GamePersistence.SaveGame(HighLogic.CurrentGame.Updated(), "persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
-                FlightDriver.StartAndFocusVessel("persistent", FlightGlobals.Vessels.IndexOf(vsl));
+                FlightDriver.StartAndFocusVessel("persistent", FlightGlobals.Vessels.IndexOf(vessel));
             }
             return true;
         }
@@ -242,68 +231,38 @@ namespace GroundConstruction
         public void Draw()
         {
             GUILayout.BeginVertical();
-            if(IsActive) 
-            {
-                if(ProtoWorkshops.Count == 1)
-                    GUILayout.Label(VesselName, Styles.white, GUILayout.ExpandWidth(true));
-                else if(GUILayout.Button(new GUIContent(VesselName, "Press to open Workshop Manager"), 
-                                         Styles.white, GUILayout.ExpandWidth(true)))
-                    show_window = true;
-            }
-            else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on the Map"), 
+            if(IsActive) GUILayout.Label(VesselName, Styles.green, GUILayout.ExpandWidth(true));
+            else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"), 
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
-            foreach(var item in DisplayOrder) 
-                ProtoWorkshops[item.Value].Draw();
-            GUILayout.EndVertical();
-        }
-
-        void ManagerWindow(int windowID)
-        {
-            GUILayout.BeginVertical();
             GroundWorkshop.KitInfo sync_kit = null;
             foreach(var item in DisplayOrder) 
             {
                 GUILayout.BeginHorizontal();
                 ProtoWorkshops[item.Value].Draw();
-                var kit = Workshops[item.Value].KitUnderConstruction;
-                if(!kit.Valid) 
-                    GUILayout.Label(new GUIContent("⇶", "Construct this Kit using all workshops"), 
-                                    Styles.grey, GUILayout.Width(25));
-                else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"), 
-                                         Styles.enabled_button, GUILayout.Width(25)))
-                    sync_kit = kit;
+                if(IsActive)
+                {
+                    var kit = Workshops[item.Value].KitUnderConstruction;
+                    if(!kit.Valid) 
+                        GUILayout.Label(new GUIContent("⇶", "Workshop is idle"), 
+                                        Styles.grey, GUILayout.Width(25));
+                    else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"), 
+                                             Styles.enabled_button, GUILayout.Width(25)))
+                        sync_kit = kit;
+                }
                 GUILayout.EndHorizontal();
             }
             if(sync_kit != null && sync_kit.Valid)
                 Workshops.Values.ForEach(ws => ws.ConstructThisKit(sync_kit));
             GUILayout.EndVertical();
-            GUIWindowBase.TooltipsAndDragWindow();
-        }
-
-        [KSPField(isPersistant = true)] public bool show_window;
-        const float width = 550;
-        const float height = 60;
-        string LockName = ""; //inited OnStart
-        Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
-
-        void OnGUI()
-        {
-            if(Time.timeSinceLevelLoad < 3) return;
-            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-            if(show_window && GUIWindowBase.HUD_enabled && vessel.isActiveVessel && ProtoWorkshops.Count > 1)
-            {
-                Styles.Init();
-                Utils.LockIfMouseOver(LockName, WindowPos);
-                WindowPos = GUILayout.Window(GetInstanceID(), 
-                                             WindowPos, ManagerWindow, vessel.vesselName,
-                                             GUILayout.Width(width),
-                                             GUILayout.Height(height)).clampToScreen();
-            }
-            else
-                Utils.LockIfMouseOver(LockName, WindowPos, false);
         }
         #endregion
+
+        public override string ToString()
+        {
+            return Utils.Format("{}, VesselID={}, DisplayID={}, IsActive={}, CB={}, Empty={}, IsLanded={}", 
+                                VesselName, VesselID, DisplayID, IsActive, CB, Empty, IsLanded);
+        }
     }
 }
 

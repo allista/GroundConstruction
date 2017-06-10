@@ -114,7 +114,7 @@ namespace GroundConstruction
         public string Workforce_Display 
         { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
 
-        WorkshopManager manager;
+        public WorkshopManager Manager;
 
 		public override string GetInfo()
 		{ 
@@ -149,13 +149,6 @@ namespace GroundConstruction
             GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
 		}
 
-		public override void OnInactive()
-		{
-			base.OnInactive();
-            manager.CheckoutWorkshop(this);
-		}
-
-
         void onVesselPacked(Vessel vsl)
         {
             if(vsl != vessel) return;
@@ -177,8 +170,14 @@ namespace GroundConstruction
                     update_ETA();
                 else 
                     update_workforce();
-                manager.CheckinWorkshop(this);
+                checkin();
             }
+        }
+
+        void checkin()
+        {
+            if(Manager != null)
+                Manager.CheckinWorkshop(this);
         }
 
 		public override void OnSave(ConfigNode node)
@@ -211,8 +210,6 @@ namespace GroundConstruction
                 loadedUT = -1;
 				update_workforce();
                 update_max_workforce();
-                manager = vessel.vesselModules.FirstOrDefault(m => m is WorkshopManager) as WorkshopManager;
-                manager.CheckinWorkshop(this);
 			}
 		}
 
@@ -342,7 +339,7 @@ namespace GroundConstruction
 			if(EndUT < 0) 
                 ETA_Display = "Stalled...";
             if(Math.Abs(EndUT-lastEndUT) > 1)
-                manager.CheckinWorkshop(this);
+                checkin();
 		}
 
 		void Update()
@@ -392,7 +389,7 @@ namespace GroundConstruction
 		{
 			Working = true;
 			if(KitUnderConstruction.Recheck()) update_ETA();
-            manager.CheckinWorkshop(this);
+            checkin();
 		}
 
 		void stop()
@@ -404,7 +401,7 @@ namespace GroundConstruction
 			LastUpdateTime = -1;
             LastETAUpdateTime = -1;
 			TimeWarp.SetRate(0, false);
-            manager.CheckinWorkshop(this);
+            checkin();
 		}
 
         void reset_current_kit()
@@ -435,6 +432,8 @@ namespace GroundConstruction
 
         public void ConstructThisKit(KitInfo kit)
         {
+            if(KitUnderConstruction.vesselID == kit.vesselID)
+                return;
             if(KitUnderConstruction.Valid)
                 Queue.Enqueue(KitUnderConstruction);
             KitUnderConstruction = kit.Clone();
@@ -507,7 +506,7 @@ namespace GroundConstruction
 			if(deltaTime > TimeWarp.fixedDeltaTime*2)
 			{
 				update_ETA();
-                manager.CheckinWorkshop(this);
+                checkin();
 			}
 		}
 
