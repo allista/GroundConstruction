@@ -117,6 +117,7 @@ namespace GroundConstruction
             for (int i = 0, nparts = vessel.parts.Count; i < nparts; i++)
             {
                 var r = vessel.parts[i].Rigidbody;
+                if(r == null) continue;
                 r.angularVelocity *= 0;
                 r.velocity *= 0;
             }
