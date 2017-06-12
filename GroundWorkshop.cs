@@ -278,6 +278,8 @@ namespace GroundConstruction
 
 		bool can_construct()
 		{
+            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3)
+                return true;
 			if(!vessel.Landed)
 			{
 				Utils.Message("Cannot construct unless landed.");
@@ -348,10 +350,9 @@ namespace GroundConstruction
             }
             highlight_kit = null;
             //check the kit under construction
-            if(!FlightDriver.Pause)
+            if(!FlightDriver.Pause && FlightGlobals.ready && Time.timeSinceLevelLoad > 1)
             {
-                if(KitUnderConstruction.Valid &&
-                   loadedUT > 0 && Planetarium.GetUniversalTime()-loadedUT > 3)
+                if(KitUnderConstruction.Valid)
                 {
                     if(KitUnderConstruction.Recheck())
                     {
@@ -641,7 +642,13 @@ namespace GroundConstruction
 				{
 					if(distance_mod < 1)
 						GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
+                    GUILayout.BeginHorizontal();
 					GUILayout.Label(ETA_Display, Styles.boxed_label, GUILayout.ExpandWidth(true));
+                    if(EndUT > 0 &&
+                       TimeWarp.fetch != null &&
+                       GUILayout.Button(ProtoGroundWorkshop.WarpToButton, Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                        TimeWarp.fetch.WarpTo(EndUT);
+                    GUILayout.EndHorizontal();
                 }
 				if(GUILayout.Button(new GUIContent("Stop", " And move back to the Queue"), 
 				                    Styles.danger_button, GUILayout.ExpandWidth(true)))

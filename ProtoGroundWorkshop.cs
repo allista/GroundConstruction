@@ -102,8 +102,11 @@ namespace GroundConstruction
             return false;
         }
 
+        public static readonly GUIContent WarpToButton = new GUIContent("▶▶", "Warp to the end of construction.");
+
         public void Draw()
         {
+            GUILayout.BeginHorizontal();
             var style = Styles.white;
             GUIContent status = null;
             var tooltip = "\nPress to open Construction Window";
@@ -129,9 +132,16 @@ namespace GroundConstruction
                     status = new GUIContent(KitName+": Complete", tooltip);
                 }
             }
-            if(status == null) return;
-            if(GUILayout.Button(status, style, GUILayout.ExpandWidth(true)))
-                ToggleConstructionWindow();
+            if(status != null) 
+            {
+                if(GUILayout.Button(status, style, GUILayout.ExpandWidth(true)))
+                    ToggleConstructionWindow();
+                if(EndUT > 0 &&
+                   TimeWarp.fetch != null &&
+                   GUILayout.Button(WarpToButton, Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                    TimeWarp.fetch.WarpTo(EndUT);
+            }
+            GUILayout.EndHorizontal();
         }
 
         public override string ToString()
