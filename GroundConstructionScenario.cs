@@ -167,9 +167,9 @@ namespace GroundConstruction
 					GUILayout.BeginHorizontal();
 					info.Draw();
                     if(info.IsActive)
-                        GUILayout.Label(new GUIContent("▶▶", "This is the active vessel"), 
+                        GUILayout.Label(new GUIContent("◉", "This is the active vessel"), 
                                         Styles.grey, GUILayout.ExpandWidth(false));
-                    else if(GUILayout.Button(new GUIContent("▶▶", "Switch to this workshop"), 
+                    else if(GUILayout.Button(new GUIContent("◉", "Switch to this workshop"), 
                                              Styles.enabled_button, GUILayout.ExpandWidth(false)))
 						switchto = info;
 					GUILayout.EndHorizontal();
