@@ -410,11 +410,11 @@ namespace GroundConstruction
 
 		IEnumerator decouple_attached_parts()
 		{
-			if(part.parent) part.decouple(2);
+			if(part.parent) part.decouple();
 			yield return null;
 			while(part.children.Count > 0)
 			{
-				part.children[0].decouple(2);
+				part.children[0].decouple();
 				yield return null;
 			}
 		}
