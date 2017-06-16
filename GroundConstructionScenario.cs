@@ -189,7 +189,7 @@ namespace GroundConstruction
 		void OnGUI()
 		{
 			if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-			if(show_window && GUIWindowBase.HUD_enabled)
+            if(Time.timeSinceLevelLoad > 3 && show_window && GUIWindowBase.HUD_enabled)
 			{
 				Styles.Init();
 				Utils.LockIfMouseOver(LockName, WindowPos);
