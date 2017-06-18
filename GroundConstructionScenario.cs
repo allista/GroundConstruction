@@ -145,7 +145,7 @@ namespace GroundConstruction
 		{
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            if(Workshops.Count > 0)
+            if(CelestialBodies.Count > 0)
             {
                 GUILayout.BeginVertical();
                 cb_scroll = GUILayout.BeginScrollView(cb_scroll, GUILayout.Height(height), GUILayout.Width(cb_width+10));
