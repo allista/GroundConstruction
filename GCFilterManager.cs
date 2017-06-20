@@ -5,7 +5,6 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 
-using System.Linq;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -29,7 +28,7 @@ namespace GroundConstruction
                 var workshop = part.partPrefab.Modules.GetModule<GroundWorkshop>();
                 return workshop != null && workshop.isEnabled && workshop.Efficiency > 0;
             }
-            return part.moduleInfos.Any(info => MODULES.Any(m => m == info.moduleName));
+            return base.filter(part);
         }
     }
 }
