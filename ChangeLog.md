@@ -1,5 +1,17 @@
 #Ground Construction ChangeLog
 
+* **v1.2.0**
+	* **Removed OneTimeResourceConverter.** No need for it anymore.
+    * Added **planet tabs** that group workshops located on the same celectial body to unclutter the workshop list.
+    * Added ability to **synchronize construction target** among workshops belonging to the same vessel.
+    * Added **Warp to end of construction** button.
+    * Added **velocity dumping on vessel launch** to prevent bouncing and explosions of bulky ships and base segments.
+    * Added separate checks and messages for vessel spawning to avoid confusion.
+    * Scenario window is now shown after 3s after a level is loaded.
+    * Fixed calculation of ETA of construction in the case of multiple workshops working concurrently on the same DIY Kit.
+    * Fixed kit tremor after long time warp.
+    * Changed symbol for Switch to workshop button.
+
 * **v1.1.2.2**
 	* Compatible with KSP-1.3
 	* Engineers with lvl 0 are now also capable of kit construction.
