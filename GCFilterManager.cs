@@ -5,9 +5,7 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 
-using System;
 using System.Linq;
-using System.Collections.Generic;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -20,7 +18,7 @@ namespace GroundConstruction
             SUBCATEGORY = "Ground Construction";
             FOLDER = "GroundConstruction/Icons";
             ICON = "GC-category";
-            MODULES = new List<Type>{typeof(GroundWorkshop), typeof(ModuleConstructionKit)};
+            SetMODULES(new []{typeof(GroundWorkshop), typeof(ModuleConstructionKit)});
         }
 
         protected override bool filter(AvailablePart part)
@@ -31,7 +29,7 @@ namespace GroundConstruction
                 var workshop = part.partPrefab.Modules.GetModule<GroundWorkshop>();
                 return workshop != null && workshop.isEnabled && workshop.Efficiency > 0;
             }
-            return part.moduleInfos.Any(m => MODULES.Any(t => t.Name == m.moduleName));
+            return part.moduleInfos.Any(info => MODULES.Any(m => m == info.moduleName));
         }
     }
 }
