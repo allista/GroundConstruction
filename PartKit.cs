@@ -77,14 +77,35 @@ namespace GroundConstruction
 				TotalWork = 0;
 				Completeness = 1;
 			}
-			else 
-			{
+            else
+            {
                 Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
-				Mass = KitMass = part.mass*Complexity+res_mass;
-				var add_mass = PartMass - Mass;
-                Cost = KitCost = Mathf.Max(0, PartCost - add_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost);
-				TotalWork = (Complexity*GLB.ComplexityWeight + add_mass*GLB.MetalworkWeight)*3600;
-			}
+                var structure_mass = part.mass*(1-Complexity);
+                var structure_cost = Mathf.Min(structure_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost, dry_cost);
+                Mass = KitMass = PartMass - structure_mass;
+                Cost = KitCost = PartCost - structure_cost;
+                TotalWork = (Complexity*GLB.ComplexityWeight + structure_mass*GLB.MetalworkWeight)*3600;
+            }
+//			else
+//			{
+//                Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
+//                var structure_mass = part.mass*(1-Complexity);
+//                var structure_cost = structure_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost;
+//                //correct complexity if additional mass costs too much
+//                if(structure_cost > dry_cost)
+//                {
+//                    Utils.Log("Correcting complexity. Was: {}, mass {}, cost {}",
+//                              Complexity, structure_mass, structure_cost);//debug
+//                    structure_cost = dry_cost;
+//                    structure_mass = dry_cost/GLB.StructureResource.unitCost*GLB.StructureResource.density;
+//                    Complexity = (part.mass-structure_mass)/part.mass;
+//                    Utils.Log("Correcting complexity. Now: {}, mass {}, cost {}",
+//                              Complexity, structure_mass, structure_cost);//debug
+//                }
+//                Mass = KitMass = PartMass - structure_mass;
+//                Cost = KitCost = PartCost - structure_cost;
+//				TotalWork = (Complexity*GLB.ComplexityWeight + structure_mass*GLB.MetalworkWeight)*3600;
+//			}
 //            Utils.Log("{}: complexity {}, KitMass {}/{} = {}, KitCost {}/{} = {}", 
 //                      part, Complexity, 
 //                      KitMass, PartMass, KitMass/PartMass,
