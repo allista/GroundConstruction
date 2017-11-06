@@ -80,10 +80,12 @@ namespace GroundConstruction
 
         public void ToggleConstructionWindow()
         {
-            if(!IsActive) return;
-            var workshop = GetWorkshop();
-            if(workshop != null) 
-                workshop.ToggleConstructionWindow();
+            if(IsActive) 
+            {
+                var workshop = GetWorkshop();
+                if(workshop != null) 
+                    workshop.ToggleConstructionWindow();
+            }
         }
 
         public bool CheckETA(double now)
