@@ -14,7 +14,7 @@ using Experience;
 
 namespace GroundConstruction
 {
-	public class GroundWorkshop : PartModule
+    public class GroundWorkshop : WorkshopBase
 	{
 		static Globals GLB { get { return Globals.Instance; } }
 
@@ -98,19 +98,10 @@ namespace GroundConstruction
 		public float Efficiency = 1;
         float distance_mod = -1;
 
-		[KSPField(isPersistant = true)] public bool Working;
-		[KSPField(isPersistant = true)] public double LastUpdateTime = -1;
-        [KSPField(isPersistant = true)] public double EndUT = -1;
 		[KSPField(isPersistant = true)] public PersistentQueue<KitInfo> Queue = new PersistentQueue<KitInfo>();
 		[KSPField(isPersistant = true)] public KitInfo KitUnderConstruction = new KitInfo();
-		public string ETA_Display { get; private set; } = "Stalled...";
 
         double loadedUT = -1;
-
-		float workforce = 0;
-        float max_workforce = 0;
-        public string Workforce_Display 
-        { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
 
         public float EffectiveWorkforce { get { return workforce * distance_mod; } }
 
@@ -253,26 +244,15 @@ namespace GroundConstruction
 			}
 		}
 
-        void update_max_workforce()
+        protected override void update_max_workforce()
         {
-            max_workforce = part.CrewCapacity*Efficiency*5;
+            base.update_max_workforce();
+            max_workforce *= Efficiency;
         }
 
 		void update_workforce()
 		{
-            workforce = 0;
-			foreach(var kerbal in part.protoModuleCrew)
-			{
-				var worker = 0f;
-				var trait = kerbal.experienceTrait;
-				foreach(var effect in trait.Effects)
-				{
-					if(effect is ConstructionSkill)
-					{ worker = 1; break; }
-				}
-                worker *= Mathf.Max(trait.CrewMemberExperienceLevel(), 0.5f);
-                workforce += worker;
-			}
+            base.update_workforce<ConstructionSkill>();
 			workforce *= Efficiency;
 		}
 
@@ -377,22 +357,18 @@ namespace GroundConstruction
 			}
 		}
 
-		void start()
+        protected override void start()
 		{
-			Working = true;
+            base.start();
             if(KitUnderConstruction.Recheck()) 
                 update_ETA();
             checkin();
 		}
 
-        void stop(bool reset = false)
+        protected override void stop(bool reset = false)
 		{
-			Working = false;
-            EndUT = -1;
-            ETA_Display = "";
+            base.stop(reset);
 			distance_mod = -1;
-			LastUpdateTime = -1;
-			TimeWarp.SetRate(0, false);
             if(KitUnderConstruction.Recheck())
                 KitUnderConstruction.Module.CheckoutWorker(this);
             if(reset)
@@ -433,7 +409,7 @@ namespace GroundConstruction
                 stop(true);
         }
 
-		double DoSomeWork(double available_work)
+		double do_some_work(double available_work)
 		{
 			if(distance_mod < 0) update_distance_mod();
 			if(distance_mod.Equals(0))
@@ -486,32 +462,18 @@ namespace GroundConstruction
 		void FixedUpdate()
 		{
 			if(!HighLogic.LoadedSceneIsFlight || !Working || workforce.Equals(0)) return;
-			var deltaTime = GetDeltaTime();
+            var deltaTime = get_delta_time();
 			if(deltaTime < 0) return;
 			//check current kit
 			if(!KitUnderConstruction.Recheck() && !start_next_kit()) return;
 			var available_work = workforce*deltaTime;
 			while(Working && available_work > TimeWarp.fixedDeltaTime/10)
-				available_work = DoSomeWork(available_work);
+				available_work = do_some_work(available_work);
 			if(deltaTime > TimeWarp.fixedDeltaTime*2)
 			{
 				update_ETA();
                 checkin();
 			}
-		}
-
-		double GetDeltaTime()
-		{
-			if(Time.timeSinceLevelLoad < 1 || !FlightGlobals.ready) return -1;
-			if(LastUpdateTime < 0)
-			{
-				LastUpdateTime = Planetarium.GetUniversalTime();
-				return TimeWarp.fixedDeltaTime;
-			}
-			var time = Planetarium.GetUniversalTime();
-			var dT = time - LastUpdateTime;
-			LastUpdateTime = time;
-			return dT;
 		}
 
 		#region Target Actions
