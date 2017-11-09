@@ -1,6 +1,10 @@
 #Ground Construction ChangeLog
 
-* **v1.2.0**
+* **v1.2.1**
+    * Remove ISRU patch if USI is detected.
+    * Fixed PartCost calculation.
+
+* v1.2.0
 	* **Removed OneTimeResourceConverter.** No need for it anymore.
     * Added **planet tabs** that group workshops located on the same celectial body to unclutter the workshop list.
     * Added ability to **synchronize construction target** among workshops belonging to the same vessel.
