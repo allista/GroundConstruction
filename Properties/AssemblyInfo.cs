@@ -40,16 +40,16 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-	public class ModInfo : KSP_AVC_Info
-	{
-		public ModInfo()
-		{
-			MinKSPVersion = new Version(1,3,1);
-			MaxKSPVersion = new Version(1,3,1);
+    public class ModInfo : KSP_AVC_Info
+    {
+        public ModInfo()
+        {
+            MinKSPVersion = new Version(1,3,1);
+            MaxKSPVersion = new Version(1,3,1);
 
-			VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
+            VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
             UpgradeURL   = "https://spacedock.info/mod/1123/Ground%20Construction";
-			ChangeLogURL = "https://github.com/allista/GroundConstruction/blob/master/ChangeLog.md";
-		}
-	}
+            ChangeLogURL = "https://github.com/allista/GroundConstruction/blob/master/ChangeLog.md";
+        }
+    }
 }

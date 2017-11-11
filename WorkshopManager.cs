@@ -74,8 +74,8 @@ namespace GroundConstruction
                     {
                         var pm = pp.FindModule(typeof(GroundWorkshop).Name);
                         if(pm == null) continue;
-                        add_protoworkshop(new ProtoGroundWorkshop(vessel.id, vessel.vesselName, 
-                                                                  pp.flightID, pp.partInfo.title, 
+                        add_protoworkshop(new ProtoGroundWorkshop(vessel.id, vessel.vesselName,
+                                                                  pp.flightID, pp.partInfo.title,
                                                                   pm.moduleValues));
                     }
                 }
@@ -190,7 +190,7 @@ namespace GroundConstruction
         #region UI
         public bool SwitchTo()
         {
-            if(HighLogic.LoadedSceneIsFlight) 
+            if(HighLogic.LoadedSceneIsFlight)
                 FlightGlobals.SetActiveVessel(vessel);
             else
             {
@@ -216,9 +216,9 @@ namespace GroundConstruction
         {
             if(target == null) goto end;
             if(HighLogic.LoadedSceneIsFlight)
-            { 
-                if(!MapView.MapIsEnabled) 
-                    MapView.EnterMapView(); 
+            {
+                if(!MapView.MapIsEnabled)
+                    MapView.EnterMapView();
             }
             if(HighLogic.LoadedSceneIsFlight ||
                HighLogic.LoadedScene == GameScenes.TRACKSTATION)
@@ -232,21 +232,21 @@ namespace GroundConstruction
         {
             GUILayout.BeginVertical();
             if(IsActive) GUILayout.Label(VesselName, Styles.green, GUILayout.ExpandWidth(true));
-            else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"), 
+            else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"),
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
             GroundWorkshop.KitInfo sync_kit = null;
-            foreach(var item in DisplayOrder) 
+            foreach(var item in DisplayOrder)
             {
                 GUILayout.BeginHorizontal();
                 ProtoWorkshops[item.Value].Draw();
                 if(IsActive && ProtoWorkshops.Count > 1)
                 {
                     var kit = Workshops[item.Value].KitUnderConstruction;
-                    if(!kit.Valid) 
-                        GUILayout.Label(new GUIContent("⇶", "Workshop is idle"), 
+                    if(!kit.Valid)
+                        GUILayout.Label(new GUIContent("⇶", "Workshop is idle"),
                                         Styles.grey, GUILayout.Width(25));
-                    else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"), 
+                    else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"),
                                              Styles.enabled_button, GUILayout.Width(25)))
                         sync_kit = kit;
                 }
@@ -260,7 +260,7 @@ namespace GroundConstruction
 
         public override string ToString()
         {
-            return Utils.Format("{}, VesselID={}, DisplayID={}, IsActive={}, CB={}, Empty={}, IsLanded={}", 
+            return Utils.Format("{}, VesselID={}, DisplayID={}, IsActive={}, CB={}, Empty={}, IsLanded={}",
                                 VesselName, VesselID, DisplayID, IsActive, CB, Empty, IsLanded);
         }
     }

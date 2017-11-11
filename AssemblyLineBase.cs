@@ -18,9 +18,9 @@ namespace GroundConstruction
         EditorFacility facility;
 
         protected abstract bool request_assembly_space(ShipConstruct ship,
-                                                       Callback<IAssemblySpace> space_available, 
+                                                       Callback<IAssemblySpace> space_available,
                                                        Callback<string> space_unavailable);
- 
+
         protected ShipConstruct create_kit(ShipConstruct content) {}
 
         void OnAwake()

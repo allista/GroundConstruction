@@ -22,7 +22,7 @@ namespace GroundConstruction
 
         protected float workforce = 0;
         protected float max_workforce = 0;
-        public string Workforce_Display 
+        public string Workforce_Display
         { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
 
         protected virtual void update_max_workforce()

@@ -25,7 +25,7 @@ namespace GroundConstruction
         [Persistent] public string Workforce;
 
         public ProtoGroundWorkshop() {}
-        public ProtoGroundWorkshop(GroundWorkshop workshop) 
+        public ProtoGroundWorkshop(GroundWorkshop workshop)
         {
             VesselName = workshop.vessel.name;
             vesselID = workshop.vessel.id;
@@ -34,12 +34,12 @@ namespace GroundConstruction
             Workforce = workshop.Workforce_Display;
             State = Status.IDLE;
             EndUT = workshop.EndUT;
-            if(workshop.KitUnderConstruction.Valid) 
+            if(workshop.KitUnderConstruction.Valid)
                 update_from_kit(workshop.KitUnderConstruction);
         }
 
-        public ProtoGroundWorkshop(Guid vID, string vesselName, 
-                                   uint flightID, string partName, 
+        public ProtoGroundWorkshop(Guid vID, string vesselName,
+                                   uint flightID, string partName,
                                    ConfigNode protoModuleValues)
         {
             vesselID = vID;
@@ -80,10 +80,10 @@ namespace GroundConstruction
 
         public void ToggleConstructionWindow()
         {
-            if(IsActive) 
+            if(IsActive)
             {
                 var workshop = GetWorkshop();
-                if(workshop != null) 
+                if(workshop != null)
                     workshop.ToggleConstructionWindow();
             }
         }
@@ -114,7 +114,7 @@ namespace GroundConstruction
             var tooltip = "\nPress to open Construction Window";
             if(State == Status.IDLE)
             {
-                if(IsActive) 
+                if(IsActive)
                 {
                     tooltip = Workforce+tooltip;
                     status = new GUIContent(PartName+": Idle", tooltip);
@@ -134,7 +134,7 @@ namespace GroundConstruction
                     status = new GUIContent(KitName+": Complete", tooltip);
                 }
             }
-            if(status != null) 
+            if(status != null)
             {
                 if(GUILayout.Button(status, style, GUILayout.ExpandWidth(true)))
                     ToggleConstructionWindow();
@@ -147,7 +147,7 @@ namespace GroundConstruction
         }
 
         public override string ToString()
-        { 
+        {
             if(State == Status.COMPLETE)
                 return Utils.Format("\"{}:{}\" assembled \"{}\".", VesselName, PartName, KitName);
             if(State == Status.ACTIVE)
