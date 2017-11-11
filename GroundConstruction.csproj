@@ -72,6 +72,7 @@
     <Compile Include="VesselInfo.cs" />
     <Compile Include="WorkshopBase.cs" />
     <Compile Include="IAssemblySpace.cs" />
+    <Compile Include="AssemblyLineBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
