@@ -11,34 +11,6 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public interface iDIYKit
-    {
-        double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy);
-        void DoSomeWork(double skilled_kerbal_seconds);
-        bool Valid { get; }
-    }
-
-    public abstract class DIYKit : ConfigNodeObject, iDIYKit
-    {
-        public new const string NODE_NAME = "DIY_KIT";
-
-        protected static Globals GLB { get { return Globals.Instance; } }
-
-        [Persistent] public double TotalWork = -1; //seconds
-        [Persistent] public double WorkDone;       //seconds
-        [Persistent] public float  Completeness;    //fraction
-
-        [Persistent] public float Mass;
-        [Persistent] public float Cost;
-
-        public bool Valid { get { return TotalWork > 0; } }
-
-        public double WorkLeft { get { return TotalWork-WorkDone; } }
-
-        public abstract double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy);
-        public abstract void DoSomeWork(double skilled_kerbal_seconds);
-    }
-
     public class PartKit : DIYKit
     {
         public new const string NODE_NAME = "PART_KIT";
@@ -55,80 +27,84 @@ namespace GroundConstruction
 
         [Persistent] public float Complexity; //fraction
 
-        public float MassLeft { get { return PartMass-Mass; } }
+        public float ConstructionMassLeft { get { return Assembly.Complete? PartMass-Mass : PartMass-KitMass; } }
+        public float AssemblyMassLeft { get { return Assembly.Complete? 0 : KitMass-Mass; } }
 
         public PartKit() {}
 
-        public PartKit(Part part)
+        public PartKit(Part part, bool assembled = true)
         {
             Name = part.partInfo.name;
             Title = part.partInfo.title;
             craftID  = part.craftID;
             var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
             var res_mass = part.GetResourceMass();
-            var dry_cost = part.DryCost();
+            var dry_cost = Mathf.Max(part.DryCost(), 0);
             PartMass = part.mass+res_mass;
             PartCost = dry_cost+part.ResourcesCost();
             if(is_DIY_Kit)
             {
-                Mass = KitMass = PartMass;
-                Cost = KitCost = PartCost;
+                KitMass = PartMass;
+                KitCost = PartCost;
+                Mass = assembled? KitMass : 0;
+                Cost = assembled? KitCost : 0;
                 Complexity = 1;
-                TotalWork = 0;
-                Completeness = 1;
+                Assembly.Completeness = assembled? 1 : 0;
+                Construction.Completeness = 1;
             }
             else
             {
                 Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
                 var structure_mass = part.mass*(1-Complexity);
-                var structure_cost = Mathf.Min(structure_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost, dry_cost);
-                Mass = KitMass = PartMass - structure_mass;
-                Cost = KitCost = PartCost - structure_cost;
-                TotalWork = (Complexity*GLB.ComplexityWeight + structure_mass*GLB.MetalworkWeight)*3600;
+                var structure_cost = Mathf.Min(structure_mass/GLB.ConstructionResource.def.density*GLB.ConstructionResource.def.unitCost, dry_cost);
+                KitMass = PartMass - structure_mass;
+                KitCost = PartCost - structure_cost;
+                Mass = assembled? KitMass : 0;
+                Cost = assembled? KitCost : 0;
+                if(assembled)
+                    Assembly.Completeness = 1;
+                else
+                {
+                    Assembly.Completeness = 0;
+                    Assembly.TotalWork = (Complexity*Assembly.Resource.ComplexityWork + KitMass*Assembly.Resource.WorkPerMass)*3600;
+                }
+                Construction.TotalWork = (Complexity*Construction.Resource.ComplexityWork + structure_mass*Construction.Resource.WorkPerMass)*3600;
             }
-//            else
-//            {
-//                Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
-//                var structure_mass = part.mass*(1-Complexity);
-//                var structure_cost = structure_mass/GLB.StructureResource.density*GLB.StructureResource.unitCost;
-//                //correct complexity if additional mass costs too much
-//                if(structure_cost > dry_cost)
-//                {
-//                    Utils.Log("Correcting complexity. Was: {}, mass {}, cost {}",
-//                              Complexity, structure_mass, structure_cost);//debug
-//                    structure_cost = dry_cost;
-//                    structure_mass = dry_cost/GLB.StructureResource.unitCost*GLB.StructureResource.density;
-//                    Complexity = (part.mass-structure_mass)/part.mass;
-//                    Utils.Log("Correcting complexity. Now: {}, mass {}, cost {}",
-//                              Complexity, structure_mass, structure_cost);//debug
-//                }
-//                Mass = KitMass = PartMass - structure_mass;
-//                Cost = KitCost = PartCost - structure_cost;
-//                TotalWork = (Complexity*GLB.ComplexityWeight + structure_mass*GLB.MetalworkWeight)*3600;
-//            }
-//            Utils.Log("{}: complexity {}, KitMass {}/{} = {}, KitCost {}/{} = {}",
-//                      part, Complexity,
-//                      KitMass, PartMass, KitMass/PartMass,
-//                      KitCost, PartCost, KitCost/PartCost);//debug
         }
 
-        public override double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
+
+        public override double AssembleyRequirement(double work, out double energy, out int resource_id, out double resource_mass)
         {
-            if(WorkDone+skilled_kerbal_seconds > TotalWork)
-                skilled_kerbal_seconds = WorkLeft;
-            var mass = skilled_kerbal_seconds/TotalWork*(PartMass-KitMass);
-            required_energy = mass*GLB.EnergyForMetalwork;
-            return mass;
+            return Assembly.Requirement(work, 0, KitMass, out energy, out resource_id, out resource_mass);
         }
 
-        public override void DoSomeWork(double skilled_kerbal_seconds)
+        public override double ConstructionRequerement(double work, out double energy, out int resource_id, out double resource_mass)
         {
-            WorkDone = Math.Min(TotalWork, WorkDone+skilled_kerbal_seconds);
-            Completeness =(float)(WorkDone/TotalWork);
-            Mass = Mathf.Lerp(KitMass, PartMass, Completeness);
-            Cost = Mathf.Lerp(KitCost, PartCost, Completeness);
-//            Utils.Log("Constructing: {} {}", Name, this);//debug
+            return Construction.Requirement(work, KitMass, PartMass, out energy, out resource_id, out resource_mass);
+        }
+
+        public override bool Assemble(double work)
+        {
+            if(Assembly.Completeness < 1)
+            {
+                Assembly.DoSomeWork(work);
+                Mass = KitMass*Assembly.Completeness;
+                Cost = KitCost*Assembly.Completeness;
+                return false;
+            }
+            return true;
+        }
+
+        public override bool Construct(double work)
+        {
+            if(Construction.Completeness < 1)
+            {
+                Construction.DoSomeWork(work);
+                Mass = Mathf.Lerp(KitMass, PartMass, Construction.Completeness);
+                Cost = Mathf.Lerp(KitCost, PartCost, Construction.Completeness);
+                return false;
+            }
+            return true;
         }
     }
 }
-
