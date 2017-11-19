@@ -5,27 +5,25 @@
 //
 //  Copyright (c) 2016 Allis Tauri
 
-using System;
 using System.Collections.Generic;
 using AT_Utils;
 
 namespace GroundConstruction
 {
+    public class ResourceUsageInfo : ResourceInfo
+    {
+        [Persistent] public float ComplexityWork = 0;
+        [Persistent] public float EnergyPerMass = 0;
+        [Persistent] public float WorkPerMass = 0;
+
+        public ResourceUsageInfo(string name = "") : base(name) {}
+    }
+
     public class Globals : PluginGlobals<Globals>
     {
         #region Resources
-        [Persistent] public string StructureResourceName = "Metals";
-        PartResourceDefinition _structure_resource;
-        public PartResourceDefinition StructureResource
-        {
-            get
-            {
-                if(_structure_resource == null)
-                    _structure_resource = PartResourceLibrary.Instance.GetDefinition(StructureResourceName);
-                return _structure_resource;
-            }
-        }
-        public int StructureResourceID { get { return StructureResource.id; } }
+        [Persistent] public ResourceUsageInfo AssemblyResource = new ResourceUsageInfo("SpecializedParts");
+        [Persistent] public ResourceUsageInfo ConstructionResource = new ResourceUsageInfo("MaterialKits");
 
         const string RESOURCES_NODE = "GC_KIT_RESOURCES";
         HashSet<int> keep_res_ids;
@@ -53,7 +51,6 @@ namespace GroundConstruction
 
         [Persistent] public bool  UseStockAppLauncher = true;
 
-        [Persistent] public float EnergyForMetalwork        = 10;
         [Persistent] public float WorkshopShutdownThreshold = 0.99f;
         [Persistent] public float MaxDistanceToWorkshop     = 300f;
         [Persistent] public float MinDistanceToWorkshop     = 50f;

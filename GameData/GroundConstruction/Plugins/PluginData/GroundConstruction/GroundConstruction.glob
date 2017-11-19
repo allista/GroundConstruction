@@ -1,8 +1,22 @@
 UseStockAppLauncher = true
 
-StructureResourceName = MaterialKits 
+AssemblyResource
+{
+	name = SpecializedParts
+	WorkPerMass = 15
+	EnergyPerMass = 10
+	ComplexityWork = 17
+}
 
-EnergyForMetalwork        = 100
+
+ConstructionResource
+{
+	name = MaterialKits
+	WorkPerMass = 10
+	EnergyPerMass = 100
+	ComplexityWork = 13
+}
+
 WorkshopShutdownThreshold = 0.99
 MaxDistanceToWorkshop     = 300
 MinDistanceToWorkshop     = 50
@@ -15,9 +29,6 @@ MinGenericEfficiency      = 0.05
 MaxGenericEfficiency      = 0.5
 
 ComplexityFactor = 1E-04
-
-ComplexityWeight = 13
-MetalworkWeight  = 10
 
 VesselKitDensity = 0.5
 VesselKitMinSize = 0.5
