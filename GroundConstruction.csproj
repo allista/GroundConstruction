@@ -73,6 +73,7 @@
     <Compile Include="WorkshopBase.cs" />
     <Compile Include="IAssemblySpace.cs" />
     <Compile Include="AssemblyLineBase.cs" />
+    <Compile Include="DIYKit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
