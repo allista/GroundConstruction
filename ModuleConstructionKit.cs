@@ -15,7 +15,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, iDIYKit
+    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier
     {
         static Globals GLB { get { return Globals.Instance; } }
 
@@ -50,10 +50,13 @@ namespace GroundConstruction
         public float KitCost;
 
         [KSPField(guiName = "Kit Work", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 SKH")]
-        public float KitWork;
+        public double KitWork;
 
         [KSPField(guiName = "Kit Res.", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
-        public float KitRes;
+        public double KitRes;
+
+        [KSPField(guiName = "Kit Enrg.", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 eu")]
+        public double KitEnrg;
 
         [KSPField(guiName = "Kit Status", guiActive = true)]
         public string KitStatus = "Empty Kit";
@@ -64,12 +67,14 @@ namespace GroundConstruction
         #region Kit
         [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
 
-        public bool Valid { get { return part != null && vessel != null && kit.Valid; } }
+        public bool Valid 
+        { get { return part != null && vessel != null && kit.Valid; } }
 
-        public float Completeness { get { return kit.Valid? kit.Completeness : 0; } }
+        public float Completeness 
+        { get { return kit.Valid? kit.Construction.Completeness : 0; } }
 
         public float PartCompleteness
-        { get { return kit.Valid && kit.PartUnderConstruction != null? kit.PartUnderConstruction.Completeness : 0; } }
+        { get { return kit.Valid? kit.Construction.CurrentSubtask.Completeness : 0; } }
 
         public VesselResources GetConstructResources()
         {
@@ -95,9 +100,9 @@ namespace GroundConstruction
         public double GetETA()
         {
             if(!kit.Valid) return -1;
-            if(kit.Completeness >= 1) return 0;
+            if(kit.Construction.Complete) return 0;
             var workforce = workers.Values.Sum();
-            return workforce > 0? kit.WorkLeftFull/workforce : -1;
+            return workforce > 0? kit.Construction.WorkLeft/workforce : -1;
         }
         #endregion
 
@@ -157,18 +162,17 @@ namespace GroundConstruction
         {
             if(kit.Valid)
             {
+                int rid;
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
-                KitWork = (float)(kit.WorkLeft)/3600;
-                KitRes  = kit.StructureLeft;
-                if(Deploying) KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
+                KitWork = kit.RemainingRequirements(out KitEnrg, out rid, out KitRes)/3600;
+                if(Deploying) 
+                    KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
                 else if(Deployed)
                 {
-                    KitStatus = string.Format("Complete: {0:P1}", kit.Completeness);
-                    PartStatus = kit.PartUnderConstruction == null? "Nothing" :
-                        string.Format("{0}: {1:P1}",
-                                      kit.PartUnderConstruction.Title,
-                                      kit.PartUnderConstruction.Completeness);
+                    var cur_part = kit.CurrentSubJob;
+                    KitStatus = string.Format("Complete: {0:P1}", kit.Construction.Completeness);
+                    PartStatus = string.Format("{0}: {1:P1}", cur_part.Title, cur_part.Current.Completeness);
                 }
                 else KitStatus = "Idle";
             }
@@ -256,7 +260,7 @@ namespace GroundConstruction
             base.OnStart(state);
             if(Deployed) setup_ground_contact();
             Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
-            Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
+            Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Construction.Complete;
             update_unfocusedRange("Deploy", "Launch");
             model = part.transform.Find("model");
             spawn_transforms = new List<Transform>();
@@ -339,7 +343,7 @@ namespace GroundConstruction
             KitMass = kit.Mass;
             KitCost = kit.Cost;
             var V = OrigSize.x*OrigSize.y*OrigSize.z;
-            Size = OrigSize * Mathf.Pow(kit.Mass/GLB.VesselKitDensity/V, 1/3f);
+            Size = OrigSize * Mathf.Pow(KitMass/GLB.VesselKitDensity/V, 1/3f);
             Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
             Facility = construct.shipFacility;
             update_texture();
@@ -567,7 +571,7 @@ namespace GroundConstruction
                 Utils.Message("Cannot launch constructed ship while rotating.");
                 return false;
             }
-            if(kit.Completeness < 1)
+            if(!kit.Complete)
             {
                 Utils.Message("The assembly is not complete yet.");
                 return false;
@@ -717,23 +721,6 @@ namespace GroundConstruction
             //rename the kit
             if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
                 KitName = kitname_editor.Text;
-        }
-        #endregion
-
-        #region iDIYKit implementation
-        public double RequiredMass(ref double skilled_kerbal_seconds, out double required_energy)
-        {
-            required_energy = 0;
-            if(!kit.Valid) return 0;
-            return kit.RequiredMass(ref skilled_kerbal_seconds, out required_energy);
-        }
-
-        public void DoSomeWork(double skilled_kerbal_seconds)
-        {
-            if(!kit.Valid) return;
-            kit.DoSomeWork(skilled_kerbal_seconds);
-            if(kit.Completeness >= 1)
-                TimeWarp.SetRate(0, false);
         }
         #endregion
 
