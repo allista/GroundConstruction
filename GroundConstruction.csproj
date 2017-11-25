@@ -74,6 +74,7 @@
     <Compile Include="IAssemblySpace.cs" />
     <Compile Include="AssemblyLineBase.cs" />
     <Compile Include="DIYKit.cs" />
+    <Compile Include="Job.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -82,5 +83,8 @@
       <Name>AT_Utils</Name>
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WorkModel\" />
   </ItemGroup>
 </Project>

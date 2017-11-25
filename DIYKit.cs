@@ -5,119 +5,72 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 using System;
-using System.Collections.Generic;
-using AT_Utils;
 
 namespace GroundConstruction
 {
     public interface iDIYKit
     {
         bool Valid { get; }
-
-        double AssembleyRequirement(double work, out double energy, out int resource_id, out double resource_mass);
-        double ConstructionRequerement(double work, out double energy, out int resource_id, out double resource_mass);
-
-        bool Assemble(double work);
-        bool Construct(double work);
+        float CurrentMass { get; }
+        float CurrentCost { get; }
+        double RequirementsForWork(double work, out double energy, out int resource_id, out double resource_mass);
+        double DoSomeWork(double work);
     }
 
-    public abstract class DIYKit : ConfigNodeObject, iDIYKit
+    public abstract class DIYKit : Job, iDIYKit
     {
         public new const string NODE_NAME = "DIY_KIT";
 
         protected static Globals GLB { get { return Globals.Instance; } }
 
-        public class Job : ConfigNodeObject
+        [Persistent] public Task Assembly;
+        [Persistent] public Task Construction;
+
+        public Param Mass { get { return Parameters["Mass"]; } }
+        public Param Cost { get { return Parameters["Cost"]; } }
+
+        public virtual float CurrentMass { get { return Mass.Value; } }
+        public virtual float CurrentCost { get { return Cost.Value; } }
+
+        public virtual float EndMass { get { return Mass.Max; } }
+        public virtual float EndCost { get { return Cost.Max; } }
+
+        protected DIYKit()
         {
-            public readonly uint id;
-
-            [Persistent] public double TotalWork;    //seconds
-            [Persistent] public double WorkDone;     //seconds
-            [Persistent] public float  Completeness; //fraction
-
-            public ResourceUsageInfo Resource { get; private set; }
-
-            public double WorkLeft { get { return TotalWork-WorkDone; } }
-            public bool Complete { get { return Completeness >= 1; } }
-
-            public Job(uint id = 0, ResourceUsageInfo resource = null, float completeness = 0)
-            {
-                this.id = id;
-                Resource = resource;
-                Completeness = completeness;
-            }
-
-            public void AddSubtask(Job job)
-            {
-                TotalWork += job.TotalWork;
-                WorkDone += job.WorkDone;
-                update_completeness();
-            }
-
-            public void DoSomeWork(double work)
-            {
-                WorkDone = Math.Min(TotalWork, WorkDone+work);
-                update_completeness();
-            }
-
-            public void DoSomeWork(Job job)
-            {
-                WorkDone = Math.Min(TotalWork, WorkDone+job.TotalWork);
-                update_completeness();
-            }
-
-            public double Requirement(double work, double start_mass, double end_mass, out double energy, out int resource_id, out double resource_mass)
-            {
-                if(Complete)
-                {
-                    energy = 0;
-                    resource_id = Resource.id;
-                    resource_mass = 0;
-                    return 0;
-                }
-                work = Math.Min(work, WorkLeft);
-                resource_id = Resource.id;
-                resource_mass = work/TotalWork*(end_mass-start_mass);
-                energy = resource_mass*Resource.EnergyPerMass;
-                return work;
-            }
-
-            void update_completeness()
-            {
-                Completeness = (float)Math.Min(WorkDone/TotalWork, 1);
-            }
+            Assembly = add_task(GLB.AssemblyResource, 0.5f);
+            Construction = add_task(GLB.ConstructionResource, 1);
+            Parameters.Add("Mass", new Param());
+            Parameters.Add("Cost", new Param());
         }
 
-        [Persistent] public Job Assembly = new Job(0, GLB.AssemblyResource, 1); //a kit is assembled by default
-        [Persistent] public Job Construction = new Job(1, GLB.ConstructionResource);
-
-        [Persistent] public float Mass = -1;
-        [Persistent] public float Cost;
-
-        public bool Valid { get { return Mass >= 0; } }
-
-        Dictionary<uint,Job> jobs = new Dictionary<uint, Job>{
-            {Assembly.id, Assembly}, 
-            {Construction.id, Construction}
-        };
-
-        public Job SameJob(Job other)
-        { 
-            Job job;
-            if(jobs.TryGetValue(other.id, out job))
-                return job;
-            return null;
+        void get_requirements(double work, out double energy, out int resource_id, out double resource_amount)
+        {
+            if(Current == null)
+            {
+                energy = 0;
+                resource_id = -1;
+                resource_amount = 0;
+            }
+            var frac = (float)GetFraction();
+            resource_id = Current.Resource.id;
+            var resource_mass = Math.Max(Mass.Curve.Evaluate(frac+(float)(work/TotalWork)) - 
+                                         Mass.Curve.Evaluate(frac), 0);
+            resource_amount = resource_mass/Current.Resource.def.density;
+            energy = resource_mass*Current.Resource.EnergyPerMass;
         }
 
-        public abstract double AssembleyRequirement(double work, out double energy, out int resource_id, out double resource_mass);
-        public abstract double ConstructionRequerement(double work, out double energy, out int resource_id, out double resource_mass);
-
-        public abstract bool Assemble(double work);
-        public abstract bool Construct(double work);
-
-        public static implicit operator bool(DIYKit kit)
+        public double RequirementsForWork(double work, out double energy, out int resource_id, out double resource_amount)
         {
-            return kit != null && kit.Valid;
+            work = Math.Min(work, Current.WorkLeft);
+            get_requirements(work, out energy, out resource_id, out resource_amount);
+            return work;
+        }
+
+        public double RemainingRequirements(out double energy, out int resource_id, out double resource_amount)
+        {
+            var work = Current.WorkLeft;
+            get_requirements(work, out energy, out resource_id, out resource_amount);
+            return work;
         }
 
         //deprecated config conversion
