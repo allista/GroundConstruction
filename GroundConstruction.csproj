@@ -74,7 +74,9 @@
     <Compile Include="IAssemblySpace.cs" />
     <Compile Include="AssemblyLineBase.cs" />
     <Compile Include="DIYKit.cs" />
-    <Compile Include="Job.cs" />
+    <Compile Include="WorkModel\Job.cs" />
+    <Compile Include="WorkModel\Task.cs" />
+    <Compile Include="WorkModel\Work.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
