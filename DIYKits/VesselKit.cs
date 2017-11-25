@@ -15,7 +15,6 @@ namespace GroundConstruction
     {
         public new const string NODE_NAME = "VESSEL_KIT";
 
-        [Persistent] public string Name;
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
         [Persistent] public PersistentList<PartKit> Parts = new PersistentList<PartKit>();
@@ -49,23 +48,26 @@ namespace GroundConstruction
             Assembly.SetComplete(assembled);
         }
 
-        public override float CurrentMass
+        public override bool Valid
+        { get { return base.Valid && Parts.Count > 0; } }
+
+        public override float Mass
         {
             get
             {
                 var parts = 0f;
-                Parts.ForEach(p => parts += p.CurrentMass);
-                return base.CurrentMass + parts;
+                Parts.ForEach(p => parts += p.Mass);
+                return base.Mass + parts;
             }
         }
 
-        public override float CurrentCost
+        public override float Cost
         {
             get
             {
                 var parts = 0f;
-                Parts.ForEach(p => parts += p.CurrentCost);
-                return base.CurrentCost + parts;
+                Parts.ForEach(p => parts += p.Cost);
+                return base.Cost + parts;
             }
         }
 

@@ -34,6 +34,7 @@ namespace GroundConstruction
             }
         }
 
+        [Persistent] public string Name = "";
         [Persistent] public PersistentDictS<Param> Parameters = new PersistentDictS<Param>();
 
         public Task First { get; protected set; }
@@ -50,10 +51,13 @@ namespace GroundConstruction
                 (First != null? 1.0 : 0.0); 
         }
 
-        public Job CurrentSubJob()
+        public Job CurrentSubJob
         {
-            return Current == null? 
-                this : Current.CurrentSubtask.Job;
+            get 
+            {
+                return Current == null? 
+                    this : Current.CurrentSubtask.Job;
+            }
         }
 
         public void AddSubJob(Job sub)

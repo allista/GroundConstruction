@@ -8,16 +8,13 @@ using System;
 
 namespace GroundConstruction
 {
-    public interface iDIYKit
-    {
-        bool Valid { get; }
-        float CurrentMass { get; }
-        float CurrentCost { get; }
-        double RequirementsForWork(double work, out double energy, out int resource_id, out double resource_mass);
-        double DoSomeWork(double work);
-    }
-
-    public abstract class DIYKit : Job, iDIYKit
+    /// <summary>
+    /// DIY kit is a job that consists of two tasks, Assembly and Construction,
+    /// and contains two parameters, Mass and Cost.
+    /// It defines two additional methods to obtain information about required
+    /// resources and energy for the work: RequirementsForWork and RemainingRequirements.
+    /// </summary>
+    public abstract class DIYKit : Job
     {
         public new const string NODE_NAME = "DIY_KIT";
 
@@ -26,14 +23,11 @@ namespace GroundConstruction
         [Persistent] public Task Assembly;
         [Persistent] public Task Construction;
 
-        public Param Mass { get { return Parameters["Mass"]; } }
-        public Param Cost { get { return Parameters["Cost"]; } }
+        protected Param mass { get { return Parameters["Mass"]; } }
+        protected Param cost { get { return Parameters["Cost"]; } }
 
-        public virtual float CurrentMass { get { return Mass.Value; } }
-        public virtual float CurrentCost { get { return Cost.Value; } }
-
-        public virtual float EndMass { get { return Mass.Max; } }
-        public virtual float EndCost { get { return Cost.Max; } }
+        public virtual float Mass { get { return mass.Value; } }
+        public virtual float Cost { get { return cost.Value; } }
 
         protected DIYKit()
         {
@@ -53,8 +47,8 @@ namespace GroundConstruction
             }
             var frac = (float)GetFraction();
             resource_id = Current.Resource.id;
-            var resource_mass = Math.Max(Mass.Curve.Evaluate(frac+(float)(work/TotalWork)) - 
-                                         Mass.Curve.Evaluate(frac), 0);
+            var resource_mass = Math.Max(mass.Curve.Evaluate(frac+(float)(work/TotalWork)) - 
+                                         mass.Curve.Evaluate(frac), 0);
             resource_amount = resource_mass/Current.Resource.def.density;
             energy = resource_mass*Current.Resource.EnergyPerMass;
         }

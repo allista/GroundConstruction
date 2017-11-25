@@ -15,25 +15,25 @@ namespace GroundConstruction
     {
         public new const string NODE_NAME = "PART_KIT";
 
-        [Persistent] public string Name;
-        [Persistent] public string Title;
         [Persistent] public uint   craftID;
-        [Persistent] public float  Complexity;
+        [Persistent] public float  Complexity = -1;
+
+        public override bool Valid
+        { get { return base.Valid && Complexity >= 0; } }
 
         public PartKit() {}
 
         public PartKit(Part part, bool assembled = true)
         {
-            Name = part.partInfo.name;
-            Title = part.partInfo.title;
+            Name = part.partInfo.title;
             craftID  = part.craftID;
             var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
             var res_mass = part.GetResourceMass();
             var dry_cost = Mathf.Max(part.DryCost(), 0);
             var part_mass = part.mass+res_mass;
             var part_cost = dry_cost+part.ResourcesCost();
-            Mass.Curve.Add(1, part_mass);
-            Cost.Curve.Add(1, part_cost);
+            mass.Curve.Add(1, part_mass);
+            mass.Curve.Add(1, part_cost);
             if(is_DIY_Kit)
             {
                 Complexity = 1;
@@ -57,15 +57,15 @@ namespace GroundConstruction
                 Assembly.TotalWork = total_work(Assembly, kist_mass);
                 UpdateTotalWork();
                 var frac = Assembly.TotalFraction();
-                Mass.Curve.Add(frac, kist_mass, 0, 0);
-                Cost.Curve.Add(frac, kit_cost, 0, 0);
+                mass.Curve.Add(frac, kist_mass, 0, 0);
+                mass.Curve.Add(frac, kit_cost, 0, 0);
                 Assembly.SetComplete(assembled);
             }
         }
 
-        double total_work(Task task, double mass)
+        double total_work(Task task, double end_mass)
         {
-            return (Complexity*task.Resource.ComplexityWork + mass*Construction.Resource.WorkPerMass)*3600;
+            return (Complexity*task.Resource.ComplexityWork + end_mass*Construction.Resource.WorkPerMass)*3600;
         }
     }
 }
