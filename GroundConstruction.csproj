@@ -58,9 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PartKit.cs" />
     <Compile Include="Globals.cs" />
-    <Compile Include="VesselKit.cs" />
     <Compile Include="ModuleConstructionKit.cs" />
     <Compile Include="GroundWorkshop.cs" />
     <Compile Include="GroundConstructionScenario.cs" />
@@ -73,10 +71,12 @@
     <Compile Include="WorkshopBase.cs" />
     <Compile Include="IAssemblySpace.cs" />
     <Compile Include="AssemblyLineBase.cs" />
-    <Compile Include="DIYKit.cs" />
     <Compile Include="WorkModel\Job.cs" />
     <Compile Include="WorkModel\Task.cs" />
     <Compile Include="WorkModel\Work.cs" />
+    <Compile Include="DIYKits\DIYKit.cs" />
+    <Compile Include="DIYKits\PartKit.cs" />
+    <Compile Include="DIYKits\VesselKit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -88,5 +88,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WorkModel\" />
+    <Folder Include="DIYKits\" />
   </ItemGroup>
 </Project>
