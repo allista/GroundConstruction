@@ -67,5 +67,32 @@ namespace GroundConstruction
         {
             return (Complexity*task.Resource.ComplexityWork + end_mass*Construction.Resource.WorkPerMass)*3600;
         }
+
+        //deprecated config conversion
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            if(node.HasValue("Completeness"))
+            {
+                UpdateTotalWork();
+                float v;
+                var frac = Assembly.TotalFraction();
+                var val = node.GetValue("Title");
+                if(!string.IsNullOrEmpty(val))
+                    Name = val;
+                val = node.GetValue("PartMass");
+                if(float.TryParse(val, out v))
+                    mass.Curve.Add(1, v);
+                val = node.GetValue("PartCost");
+                if(float.TryParse(val, out v))
+                    cost.Curve.Add(1, v);
+                val = node.GetValue("KitMass");
+                if(float.TryParse(val, out v))
+                    mass.Curve.Add(frac, v);
+                val = node.GetValue("KitCost");
+                if(float.TryParse(val, out v))
+                    cost.Curve.Add(frac, v);
+            }
+        }
     }
 }

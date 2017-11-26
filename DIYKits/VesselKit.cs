@@ -113,6 +113,38 @@ namespace GroundConstruction
             }
             return true;
         }
+
+        //deprecated config conversion
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            if(node.HasValue("Completeness"))
+            {
+                var list = new PersistentList<PartKit>();
+                var n = node.GetNode("BuiltParts");
+                if(n != null)
+                {
+                    list.Load(n);
+                    Parts.AddRange(list);
+                    list.Clear();
+                }
+                n = node.GetNode("PartUnderConstruction");
+                if(n != null)
+                {
+                    var p = new PartKit();
+                    p.Load(n);
+                    Parts.Add(p);
+                }
+                n = node.GetNode("UnbuiltParts");
+                if(n != null)
+                {
+                    list.Load(n);
+                    Parts.AddRange(list);
+                    list.Clear();
+                }
+                UpdateTotalWork();
+            }
+        }
     }
 }
 

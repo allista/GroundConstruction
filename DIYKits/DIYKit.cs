@@ -71,7 +71,7 @@ namespace GroundConstruction
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            if(node.HasValue("TotalWork"))
+            if(node.HasValue("Completeness"))
                 Construction.Load(node);
         }
     }
