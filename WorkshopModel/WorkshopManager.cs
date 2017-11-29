@@ -15,8 +15,8 @@ namespace GroundConstruction
 {
     public class WorkshopManager : VesselModule
     {
-        public Dictionary<uint, GroundWorkshop> Workshops = new Dictionary<uint, GroundWorkshop>();
-        public Dictionary<uint, ProtoGroundWorkshop> ProtoWorkshops = new Dictionary<uint, ProtoGroundWorkshop>();
+        public Dictionary<uint, WorkshopBase> Workshops = new Dictionary<uint, WorkshopBase>();
+        public Dictionary<uint, ProtoWorkshop> ProtoWorkshops = new Dictionary<uint, ProtoWorkshop>();
         public SortedDictionary<string,uint> DisplayOrder = new SortedDictionary<string,uint>();
 
         public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vessel.id == FlightGlobals.ActiveVessel.id; } }
@@ -27,24 +27,24 @@ namespace GroundConstruction
         public bool IsLanded { get { return vessel.Landed; } }
         public string DisplayID { get { return vessel.vesselName+vessel.id; } }
 
-        void add_protoworkshop(ProtoGroundWorkshop info)
+        void add_protoworkshop(ProtoWorkshop info)
         {
             ProtoWorkshops[info.id] = info;
             DisplayOrder[info.PartName] = info.id;
         }
 
-        void add_workshop(GroundWorkshop workshop)
+        void add_workshop(WorkshopBase workshop)
         {
-            var info = new ProtoGroundWorkshop(workshop);
+            var info = new ProtoWorkshop(workshop);
             Workshops[info.id] = workshop;
             add_protoworkshop(info);
             workshop.Manager = this;
         }
 
-        void remove_workshop(GroundWorkshop workshop)
+        void remove_workshop(PartModule workshop)
         {
             Workshops.Remove(workshop.part.flightID);
-            ProtoGroundWorkshop info;
+            ProtoWorkshop info;
             if(ProtoWorkshops.TryGetValue(workshop.part.flightID, out info))
             {
                 ProtoWorkshops.Remove(info.id);
@@ -63,8 +63,8 @@ namespace GroundConstruction
                     DisplayOrder.Clear();
                     foreach(var p in vessel.Parts)
                     {
-                        var ws = p.Modules.GetModule<GroundWorkshop>();
-                        if(ws != null && ws.isEnabled && ws.Efficiency > 0)
+                        var ws = p.Modules.GetModule<WorkshopBase>();
+                        if(ws != null && ws.isEnabled)
                             add_workshop(ws);
                     }
                 }
@@ -72,11 +72,11 @@ namespace GroundConstruction
                 {
                     foreach(var pp in vessel.protoVessel.protoPartSnapshots)
                     {
-                        var pm = pp.FindModule(typeof(GroundWorkshop).Name);
+                        var pm = pp.FindModule(typeof(WorkshopBase).Name);
                         if(pm == null) continue;
-                        add_protoworkshop(new ProtoGroundWorkshop(vessel.id, vessel.vesselName,
-                                                                  pp.flightID, pp.partInfo.title,
-                                                                  pm.moduleValues));
+                        add_protoworkshop(new ProtoWorkshop(vessel.id, vessel.vesselName,
+                                                            pp.flightID, pp.partInfo.title,
+                                                            pm.moduleValues));
                     }
                 }
                 if(!Empty)
@@ -112,7 +112,7 @@ namespace GroundConstruction
         {
             base.OnSave(node);
             update_and_checkin(vessel);
-            var workshops = new PersistentList<ProtoGroundWorkshop>(ProtoWorkshops.Values);
+            var workshops = new PersistentList<ProtoWorkshop>(ProtoWorkshops.Values);
             workshops.Save(node.AddNode("Workshops"));
         }
 
@@ -124,7 +124,7 @@ namespace GroundConstruction
             var wnode = node.GetNode("Workshops");
             if(wnode != null)
             {
-                var workshops = new PersistentList<ProtoGroundWorkshop>();
+                var workshops = new PersistentList<ProtoWorkshop>();
                 workshops.Load(wnode);
                 workshops.ForEach(add_protoworkshop);
             }
@@ -165,14 +165,14 @@ namespace GroundConstruction
         }
         #endregion
 
-        public void CheckinWorkshop(GroundWorkshop workshop)
+        public void CheckinWorkshop(WorkshopBase workshop)
         {
             if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
 //            this.Log("Checked In:  {}:{}", workshop, workshop.part.flightID);//debug
             add_workshop(workshop);
         }
 
-        public void CheckoutWorkshop(GroundWorkshop workshop)
+        public void CheckoutWorkshop(WorkshopBase workshop)
         {
             if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
 //            this.Log("Checked Out: {}:{}", workshop, workshop.part.flightID);//debug
@@ -235,25 +235,25 @@ namespace GroundConstruction
             else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"),
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
-            GroundWorkshop.KitInfo sync_kit = null;
+            IWorkshopTask sync_task = null;
             foreach(var item in DisplayOrder)
             {
                 GUILayout.BeginHorizontal();
                 ProtoWorkshops[item.Value].Draw();
                 if(IsActive && ProtoWorkshops.Count > 1)
                 {
-                    var kit = Workshops[item.Value].KitUnderConstruction;
-                    if(!kit.Valid)
+                    var task = Workshops[item.Value].GetCurrentTask();
+                    if(!task.Valid)
                         GUILayout.Label(new GUIContent("⇶", "Workshop is idle"),
                                         Styles.grey, GUILayout.Width(25));
                     else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"),
                                              Styles.enabled_button, GUILayout.Width(25)))
-                        sync_kit = kit;
+                        sync_task = task;
                 }
                 GUILayout.EndHorizontal();
             }
-            if(sync_kit != null && sync_kit.Valid)
-                Workshops.Values.ForEach(ws => ws.ConstructThisKit(sync_kit));
+            if(sync_task != null && sync_task.Valid)
+                Workshops.Values.ForEach(ws => ws.StartTask(sync_task));
             GUILayout.EndVertical();
         }
         #endregion

@@ -13,7 +13,7 @@ namespace GroundConstruction
     /// Job is a sequence of tasks of different types.
     /// It also contains a set of parameters that change in the course of the work being done.
     /// </summary>
-    public class Job : Work
+    public partial class Job : Work
     {
         public class Param : ConfigNodeObject
         {

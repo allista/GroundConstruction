@@ -18,20 +18,7 @@ namespace GroundConstruction
         public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vesselID == FlightGlobals.ActiveVessel.id; } }
         public Vessel GetVessel() { return FlightGlobals.FindVessel(vesselID); }
 
-        public override void Save(ConfigNode node)
-        {
-            node.AddValue("vesselID", vesselID.ToString("N"));
-            base.Save(node);
-        }
-
-        public override void Load(ConfigNode node)
-        {
-            base.Load(node);
-            var svid = node.GetValue("vesselID");
-            vesselID = string.IsNullOrEmpty(svid)? Guid.Empty : new Guid(svid);
-        }
-
-        public VesselInfo() {}
+        protected VesselInfo() {}
 
         protected VesselInfo(VesselInfo other)
         {

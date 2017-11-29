@@ -6,7 +6,6 @@
 //  Copyright (c) 2016 Allis Tauri
 
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +14,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier
+    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IKitContainer
     {
         static Globals GLB { get { return Globals.Instance; } }
 
@@ -35,9 +34,7 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public float DeploymentTime;
         [KSPField(isPersistant = true)] public float DeployingSpeed;
 
-        [KSPField(isPersistant = true)] public bool Deploying;
-        [KSPField(isPersistant = true)] public bool Deployed;
-        [KSPField(isPersistant = true)] public bool LaunchAllowed;
+        [KSPField(isPersistant = true)] public ContainerState state;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
@@ -49,62 +46,13 @@ namespace GroundConstruction
         [KSPField(guiName = "Kit Cost", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 F")]
         public float KitCost;
 
-        [KSPField(guiName = "Kit Work", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 SKH")]
-        public double KitWork;
-
-        [KSPField(guiName = "Kit Res.", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
-        public double KitRes;
-
-        [KSPField(guiName = "Kit Enrg.", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 eu")]
-        public double KitEnrg;
-
-        [KSPField(guiName = "Kit Status", guiActive = true)]
-        public string KitStatus = "Empty Kit";
-
-        [KSPField(guiName = "Bulding", guiActive = true)]
-        public string PartStatus = "Nothing";
-
-        #region Kit
         [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
 
-        public bool Valid 
-        { get { return part != null && vessel != null && kit.Valid; } }
+        public VesselKit GetKit(Guid id) { return kit.id == id? kit : null; }
 
-        public float Completeness 
-        { get { return kit.Valid? kit.Construction.Completeness : 0; } }
+        public List<VesselKit> GetKits() { return new List<VesselKit>{kit}; }
 
-        public float PartCompleteness
-        { get { return kit.Valid? kit.Construction.CurrentSubtask.Completeness : 0; } }
-
-        public VesselResources GetConstructResources()
-        {
-            if(Completeness < 1) return null;
-            return new VesselResources(kit.Blueprint);
-        }
-
-        public Vessel CrewSource;
-        public List<ProtoCrewMember> KitCrew;
-        public int KitCrewCapacity() { return kit.CrewCapacity(); }
-
-        Dictionary<uint,float> workers = new Dictionary<uint, float>();
-        public void CheckinWorker(GroundWorkshop module)
-        {
-            workers[module.part.flightID] = module.EffectiveWorkforce;
-        }
-
-        public void CheckoutWorker(GroundWorkshop module)
-        {
-            workers.Remove(module.part.flightID);
-        }
-
-        public double GetETA()
-        {
-            if(!kit.Valid) return -1;
-            if(kit.Construction.Complete) return 0;
-            var workforce = workers.Values.Sum();
-            return workforce > 0? kit.Construction.WorkLeft/workforce : -1;
-        }
-        #endregion
+        public ContainerState State { get { return state; } }
 
         #region Anchor
         FixedJoint anchorJoint;
@@ -138,8 +86,8 @@ namespace GroundConstruction
             anchor.transform.position = part.transform.position;
             anchor.transform.rotation = part.transform.rotation;
             anchorJoint = anchor.AddComponent<FixedJoint>();
-            anchorJoint.breakForce = 1e6f;
-            anchorJoint.breakTorque = 1e6f;
+            anchorJoint.breakForce = float.PositiveInfinity;
+            anchorJoint.breakTorque = float.PositiveInfinity;
             anchorJoint.connectedBody = part.Rigidbody;
         }
 
@@ -162,28 +110,15 @@ namespace GroundConstruction
         {
             if(kit.Valid)
             {
-                int rid;
+                KitName = kit.Name;
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
-                KitWork = kit.RemainingRequirements(out KitEnrg, out rid, out KitRes)/3600;
-                if(Deploying) 
-                    KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
-                else if(Deployed)
-                {
-                    var cur_part = kit.CurrentSubJob;
-                    KitStatus = string.Format("Complete: {0:P1}", kit.Construction.Completeness);
-                    PartStatus = string.Format("{0}: {1:P1}", cur_part.Title, cur_part.Current.Completeness);
-                }
-                else KitStatus = "Idle";
             }
             else
             {
                 KitName = "None";
                 KitMass = 0;
                 KitCost = 0;
-                KitWork = 0;
-                KitStatus = "Empty";
-                PartStatus = "Nothing";
             }
         }
 
@@ -258,9 +193,9 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            if(Deployed) setup_ground_contact();
-            Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
-            Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Construction.Complete;
+            if(State == ContainerState.DEPLOYED) setup_ground_contact();
+            Events["Deploy"].active = kit.Valid && State == ContainerState.IDLE;
+            Events["Launch"].active = kit.Valid && State == ContainerState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             model = part.transform.Find("model");
             spawn_transforms = new List<Transform>();
@@ -278,7 +213,14 @@ namespace GroundConstruction
         }
 
         void OnPartPack() { detach_anchor(); }
-        void OnPartUnpack() { if(Deployed) { attach_anchor(); setup_ground_contact(); } }
+        void OnPartUnpack() 
+        { 
+            if(state == ContainerState.DEPLOYED) 
+            { 
+                attach_anchor(); 
+                setup_ground_contact(); 
+            } 
+        }
         void OnDestroy() { detach_anchor(); }
 
         public override void OnLoad(ConfigNode node)
@@ -303,14 +245,14 @@ namespace GroundConstruction
             if(HighLogic.LoadedSceneIsEditor && kit.Valid &&
                model.localScale == OrigScale)
                 update_model(true);
-            if(Deployed)
+            if(state == ContainerState.DEPLOYED)
             {
                 setup_ground_contact();
                 if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
                     attach_anchor();
                 else dump_velocity();
             }
-            else if(Deploying)
+            else if(state == ContainerState.DEPLOYING)
             {
                 if(deployment == null) deployment = deploy();
                 if(!deployment.MoveNext()) deployment = null;
@@ -486,8 +428,7 @@ namespace GroundConstruction
                 yield return w;
             attach_anchor();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
-            Deploying = false;
-            Deployed = true;
+            state = ContainerState.DEPLOYED;
         }
 
         [KSPEvent(guiName = "Deploy",
@@ -501,7 +442,7 @@ namespace GroundConstruction
             Events["Deploy"].active = false;
             DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed/kit.ShipMetric.volume, 1/GLB.MinDeploymentTime);
             Utils.SaveGame(kit.Name+"-before_deployment");
-            Deploying = true;
+            state = ContainerState.DEPLOYING;
         }
         #endregion
 
@@ -525,10 +466,9 @@ namespace GroundConstruction
             kitname_editor.Toggle();
         }
 
-        public void AllowLaunch(bool allow = true)
+        public void EnableLaunchControls(bool enable = true)
         {
-            LaunchAllowed = allow;
-            Events["Launch"].active = allow;
+            Events["Launch"].active = enable;
         }
 
         void update_unfocusedRange(params string[] events)
@@ -576,7 +516,7 @@ namespace GroundConstruction
                 Utils.Message("The assembly is not complete yet.");
                 return false;
             }
-            return LaunchAllowed;
+            return true;
         }
 
         public void PutShipToGround(ShipConstruct ship, Transform spawnPoint)
@@ -678,8 +618,8 @@ namespace GroundConstruction
                 FlightCameraOverride.UpdateDurationSeconds(1);
                 yield return new WaitForFixedUpdate();
             }
-            if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
-                CrewTransferBatch.moveCrew(CrewSource, launched_vessel, KitCrew);
+            if(kit.CrewSource != null && kit.KitCrew != null && kit.KitCrew.Count > 0)
+                CrewTransferBatch.moveCrew(kit.CrewSource, launched_vessel, kit.KitCrew);
             GameEvents.onShowUI.Fire();
             launch_in_progress = false;
             launched_vessel = null;
@@ -720,7 +660,7 @@ namespace GroundConstruction
                           Styles.rich_label);
             //rename the kit
             if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
-                KitName = kitname_editor.Text;
+                KitName = kit.Name = kitname_editor.Text;
         }
         #endregion
 

@@ -65,18 +65,22 @@
     <Compile Include="ToolbarManager.cs" />
     <Compile Include="ConstructionSkill.cs" />
     <Compile Include="GCFilterManager.cs" />
-    <Compile Include="WorkshopManager.cs" />
-    <Compile Include="ProtoGroundWorkshop.cs" />
     <Compile Include="VesselInfo.cs" />
-    <Compile Include="WorkshopBase.cs" />
-    <Compile Include="IAssemblySpace.cs" />
-    <Compile Include="AssemblyLineBase.cs" />
     <Compile Include="WorkModel\Job.cs" />
     <Compile Include="WorkModel\Task.cs" />
     <Compile Include="WorkModel\Work.cs" />
     <Compile Include="DIYKits\DIYKit.cs" />
     <Compile Include="DIYKits\PartKit.cs" />
     <Compile Include="DIYKits\VesselKit.cs" />
+    <Compile Include="WorkshopModel\WorkshopBase.cs" />
+    <Compile Include="WorkshopModel\WorkshopManager.cs" />
+    <Compile Include="WorkshopModel\AssemblyLineBase.cs" />
+    <Compile Include="WorkshopModel\ProtoWorkshop.cs" />
+    <Compile Include="WorkshopModel\IKitContainer.cs" />
+    <Compile Include="WorkshopModel\VesselKitWorkshop.cs" />
+    <Compile Include="WorkshopModel\VesselKitInfo.cs" />
+    <Compile Include="WorkshopModel\AssemblyWorkshop.cs" />
+    <Compile Include="WorkshopModel\ConstructionWorkshop.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -89,5 +93,6 @@
   <ItemGroup>
     <Folder Include="WorkModel\" />
     <Folder Include="DIYKits\" />
+    <Folder Include="WorkshopModel\" />
   </ItemGroup>
 </Project>
