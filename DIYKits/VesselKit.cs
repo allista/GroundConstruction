@@ -51,8 +51,9 @@ namespace GroundConstruction
             id = Guid.NewGuid();
         }
 
-        public VesselKit(ShipConstruct ship, bool assembled = true) : this()
+        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true) : this()
         {
+            Host = host;
             Name = ship.shipName;
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
@@ -66,7 +67,7 @@ namespace GroundConstruction
         }
 
         public override bool Valid
-        { get { return base.Valid && Parts.Count > 0 && Host != null && Host.part != null && Host.vessel != null; } }
+        { get { return base.Valid && Parts.Count > 0 && Host != null && Host.part != null; } }
 
         public override float Mass
         {
@@ -124,7 +125,7 @@ namespace GroundConstruction
 
         public int CrewCapacity()
         {
-            if(!Valid || Construction.Completeness < 1) return 0;
+            if(!Valid || !Construction.Complete) return 0;
             var capacity = 0;
             foreach(ConfigNode p in Blueprint.nodes)
             {

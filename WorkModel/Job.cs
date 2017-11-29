@@ -103,6 +103,14 @@ namespace GroundConstruction
             }
         }
 
+        public override void Load(ConfigNode node)
+        {
+            base.Load(node);
+            var task = First;
+            while(task != null && task.Complete)
+                task = task.Next;
+        }
+
         protected Task add_task(ResourceUsageInfo resource, float end_fraction)
         {
             return new Task(this, resource, end_fraction);

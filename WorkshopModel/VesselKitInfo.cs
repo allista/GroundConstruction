@@ -45,7 +45,7 @@ namespace GroundConstruction
         {
             Kit = kit;
             kitID = kit.id;
-            vesselID = kit.Valid ? kit.Host.vessel.id : Guid.Empty;
+            vesselID = kit.Valid && kit.Host.vessel != null ? kit.Host.vessel.id : Guid.Empty;
         }
 
         public static List<IKitContainer> GetKitContainers(Vessel vsl)

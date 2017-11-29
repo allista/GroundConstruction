@@ -33,7 +33,7 @@ namespace GroundConstruction
             var part_mass = part.mass+res_mass;
             var part_cost = dry_cost+part.ResourcesCost();
             mass.Curve.Add(1, part_mass);
-            mass.Curve.Add(1, part_cost);
+            cost.Curve.Add(1, part_cost);
             if(is_DIY_Kit)
             {
                 Complexity = 1;
@@ -58,7 +58,7 @@ namespace GroundConstruction
                 UpdateTotalWork();
                 var frac = Assembly.TotalFraction();
                 mass.Curve.Add(frac, kist_mass, 0, 0);
-                mass.Curve.Add(frac, kit_cost, 0, 0);
+                cost.Curve.Add(frac, kit_cost, 0, 0);
                 Assembly.SetComplete(assembled);
             }
         }

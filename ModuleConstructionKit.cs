@@ -230,6 +230,7 @@ namespace GroundConstruction
             model = part.transform.Find("model");
             OrigSize = metric.size;
             OrigScale = model.localScale;
+            kit.Host = this;
             if(kit.Valid)
             {
                 update_model(true);
@@ -280,7 +281,7 @@ namespace GroundConstruction
             if(construct == null) yield break;
             Utils.LockControls("construct_loading");
             for(int i = 0; i < 3; i++) yield return null;
-            kit = new VesselKit(construct);
+            kit = new VesselKit(this, construct);
             KitName = kit.Name;
             KitMass = kit.Mass;
             KitCost = kit.Cost;
@@ -291,6 +292,8 @@ namespace GroundConstruction
             update_texture();
             update_model(false);
             construct.Unload();
+            this.Log("mass {}, cost {}, name {}, kit {}",
+                     kit.Mass, kit.Cost, kit.Name, kit);//debug
             Utils.LockControls("construct_loading", false);
         }
 
