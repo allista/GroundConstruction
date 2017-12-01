@@ -181,7 +181,7 @@ namespace GroundConstruction
         where E : ExperienceEffect
     {
         [KSPField(isPersistant = true)] public PersistentQueue<T> Queue = new PersistentQueue<T>();
-        [KSPField(isPersistant = true)] public T CurrentTask;
+        [KSPField(isPersistant = true)] public T CurrentTask = new T();
 
         public override IWorkshopTask GetCurrentTask()
         {

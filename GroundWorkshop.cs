@@ -174,6 +174,12 @@ namespace GroundConstruction
             highlight_task = null;
         }
 
+        protected override void update_ui_data()
+        {
+            base.update_ui_data();
+            update_nearby_kits();
+        }
+
         protected override double do_some_work(double available_work)
         {
             if(distance_mod < 0) 

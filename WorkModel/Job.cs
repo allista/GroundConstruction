@@ -106,9 +106,9 @@ namespace GroundConstruction
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            var task = First;
-            while(task != null && task.Complete)
-                task = task.Next;
+            Current = First;
+            while(Current != null && Current.Complete)
+                Current = Current.Next;
         }
 
         protected Task add_task(ResourceUsageInfo resource, float end_fraction)
