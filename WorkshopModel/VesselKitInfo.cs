@@ -67,12 +67,8 @@ namespace GroundConstruction
             return null;
         }
 
-        public override string ToString()
-        {
-            if(Valid)
-                return string.Format("\"{0}\" ", Kit.Name) + Kit.RequirementsStatus();
-            return "";
-        }
+        public override string ToString() 
+        { return Valid ? Kit.Status() : ""; }
 
         public string ContainerStatus
         {

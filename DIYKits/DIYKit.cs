@@ -52,6 +52,7 @@ namespace GroundConstruction
             resource_amount = resource_mass/Current.Resource.def.density;
             resource = Current.Resource;
             energy = resource_mass*Current.Resource.EnergyPerMass;
+            Utils.Log("frac {}, frac+work {}, r.mass {}", frac, frac+(work/TotalWork), resource_mass);//debug
         }
 
         public double RequirementsForWork(double work, out double energy, out ResourceUsageInfo resource, out double resource_amount)
@@ -68,15 +69,19 @@ namespace GroundConstruction
             return work;
         }
 
-        public string RequirementsStatus()
+        public string Status()
         {
-            var s = "";
+            var s = string.Format("\"{0}\" ", Name);
             ResourceUsageInfo resource;
             double energy, resource_amount;
             var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
+            Utils.Log("work {}/{}, energy {}, resource amount {}\n" +
+                      "Assembly: {}\n" +
+                      "Construction: {}\n", 
+                      work_left, Current.GetTotalWork(), energy, resource_amount, Assembly, Construction);//debug
             if(work_left > 0)
             {
-                s += string.Format(" needs: {0} {1}, {2}, {3:F1} SKH.",
+                s += string.Format(" needs: {0} of {1}, {2}, {3:F1} SKH.",
                                Utils.formatBigValue((float)resource_amount, "u"), resource.name, 
                                Utils.formatBigValue((float)energy, "EC"),
                                work_left/3600);
@@ -84,7 +89,7 @@ namespace GroundConstruction
                 if(work_left < total_work)
                 {
                     s += Current == Assembly ? " Assembly:" : " Construction:";
-                    s += string.Format(" {0:P1}", work_left/total_work);
+                    s += string.Format(" {0:P1}", (total_work-work_left)/total_work);
                 }
             }
             else s += " Complete.";
