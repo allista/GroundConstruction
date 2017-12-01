@@ -155,12 +155,12 @@ namespace GroundConstruction
             return true;
         }
 
-        //deprecated config conversion
         public override void Load(ConfigNode node)
         {
             base.Load(node);
             if(node.HasValue("Completeness"))
-            {
+            {   
+                //deprecated config conversion
                 var list = new PersistentList<PartKit>();
                 var n = node.GetNode("BuiltParts");
                 if(n != null)
@@ -185,6 +185,7 @@ namespace GroundConstruction
                 }
                 UpdateTotalWork();
             }
+            Parts.ForEach(AddSubJob);
         }
     }
 }
