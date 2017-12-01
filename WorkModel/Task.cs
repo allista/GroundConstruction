@@ -37,7 +37,7 @@ namespace GroundConstruction
                 }
             }
 
-            public float Completeness { get { return (float)(GetWorkDone()/GetTotalWork()); } }
+            public double Completeness { get { return GetWorkDone()/GetTotalWork(); } }
             public bool Complete { get { return GetWorkDone() >= GetTotalWork(); } }
             public double WorkLeft { get { return GetTotalWork()-GetWorkDone(); } }
 
@@ -65,6 +65,9 @@ namespace GroundConstruction
                         Next.AddSubtask(task.Next);
                     if(current_subtask < 0)
                         current_subtask = 0;
+                    if(current_subtask < subtasks.Count && 
+                       subtasks[current_subtask].Complete)
+                        current_subtask += 1;
                     Job.UpdateTotalWork();
                 }
             }
