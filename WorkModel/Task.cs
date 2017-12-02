@@ -25,15 +25,15 @@ namespace GroundConstruction
 
             public readonly ResourceUsageInfo Resource;
 
-            readonly List<Task> subtasks = new List<Task>();
+            public readonly List<Task> Subtasks = new List<Task>();
             int current_subtask = -1;
 
             public Task CurrentSubtask 
             { 
                 get 
                 { 
-                    return current_subtask < 0 || current_subtask >= subtasks.Count?
-                        this : subtasks[current_subtask].CurrentSubtask;
+                    return current_subtask < 0 || current_subtask >= Subtasks.Count?
+                        this : Subtasks[current_subtask].CurrentSubtask;
                 }
             }
 
@@ -60,29 +60,39 @@ namespace GroundConstruction
             {
                 if(task != null && task.Resource.id == Resource.id)
                 {
-                    subtasks.Add(task);
+                    Subtasks.Add(task);
                     if(Next != null)
                         Next.AddSubtask(task.Next);
                     if(current_subtask < 0)
                         current_subtask = 0;
-                    if(current_subtask < subtasks.Count && 
-                       subtasks[current_subtask].Complete)
+                    if(current_subtask < Subtasks.Count && 
+                       Subtasks[current_subtask].Complete)
                         current_subtask += 1;
                     Job.UpdateTotalWork();
                 }
             }
 
+            public IEnumerable<Job> AllJobs()
+            {
+                foreach(var subtask in Subtasks)
+                {
+                    foreach(var subjob in subtask.AllJobs())
+                        yield return subjob;
+                }
+                yield return Job;
+            }
+
             public double GetTotalWork()
             {
                 var work = TotalWork;
-                subtasks.ForEach(t => work += t.TotalWork);
+                Subtasks.ForEach(t => work += t.TotalWork);
                 return work;
             }
 
             public double GetWorkDone()
             {
                 var work = WorkDone;
-                subtasks.ForEach(t => work += t.WorkDone);
+                Subtasks.ForEach(t => work += t.WorkDone);
                 return work;
             }
 
@@ -98,15 +108,15 @@ namespace GroundConstruction
                     GetWorkDone() : GetWorkDone()+Prev.TotalWorkWithPrev(); 
             }
 
-            public float TotalFraction()
+            public double TotalFraction()
             {
-                return (float)(TotalWorkWithPrev()/Job.TotalWork);
+                return TotalWorkWithPrev()/Job.TotalWork;
             }
 
             public override void SetComplete(bool complete)
             {
                 WorkDone = complete ? TotalWork : 0;
-                subtasks.ForEach(t => t.SetComplete(complete));
+                Subtasks.ForEach(t => t.SetComplete(complete));
                 if(complete && Prev != null) 
                 {
                     Prev.SetComplete(complete);
@@ -122,20 +132,12 @@ namespace GroundConstruction
 
             public double DoSomeWork(double work)
             {
-                Task task;
-                do {
-                    task = CurrentSubtask;
-                    if(task == this)
-                    {
-                        var dwork = Math.Min(work, task.TotalWork-task.WorkDone);
-                        task.WorkDone += dwork;
-                        work -= dwork;
-                        break;
-                    }
-                    work = task.DoSomeWork(work);
-                    if(task.Complete)
-                        current_subtask += 1;
-                } while(work > 1e-5);
+                var task = CurrentSubtask;
+                var dwork = Math.Min(work, task.TotalWork-task.WorkDone);
+                task.WorkDone += dwork;
+                work -= dwork;
+                if(task.Complete)
+                    current_subtask += 1;
                 return Math.Max(work, 0);
             }
         }

@@ -44,7 +44,7 @@ namespace GroundConstruction
         public virtual bool Valid { get { return First != null; } }
         public bool Complete { get { return First != null && Current == null; } }
 
-        public double GetFraction()
+        public double GetTotalFraction()
         { 
             return Current != null? 
                 Current.WorkDoneWithPrev()/TotalWork : 
@@ -75,7 +75,7 @@ namespace GroundConstruction
                     UpdateParams();
                 if(Current.Complete)
                     Current = Current.Next;
-                work = left;
+                return left;
             }
             return work;
         }
@@ -88,7 +88,7 @@ namespace GroundConstruction
 
         public void UpdateParams()
         {
-            var frac = GetFraction();
+            var frac = GetTotalFraction();
             foreach(var val in Parameters.Values)
                 val.Update((float)frac);
         }
