@@ -42,12 +42,12 @@ namespace GroundConstruction
         public Task Current { get; protected set; }
 
         public virtual bool Valid { get { return First != null; } }
-        public bool Complete { get { return First != null && Current == null; } }
+        public override bool Complete { get { return First != null && Current == null; } }
 
-        public double GetTotalFraction()
+        public double Fraction()
         { 
             return Current != null? 
-                Current.WorkDoneWithPrev()/TotalWork : 
+                Current.WorkDoneWithPrev/TotalWork : 
                 (First != null? 1.0 : 0.0); 
         }
 
@@ -68,29 +68,15 @@ namespace GroundConstruction
 
         public double DoSomeWork(double work)
         {
-            if(Current != null) 
-            {
-                var left = Current.DoSomeWork(work);
-                if(!left.Equals(work))
-                    UpdateParams();
-                if(Current.Complete)
-                    Current = Current.Next;
-                return left;
-            }
-            return work;
+            return Current != null? 
+                Current.DoSomeWork(work) : work;
         }
 
-        public void UpdateTotalWork()
+        public void UpdateCurrentTask()
         {
-            if(Last != null)
-                TotalWork = Last.TotalWorkWithPrev();
-        }
-
-        public void UpdateParams()
-        {
-            var frac = GetTotalFraction();
-            foreach(var val in Parameters.Values)
-                val.Update((float)frac);
+            Current = First;
+            while(Current != null && Current.Complete)
+                Current = Current.Next;
         }
 
         public override void SetComplete(bool complete)
@@ -106,9 +92,23 @@ namespace GroundConstruction
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            Current = First;
-            while(Current != null && Current.Complete)
-                Current = Current.Next;
+            UpdateCurrentTask();
+        }
+
+        protected void update_total_work()
+        {
+            if(Last != null)
+                TotalWork = Last.TotalWorkWithPrev;
+        }
+
+        void update_params()
+        {
+            if(Current != null)
+            {
+                var frac = Current.Fraction;
+                foreach(var val in Parameters.Values)
+                    val.Update((float)frac);
+            }
         }
 
         protected Task add_task(ResourceUsageInfo resource, float end_fraction)

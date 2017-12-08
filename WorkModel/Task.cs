@@ -37,9 +37,13 @@ namespace GroundConstruction
                 }
             }
 
-            public double Completeness { get { return GetWorkDone()/GetTotalWork(); } }
-            public bool Complete { get { return GetWorkDone() >= GetTotalWork(); } }
-            public double WorkLeft { get { return GetTotalWork()-GetWorkDone(); } }
+            public override bool Complete { get { return WorkDoneWithSubtasks() >= TotalWorkWithSubtasks(); } }
+            public double Fraction { get { return TotalWork > 0? WorkDone/TotalWork : 1; } }
+            public double FractionWithSubtasks { get { return WorkDoneWithSubtasks()/TotalWorkWithSubtasks(); } }
+            public double WorkLeft { get { return TotalWork-WorkDone; } }
+            public double WorkLeftWithSubtasks { get { return TotalWorkWithSubtasks()-WorkDoneWithSubtasks(); } }
+            public double TotalWorkWithPrev { get { return Prev == null? TotalWork : TotalWork+Prev.TotalWorkWithPrev; } }
+            public double WorkDoneWithPrev { get { return Prev == null? WorkDone : WorkDone+Prev.WorkDoneWithPrev; } }
 
             public Task(Job job, ResourceUsageInfo resource, double total_work)
             {
@@ -53,7 +57,7 @@ namespace GroundConstruction
                 }
                 else
                     job.First = job.Last = job.Current = this;
-                Job.UpdateTotalWork();
+                Job.update_total_work();
             }
 
             public void AddSubtask(Task task)
@@ -68,7 +72,6 @@ namespace GroundConstruction
                     if(current_subtask < Subtasks.Count && 
                        Subtasks[current_subtask].Complete)
                         current_subtask += 1;
-                    Job.UpdateTotalWork();
                 }
             }
 
@@ -82,35 +85,18 @@ namespace GroundConstruction
                 yield return Job;
             }
 
-            public double GetTotalWork()
+            public double TotalWorkWithSubtasks()
             {
                 var work = TotalWork;
-                Subtasks.ForEach(t => work += t.TotalWork);
+                Subtasks.ForEach(t => work += t.TotalWorkWithSubtasks());
                 return work;
             }
 
-            public double GetWorkDone()
+            public double WorkDoneWithSubtasks()
             {
                 var work = WorkDone;
-                Subtasks.ForEach(t => work += t.WorkDone);
+                Subtasks.ForEach(t => work += t.WorkDoneWithSubtasks());
                 return work;
-            }
-
-            public double TotalWorkWithPrev() 
-            { 
-                return Prev == null? 
-                    GetTotalWork() : GetTotalWork()+Prev.TotalWorkWithPrev(); 
-            }
-
-            public double WorkDoneWithPrev() 
-            { 
-                return Prev == null? 
-                    GetWorkDone() : GetWorkDone()+Prev.TotalWorkWithPrev(); 
-            }
-
-            public double TotalFraction()
-            {
-                return TotalWorkWithPrev()/Job.TotalWork;
             }
 
             public override void SetComplete(bool complete)
@@ -118,27 +104,34 @@ namespace GroundConstruction
                 WorkDone = complete ? TotalWork : 0;
                 Subtasks.ForEach(t => t.SetComplete(complete));
                 if(complete && Prev != null) 
-                {
                     Prev.SetComplete(complete);
-                    Job.Current = Next;
-                }
                 else if(!complete && Next != null)
-                {
                     Next.SetComplete(complete);
-                    Job.Current = this;
-                }
-                Job.UpdateParams();
+                Job.UpdateCurrentTask();
+                Job.update_params();
             }
 
             public double DoSomeWork(double work)
             {
-                var task = CurrentSubtask;
-                var dwork = Math.Min(work, task.TotalWork-task.WorkDone);
-                task.WorkDone += dwork;
-                work -= dwork;
-                if(task.Complete)
-                    current_subtask += 1;
-                return Math.Max(work, 0);
+                var task = current_subtask < 0 || current_subtask > Subtasks.Count?
+                    this : Subtasks[current_subtask];
+                double dwork;
+                if(task == this)
+                {
+                    dwork = Math.Min(work, task.TotalWork-task.WorkDone);
+                    if(dwork > 0)
+                    {
+                        task.WorkDone += dwork;
+                        Job.update_params();
+                    }
+                }
+                else
+                {
+                    dwork = task.DoSomeWork(work);
+                    if(task.Complete)
+                        current_subtask += 1;
+                }
+                return Math.Max(work-dwork, 0);
             }
         }
     }

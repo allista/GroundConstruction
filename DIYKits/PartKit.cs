@@ -43,7 +43,7 @@ namespace GroundConstruction
                 {
                     Assembly.TotalWork = total_work(Assembly, part_mass);
                     Construction.TotalWork = 0;
-                    UpdateTotalWork();
+                    update_total_work();
                 }
             }
             else
@@ -55,8 +55,8 @@ namespace GroundConstruction
                 var kit_cost = part_cost - structure_cost;
                 Construction.TotalWork = total_work(Construction, structure_mass);
                 Assembly.TotalWork = total_work(Assembly, kist_mass);
-                UpdateTotalWork();
-                var frac = Assembly.TotalFraction();
+                update_total_work();
+                var frac = (float)Assembly.TotalFraction();
                 mass.Curve.Add(frac, kist_mass, 0, 0);
                 cost.Curve.Add(frac, kit_cost, 0, 0);
                 Assembly.SetComplete(assembled);
@@ -74,9 +74,9 @@ namespace GroundConstruction
             base.Load(node);
             if(node.HasValue("Completeness"))
             {
-                UpdateTotalWork();
+                update_total_work();
                 float v;
-                var frac = Assembly.TotalFraction();
+                var frac = (float)Assembly.TotalFraction();
                 var val = node.GetValue("Title");
                 if(!string.IsNullOrEmpty(val))
                     Name = val;

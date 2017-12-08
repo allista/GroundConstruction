@@ -62,7 +62,7 @@ namespace GroundConstruction
             Parts.ForEach(AddSubJob);
             Assembly.TotalWork = Parts.Count/10;
             Construction.TotalWork = Parts.Count;
-            UpdateTotalWork();
+            update_total_work();
             Assembly.SetComplete(assembled);
         }
 
@@ -109,7 +109,7 @@ namespace GroundConstruction
             if(!Valid) return -1;
             if(task.Complete) return 0;
             var workforce = workers.Values.Sum();
-            return workforce > 0? task.WorkLeft/workforce : -1;
+            return workforce > 0? task.WorkLeftWithSubtasks/workforce : -1;
         }
 
         public ShipConstruct LoadConstruct()
@@ -183,7 +183,7 @@ namespace GroundConstruction
                     Parts.AddRange(list);
                     list.Clear();
                 }
-                UpdateTotalWork();
+                update_total_work();
             }
             Parts.ForEach(AddSubJob);
         }

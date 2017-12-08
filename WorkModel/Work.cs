@@ -14,7 +14,9 @@ namespace GroundConstruction
     public abstract class Work : ConfigNodeObject
     {
         [Persistent] public double TotalWork;
+
         public abstract void SetComplete(bool complete);
+        public abstract bool Complete { get; }
     }
 }
 
