@@ -86,7 +86,7 @@ namespace GroundConstruction
 
         protected override bool check_task(VesselKitInfo task)
         {
-            return base.check_task(task) && task.Kit.Current == task.Kit.Construction;
+            return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
         }
 
         protected override void on_task_complete(VesselKitInfo task)

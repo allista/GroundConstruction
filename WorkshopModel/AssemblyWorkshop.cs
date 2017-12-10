@@ -15,7 +15,7 @@ namespace GroundConstruction
         #region implemented abstract members of WorkshopBase
         protected override bool check_task(VesselKitInfo task)
         {
-            return base.check_task(task) && task.Kit.Current == task.Kit.Assembly;
+            return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.ASSEMBLY;
         }
 
         #endregion

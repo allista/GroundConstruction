@@ -70,6 +70,17 @@ namespace GroundConstruction
         public override string ToString() 
         { return Valid ? Kit.Status() : ""; }
 
+        public string CurrentPartStatus()
+        { 
+            if(Valid)
+            {
+                var part = Kit.CurrentJob;
+                if(part != null)
+                    return part.Status();
+            }
+            return "";
+        }
+
         public string ContainerStatus
         {
             get

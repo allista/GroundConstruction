@@ -12,14 +12,13 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class VesselKit : DIYKit
+    public sealed class VesselKit : CompositeJob<PartKit>
     {
         public new const string NODE_NAME = "VESSEL_KIT";
 
         [Persistent] public Guid id;
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
-        [Persistent] public PersistentList<PartKit> Parts = new PersistentList<PartKit>();
 
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
@@ -51,48 +50,55 @@ namespace GroundConstruction
             id = Guid.NewGuid();
         }
 
-        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true) : this()
+        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
+            : this()
         {
             Host = host;
             Name = ship.shipName;
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
             ShipMetric = new Metric(ship, true);
-            Parts.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
-            Parts.ForEach(AddSubJob);
-            Assembly.TotalWork = Parts.Count/10;
-            Construction.TotalWork = Parts.Count;
-            update_total_work();
-            Assembly.SetComplete(assembled);
+            Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
+            SetStageComplete(DIYKit.ASSEMBLY, assembled);
+            CurrentIndex = 0;
         }
 
         public override bool Valid
-        { get { return base.Valid && Parts.Count > 0 && Host != null && Host.part != null; } }
+        { get { return base.Valid && Host != null && Host.part != null; } }
 
-        public override float Mass
+        public float Mass
         {
             get
             {
                 var parts = 0f;
-                Parts.ForEach(p => parts += p.Mass);
-                return base.Mass + ResourcesMass + parts;
+                Jobs.ForEach(p => parts += p.Mass);
+                return ResourcesMass + parts;
             }
         }
 
-        public override float Cost
+        public float Cost
         {
             get
             {
                 var parts = 0f;
-                Parts.ForEach(p => parts += p.Cost);
-                return base.Cost + ResourcesCost + parts;
+                Jobs.ForEach(p => parts += p.Cost);
+                return ResourcesCost + parts;
             }
         }
 
-        public double CurrentTaskETA { get { return get_ETA(Current); } }
+        public double CurrentTaskETA
+        { 
+            get
+            {
+                if(!Valid)
+                    return -1;
+                var workforce = workers.Values.Sum();
+                return workforce > 0 ? WorkLeftInStage(CurrentStageIndex) / workforce : -1;
+            }
+        }
 
         public VesselResources ConstructResources
-        { get { return Complete? new VesselResources(Blueprint) : null; } }
+        { get { return Complete ? new VesselResources(Blueprint) : null; } }
 
         public void CheckinWorker(WorkshopBase module)
         {
@@ -102,14 +108,6 @@ namespace GroundConstruction
         public void CheckoutWorker(WorkshopBase module)
         {
             workers.Remove(module.part.flightID);
-        }
-
-        double get_ETA(Task task)
-        {
-            if(!Valid) return -1;
-            if(task.Complete) return 0;
-            var workforce = workers.Values.Sum();
-            return workforce > 0? task.WorkLeftWithSubtasks/workforce : -1;
         }
 
         public ShipConstruct LoadConstruct()
@@ -125,15 +123,18 @@ namespace GroundConstruction
 
         public int CrewCapacity()
         {
-            if(!Valid || !Construction.Complete) return 0;
+            if(!Valid || !Complete)
+                return 0;
             var capacity = 0;
             foreach(ConfigNode p in Blueprint.nodes)
             {
                 var name_id = p.GetValue("part");
-                if(string.IsNullOrEmpty(name_id)) continue;
+                if(string.IsNullOrEmpty(name_id))
+                    continue;
                 string name = KSPUtil.GetPartName(name_id);
                 var kit_part = PartLoader.getPartInfoByName(name);
-                if(kit_part == null || kit_part.partPrefab == null) continue;
+                if(kit_part == null || kit_part.partPrefab == null)
+                    continue;
                 capacity += kit_part.partPrefab.CrewCapacity;
             }
             return capacity;
@@ -141,18 +142,61 @@ namespace GroundConstruction
 
         public bool BlueprintComplete()
         {
-            if(!Complete) return false;
+            if(!Complete)
+                return false;
             var db = new HashSet<uint>();
-            Parts.ForEach(p => db.Add(p.craftID));
+            Jobs.ForEach(p => db.Add(p.craftID));
             foreach(ConfigNode p in Blueprint.nodes)
             {
                 var name_id = p.GetValue("part");
-                if(string.IsNullOrEmpty(name_id)) continue;
+                if(string.IsNullOrEmpty(name_id))
+                    continue;
                 string name = "", cid = "0";
                 KSPUtil.GetPartInfo(name_id, ref name, ref cid);
-                if(!db.Contains(uint.Parse(cid))) return false;
+                if(!db.Contains(uint.Parse(cid)))
+                    return false;
             }
             return true;
+        }
+
+        public double RequirementsForWork(double work, out double energy, out ResourceUsageInfo resource, out double resource_amount)
+        {
+            energy = 0;
+            resource = null;
+            resource_amount = 0;
+            var job = CurrentJob;
+            if(work <= 0 || job == null)
+                return 0;
+            return job.RequirementsForWork(work, out energy, out resource, out resource_amount);
+        }
+
+        public double RemainingRequirements(out double energy, out ResourceUsageInfo resource, out double resource_amount)
+        {
+            energy = 0;
+            resource = null;
+            resource_amount = 0;
+            var work = 0.0;
+            var njobs = Jobs.Count;
+            if(CurrentIndex < njobs)
+            {
+                for(int i = CurrentIndex; i < njobs; i++)
+                {
+                    double e, ra;
+                    work += Jobs[i].RemainingRequirements(out e, out resource, out ra);
+                    energy += e;
+                    resource_amount += ra;
+                }
+            }
+            return work;
+        }
+
+        public string Status()
+        {
+            ResourceUsageInfo resource;
+            double energy, resource_amount;
+            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
+            var total_work = work_left > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
+            return DIYKit.Status(Name, CurrentIndex, work_left, total_work, energy, resource, resource_amount);
         }
 
         public override void Load(ConfigNode node)
@@ -166,7 +210,7 @@ namespace GroundConstruction
                 if(n != null)
                 {
                     list.Load(n);
-                    Parts.AddRange(list);
+                    Jobs.AddRange(list);
                     list.Clear();
                 }
                 n = node.GetNode("PartUnderConstruction");
@@ -174,18 +218,16 @@ namespace GroundConstruction
                 {
                     var p = new PartKit();
                     p.Load(n);
-                    Parts.Add(p);
+                    Jobs.Add(p);
                 }
                 n = node.GetNode("UnbuiltParts");
                 if(n != null)
                 {
                     list.Load(n);
-                    Parts.AddRange(list);
+                    Jobs.AddRange(list);
                     list.Clear();
                 }
-                update_total_work();
             }
-            Parts.ForEach(AddSubJob);
         }
     }
 }

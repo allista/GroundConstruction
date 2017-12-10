@@ -5,118 +5,127 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 using System;
-using AT_Utils;
+using System.Reflection;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace GroundConstruction
 {
-    /// <summary>
-    /// Job is a sequence of tasks of different types.
-    /// It also contains a set of parameters that change in the course of the work being done.
-    /// </summary>
-    public partial class Job : Work
+    public class Job : JobBase
     {
-        public class Param : ConfigNodeObject
+        public double TotalWork { get; private set; }
+
+        readonly List<JobStage> stages = new List<JobStage>();
+        readonly List<JobParameter> parameters = new List<JobParameter>();
+
+        public override bool Valid
+        { get { return base.Valid && stages.Count > 0; } }
+
+        public override bool Complete 
+        { get { return CurrentIndex >= stages.Count; } }
+
+        public override double WorkLeft
+        { get { return TotalWork * (1 - get_fraction()); } }
+
+        public override int StagesCount
+        { get { return stages.Count; } }
+
+        public JobStage this[int index] 
+        { get { return stages[index]; } }
+
+        public JobStage CurrentStage 
+        { get { return CurrentIndex < stages.Count ? stages[CurrentIndex] : null; } }
+
+        protected void fill_member_collection<T>(IList<T> collection) where T : class
         {
-            [Persistent] public float Value;
-            [Persistent] public FloatCurve Curve = new FloatCurve();
-
-            public float Min { get { return Curve.Curve.keys[0].value; } }
-            public float Max { get { return Curve.Curve.keys[Curve.Curve.length-1].value; } }
-
-            public Param()
+            foreach(var fi in GetType()
+                    .GetFields(BindingFlags.Public|BindingFlags.Instance|BindingFlags.FlattenHierarchy)
+                    .Where(fi => typeof(T).IsAssignableFrom(fi.FieldType)))
             {
-                Curve.Add(0, 0);
-            }
-
-            public void Update(float fraction)
-            {
-                Value = Curve.Evaluate(fraction);
-            }
-        }
-
-        [Persistent] public string Name = "";
-        [Persistent] public PersistentDictS<Param> Parameters = new PersistentDictS<Param>();
-
-        public Task First { get; protected set; }
-        public Task Last { get; protected set; }
-        public Task Current { get; protected set; }
-
-        public virtual bool Valid { get { return First != null; } }
-        public override bool Complete { get { return First != null && Current == null; } }
-
-        public double Fraction()
-        { 
-            return Current != null? 
-                Current.WorkDoneWithPrev/TotalWork : 
-                (First != null? 1.0 : 0.0); 
-        }
-
-        public Job CurrentSubJob
-        {
-            get 
-            {
-                return Current == null? 
-                    this : Current.CurrentSubtask.Job;
+                var item = fi.GetValue(this) as T;
+                if(item != null)
+                    collection.Add(item);
             }
         }
 
-        public void AddSubJob(Job sub)
+        public Job()
         {
-            if(First != null)
-                First.AddSubtask(sub.First);
+            fill_member_collection(stages);
+            fill_member_collection(parameters);
+            stages.Sort();
         }
 
-        public double DoSomeWork(double work)
+        public override void NextStage()
         {
-            return Current != null? 
-                Current.DoSomeWork(work) : work;
+            if(CurrentIndex < stages.Count && CurrentStage.Complete)
+                CurrentIndex += 1;
         }
 
-        public void UpdateCurrentTask()
+        protected void update_parameters()
         {
-            Current = First;
-            while(Current != null && Current.Complete)
-                Current = Current.Next;
+            var frac = (float)get_fraction();
+            parameters.ForEach(p => p.Update(frac));
         }
 
-        public override void SetComplete(bool complete)
+        protected void update_total_work()
         {
-            if(First != null)
-            {
-                Current = null;
-                if(complete) Last.SetComplete(complete);
-                else First.SetComplete(complete);
-            }
+            TotalWork = 0;
+            stages.ForEach(s => TotalWork += s.TotalWork);
+        }
+
+        protected double get_fraction()
+        {
+            if(Complete)
+                return 1;
+            var work = 0.0;
+            for(int i = 0; i <= CurrentIndex; i++)
+                work += stages[i].WorkDone;
+            return work / TotalWork;
         }
 
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            UpdateCurrentTask();
+            update_total_work();
         }
 
-        protected void update_total_work()
+        public override double DoSomeWork(double work)
         {
-            if(Last != null)
-                TotalWork = Last.TotalWorkWithPrev;
-        }
-
-        void update_params()
-        {
-            if(Current != null)
+            var stage = CurrentStage;
+            if(stage != null)
             {
-                var frac = Current.Fraction;
-                foreach(var val in Parameters.Values)
-                    val.Update((float)frac);
+                work = stage.DoSomeWork(work);
+                update_parameters();
             }
+            return work;
         }
 
-        protected Task add_task(ResourceUsageInfo resource, float end_fraction)
+        public override void SetComplete(bool complete)
         {
-            return new Task(this, resource, end_fraction);
+            stages.ForEach(s => s.SetComplete(complete));
+            CurrentIndex = stages.Count;
         }
 
-        public static implicit operator bool(Job job) { return job != null && job.Valid; }
+        public override void SetStageComplete(int stage, bool complete)
+        {
+            if(complete)
+            {
+                if(stage < CurrentIndex)
+                    return;
+                for(int i = CurrentIndex; i <= stage; i++)
+                    stages[i].SetComplete(complete);
+                CurrentIndex = stage + 1;
+            }
+            else
+            {
+                if(stage > CurrentIndex)
+                    return;
+                for(int i = stage, count = stages.Count; i < count; i++)
+                    stages[i].SetComplete(complete);
+                CurrentIndex = stage;
+            }
+            update_parameters();
+        }
     }
 }
 

@@ -66,7 +66,7 @@ namespace GroundConstruction
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
-                if(CurrentTask.Kit.Assembly.Complete)
+                if(CurrentTask.Kit.StageComplete(DIYKit.ASSEMBLY))
                 {
                     on_task_complete(CurrentTask);
                     start_next_item();

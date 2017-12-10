@@ -15,29 +15,28 @@ namespace GroundConstruction
     {
         public new const string NODE_NAME = "PART_KIT";
 
-        [Persistent] public uint   craftID;
-        [Persistent] public float  Complexity = -1;
+        [Persistent] public uint craftID;
+        [Persistent] public float Complexity;
 
-        public override bool Valid
-        { get { return base.Valid && Complexity >= 0; } }
-
-        public PartKit() {}
+        public PartKit()
+        {
+        }
 
         public PartKit(Part part, bool assembled = true)
         {
             Name = part.partInfo.title;
-            craftID  = part.craftID;
+            craftID = part.craftID;
             var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
             var res_mass = part.GetResourceMass();
             var dry_cost = Mathf.Max(part.DryCost(), 0);
-            var part_mass = part.mass+res_mass;
-            var part_cost = dry_cost+part.ResourcesCost();
-            mass.Curve.Add(1, part_mass);
-            cost.Curve.Add(1, part_cost);
+            var part_mass = part.mass + res_mass;
+            var part_cost = dry_cost + part.ResourcesCost();
+            Mass.Add(1, part_mass);
+            Cost.Add(1, part_cost);
             if(is_DIY_Kit)
             {
                 Complexity = 1;
-                if(assembled) 
+                if(assembled)
                     SetComplete(assembled);
                 else
                 {
@@ -48,24 +47,25 @@ namespace GroundConstruction
             }
             else
             {
-                Complexity = 1-1/((dry_cost/part.mass+part.Modules.Count*1000)*GLB.ComplexityFactor+1);
-                var structure_mass = part.mass*(1-Complexity);
-                var structure_cost = Mathf.Min(structure_mass/GLB.ConstructionResource.def.density*GLB.ConstructionResource.def.unitCost, dry_cost);
-                var kist_mass = part_mass - structure_mass;
+                Complexity = 1 - 1 / ((dry_cost / part.mass + part.Modules.Count * 1000) * GLB.ComplexityFactor + 1);
+                var structure_mass = part.mass * (1 - Complexity);
+                var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost);
+                var kit_mass = part_mass - structure_mass;
                 var kit_cost = part_cost - structure_cost;
                 Construction.TotalWork = total_work(Construction, structure_mass);
-                Assembly.TotalWork = total_work(Assembly, kist_mass);
+                Assembly.TotalWork = total_work(Assembly, kit_mass);
                 update_total_work();
-                var frac = (float)Assembly.TotalFraction();
-                mass.Curve.Add(frac, kist_mass, 0, 0);
-                cost.Curve.Add(frac, kit_cost, 0, 0);
-                Assembly.SetComplete(assembled);
+                var frac = (float)(Assembly.TotalWork/TotalWork);
+                Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
+                Mass.Add(frac, kit_mass);
+                Cost.Add(frac, kit_cost);
+                SetStageComplete(ASSEMBLY, true);
             }
         }
 
-        double total_work(Task task, double end_mass)
+        double total_work(JobStage task, double end_mass)
         {
-            return (Complexity*task.Resource.ComplexityWork + end_mass*Construction.Resource.WorkPerMass)*3600;
+            return (Complexity * task.Resource.ComplexityWork + end_mass * Construction.Resource.WorkPerMass) * 3600;
         }
 
         //deprecated config conversion
@@ -74,24 +74,25 @@ namespace GroundConstruction
             base.Load(node);
             if(node.HasValue("Completeness"))
             {
+                Assembly.TotalWork = Assembly.WorkDone = Construction.TotalWork;
                 update_total_work();
                 float v;
-                var frac = (float)Assembly.TotalFraction();
+                var frac = (float)(Assembly.TotalWork/TotalWork);
                 var val = node.GetValue("Title");
                 if(!string.IsNullOrEmpty(val))
                     Name = val;
                 val = node.GetValue("PartMass");
                 if(float.TryParse(val, out v))
-                    mass.Curve.Add(1, v);
+                    Mass.Add(1, v);
                 val = node.GetValue("PartCost");
                 if(float.TryParse(val, out v))
-                    cost.Curve.Add(1, v);
+                    Cost.Add(1, v);
                 val = node.GetValue("KitMass");
                 if(float.TryParse(val, out v))
-                    mass.Curve.Add(frac, v);
+                    Mass.Add(frac, v);
                 val = node.GetValue("KitCost");
                 if(float.TryParse(val, out v))
-                    cost.Curve.Add(frac, v);
+                    Cost.Add(frac, v);
             }
         }
     }

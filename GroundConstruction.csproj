@@ -66,9 +66,6 @@
     <Compile Include="ConstructionSkill.cs" />
     <Compile Include="GCFilterManager.cs" />
     <Compile Include="VesselInfo.cs" />
-    <Compile Include="WorkModel\Job.cs" />
-    <Compile Include="WorkModel\Task.cs" />
-    <Compile Include="WorkModel\Work.cs" />
     <Compile Include="DIYKits\DIYKit.cs" />
     <Compile Include="DIYKits\PartKit.cs" />
     <Compile Include="DIYKits\VesselKit.cs" />
@@ -81,6 +78,12 @@
     <Compile Include="WorkshopModel\VesselKitInfo.cs" />
     <Compile Include="WorkshopModel\AssemblyWorkshop.cs" />
     <Compile Include="WorkshopModel\ConstructionWorkshop.cs" />
+    <Compile Include="WorkModel\Job.cs" />
+    <Compile Include="WorkModel\JobParameter.cs" />
+    <Compile Include="WorkModel\JobStage.cs" />
+    <Compile Include="WorkModel\CompositeJob.cs" />
+    <Compile Include="WorkModel\JobBase.cs" />
+    <Compile Include="WorkModel\WorkBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -245,6 +245,7 @@ namespace GroundConstruction
             {
                 GUILayout.BeginVertical(Styles.white);
                 GUILayout.Label(CurrentTask.ToString(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
+                GUILayout.Label(CurrentTask.CurrentPartStatus(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
                 if(Working)
                 {
