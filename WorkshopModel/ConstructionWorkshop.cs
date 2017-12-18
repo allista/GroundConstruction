@@ -11,6 +11,8 @@ namespace GroundConstruction
 {
     public abstract class ConstructionWorkshop : VesselKitWorkshop
     {
+        protected override int STAGE { get { return DIYKit.CONSTRUCTION; } }
+
         #region Target Actions
         protected VesselKitInfo target_kit;
         protected virtual bool check_target_kit(VesselKitInfo target)

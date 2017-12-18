@@ -81,6 +81,17 @@ namespace GroundConstruction
             return "";
         }
 
+        public void Draw() { if(Valid) Kit.Draw(); }
+        public void DrawCurrentPart()
+        {
+            if(Valid)
+            {
+                var part = Kit.CurrentJob;
+                if(part != null)
+                    part.Draw();
+            }
+        }
+
         public string ContainerStatus
         {
             get

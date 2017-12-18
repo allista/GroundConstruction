@@ -5,6 +5,7 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 using System;
+using UnityEngine;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -33,6 +34,14 @@ namespace GroundConstruction
             CurrentIndex = 0;
         }
 
+        public class Requirements
+        {
+            public double work;
+            public double energy;
+            public ResourceUsageInfo resource;
+            public double resource_amount;
+        }
+
         public double RequirementsForWork(double work, out double energy, out ResourceUsageInfo resource, out double resource_amount)
         {
             energy = 0;
@@ -54,6 +63,7 @@ namespace GroundConstruction
 //                      work, frac, frac + (work / TotalWork), resource_mass);//debug
             return work;
         }
+
 
         public double RemainingRequirements(out double energy, out ResourceUsageInfo resource, out double resource_amount)
         {
@@ -81,6 +91,42 @@ namespace GroundConstruction
             else
                 s += " Complete.";
             return s;
+        }
+
+        public static void Draw(string Name, int stage, double work_left, double total_work, 
+                                double energy, ResourceUsageInfo resource, double resource_amount)
+        {
+            GUILayout.BeginVertical(Styles.white);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(string.Format("<b>{0}</b>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
+            var status = "";
+            if(work_left > 0)
+            {
+                status += stage == ASSEMBLY ? " Assembly:" : " Construction:";
+                status += string.Format(" <b>{0:P1}</b>", (total_work - work_left) / total_work);
+            }
+            else
+                status += " Complete.";
+            GUILayout.Label(status, Styles.rich_label, GUILayout.ExpandWidth(true));
+            GUILayout.EndHorizontal();
+            if(work_left > 0)
+            {
+                var requirements = string.Format("Needs: <b>{0}</b> of {1}, <b>{2}</b>, <b>{3:F1}</b> SKH.",
+                                                 Utils.formatBigValue((float)resource_amount, "u"), resource.name, 
+                                                 Utils.formatBigValue((float)energy, "EC"),
+                                                 work_left / 3600);
+                GUILayout.Label(requirements, Styles.rich_label, GUILayout.ExpandWidth(true));
+            }
+            GUILayout.EndVertical();
+        }
+
+        public void Draw()
+        {
+            ResourceUsageInfo resource;
+            double energy, resource_amount;
+            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
+            var total_work = work_left > 0 ? CurrentStage.TotalWork : 1;
+            Draw(Name, CurrentIndex, work_left, total_work, energy, resource, resource_amount);
         }
 
         public string Status()

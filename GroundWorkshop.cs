@@ -244,9 +244,11 @@ namespace GroundConstruction
             if(CurrentTask.Valid)
             {
                 GUILayout.BeginVertical(Styles.white);
-                GUILayout.Label(CurrentTask.ToString(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
-                GUILayout.Label(CurrentTask.CurrentPartStatus(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
-                GUILayout.EndHorizontal();
+                CurrentTask.Draw();
+                CurrentTask.DrawCurrentPart();
+//                GUILayout.Label(CurrentTask.ToString(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
+//                GUILayout.Label(CurrentTask.CurrentPartStatus(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
+//                GUILayout.EndHorizontal();
                 if(Working)
                 {
                     if(distance_mod < 1)
@@ -290,7 +292,8 @@ namespace GroundConstruction
             foreach(var info in nearby_built_kits)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+                info.Draw();
+//                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
                                     Styles.active_button, GUILayout.ExpandWidth(false)))
@@ -325,7 +328,8 @@ namespace GroundConstruction
             foreach(var info in nearby_unbuilt_kits)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+                info.Draw();
+//                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
                 set_highlighted_task(info);
                 if(info.Container.State == ContainerState.DEPLOYED)
                 {

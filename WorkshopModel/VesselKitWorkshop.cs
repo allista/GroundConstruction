@@ -12,6 +12,8 @@ namespace GroundConstruction
 {
     public abstract class VesselKitWorkshop : WorkshopBase<VesselKitInfo, ConstructionSkill>
     {
+        protected abstract int STAGE { get; }
+
         protected double serve_requirements(double work)
         {
             ResourceUsageInfo resource;
@@ -63,12 +65,14 @@ namespace GroundConstruction
         protected override double do_some_work(double available_work)
         {
             var work = serve_requirements(available_work);
+            this.Log("can do work: {}", work);//debug
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
-                if(CurrentTask.Kit.StageComplete(DIYKit.ASSEMBLY))
+                if(CurrentTask.Kit.StageComplete(STAGE))
                 {
                     on_task_complete(CurrentTask);
+                    CurrentTask.Kit.NextStage();
                     start_next_item();
                 }
             }

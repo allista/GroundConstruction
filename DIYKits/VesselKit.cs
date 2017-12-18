@@ -196,7 +196,16 @@ namespace GroundConstruction
             double energy, resource_amount;
             var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
             var total_work = work_left > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            return DIYKit.Status(Name, CurrentIndex, work_left, total_work, energy, resource, resource_amount);
+            return DIYKit.Status(Name, CurrentStageIndex, work_left, total_work, energy, resource, resource_amount);
+        }
+
+        public void Draw()
+        {
+            ResourceUsageInfo resource;
+            double energy, resource_amount;
+            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
+            var total_work = work_left > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
+            DIYKit.Draw(Name, CurrentStageIndex, work_left, total_work, energy, resource, resource_amount);
         }
 
         public override void Load(ConfigNode node)
