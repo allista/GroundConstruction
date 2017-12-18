@@ -10,15 +10,43 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
+    public interface iDIYKit
+    {
+        DIYKit.Requirements RequirementsForWork(double work);
+        DIYKit.Requirements RemainingRequirements();
+        void Draw();
+    }
+
     /// <summary>
     /// DIY kit is a job that consists of two stages, Assembly and Construction,
     /// and contains two parameters, Mass and Cost.
     /// It defines two additional methods to obtain information about required
     /// resources and energy for the work: RequirementsForWork and RemainingRequirements.
     /// </summary>
-    public abstract class DIYKit : Job
+    public abstract class DIYKit : Job, iDIYKit
     {
         public new const string NODE_NAME = "DIY_KIT";
+
+        public class Requirements
+        {
+            public double work;
+            public double energy;
+            public ResourceUsageInfo resource;
+            public double resource_amount;
+            public double resource_mass;
+
+            public void Update(Requirements other)
+            {
+                if(resource != null && other.resource != null &&
+                   resource.id == other.resource.id)
+                {
+                    work += other.work;
+                    energy += other.energy;
+                    resource_amount += other.resource_amount;
+                    resource_mass += other.resource_mass;
+                }
+            }
+        }
 
         public const int ASSEMBLY = 0;
         public const int CONSTRUCTION = 1;
@@ -29,92 +57,65 @@ namespace GroundConstruction
         [Persistent] public JobParameter Mass = new JobParameter();
         [Persistent] public JobParameter Cost = new JobParameter();
 
+        Requirements remainder;
+
         protected DIYKit()
         {
             CurrentIndex = 0;
         }
 
-        public class Requirements
+        public Requirements RequirementsForWork(double work)
         {
-            public double work;
-            public double energy;
-            public ResourceUsageInfo resource;
-            public double resource_amount;
-        }
-
-        public double RequirementsForWork(double work, out double energy, out ResourceUsageInfo resource, out double resource_amount)
-        {
-            energy = 0;
-            resource = null;
-            resource_amount = 0;
             if(work <= 0)
-                return 0;
+                return null;
             var stage = CurrentStage;
             if(stage == null)
-                return 0;
+                return null;
+            var req = new Requirements();
             work = Math.Min(work, stage.WorkLeft);
             var frac = (float)get_fraction();
-            var resource_mass = Math.Max(Mass.Curve.Evaluate(frac + (float)(work / TotalWork)) -
+            req.resource_mass = Math.Max(Mass.Curve.Evaluate(frac + (float)(work / TotalWork)) -
                                 Mass.Curve.Evaluate(frac), 0);
-            resource_amount = resource_mass / stage.Resource.def.density;
-            resource = stage.Resource;
-            energy = resource_mass * stage.Resource.EnergyPerMass;
-//            Utils.Log("Req: work {}, frac {}, frac+work {}, r.mass {}", 
-//                      work, frac, frac + (work / TotalWork), resource_mass);//debug
-            return work;
+            req.resource_amount = req.resource_mass / stage.Resource.def.density;
+            req.resource = stage.Resource;
+            req.energy = req.resource_mass * stage.Resource.EnergyPerMass;
+            req.work = work;
+            return req;
         }
 
-
-        public double RemainingRequirements(out double energy, out ResourceUsageInfo resource, out double resource_amount)
+        public Requirements RemainingRequirements()
         {
-            energy = 0;
-            resource = null;
-            resource_amount = 0;
-            var stage = CurrentStage;
-            return stage != null ? 
-                RequirementsForWork(stage.WorkLeft, out energy, out resource, out resource_amount) : 0;
-        }
-
-        public static string Status(string Name, int stage, double work_left, double total_work, 
-                                    double energy, ResourceUsageInfo resource, double resource_amount)
-        {
-            var s = string.Format("\"{0}\" ", Name);
-            if(work_left > 0)
+            if(remainder == null)
             {
-                s += string.Format(" needs: {0} of {1}, {2}, {3:F1} SKH.",
-                                   Utils.formatBigValue((float)resource_amount, "u"), resource.name, 
-                                   Utils.formatBigValue((float)energy, "EC"),
-                                   work_left / 3600);
-                s += stage == ASSEMBLY ? " Assembly:" : " Construction:";
-                s += string.Format(" {0:P1}", (total_work - work_left) / total_work);
+                var stage = CurrentStage;
+                if(stage != null)
+                    remainder = RequirementsForWork(stage.WorkLeft);
             }
-            else
-                s += " Complete.";
-            return s;
+            return remainder;
         }
 
-        public static void Draw(string Name, int stage, double work_left, double total_work, 
-                                double energy, ResourceUsageInfo resource, double resource_amount)
+        public static void Draw(string Name, int stage, double total_work, Requirements remainder)
         {
             GUILayout.BeginVertical(Styles.white);
             GUILayout.BeginHorizontal();
             GUILayout.Label(string.Format("<b>{0}</b>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
             var status = "";
-            if(work_left > 0)
+            if(remainder.work > 0)
             {
                 status += stage == ASSEMBLY ? " Assembly:" : " Construction:";
-                status += string.Format(" <b>{0:P1}</b>", (total_work - work_left) / total_work);
+                status += string.Format(" <b>{0:P1}</b>", (total_work - remainder.work) / total_work);
             }
             else
                 status += " Complete.";
             GUILayout.Label(status, Styles.rich_label, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
-            if(work_left > 0)
+            if(remainder.work > 0)
             {
                 var requirements = string.Format("Needs: <b>{0}</b> of {1}, <b>{2}</b>, <b>{3:F1}</b> SKH.",
-                                                 Utils.formatBigValue((float)resource_amount, "u"), resource.name, 
-                                                 Utils.formatBigValue((float)energy, "EC"),
-                                                 work_left / 3600);
+                                                 Utils.formatBigValue((float)remainder.resource_amount, "u"), 
+                                                 remainder.resource.name, 
+                                                 Utils.formatBigValue((float)remainder.energy, "EC"),
+                                                 remainder.work / 3600);
                 GUILayout.Label(requirements, Styles.rich_label, GUILayout.ExpandWidth(true));
             }
             GUILayout.EndVertical();
@@ -122,20 +123,19 @@ namespace GroundConstruction
 
         public void Draw()
         {
-            ResourceUsageInfo resource;
-            double energy, resource_amount;
-            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
-            var total_work = work_left > 0 ? CurrentStage.TotalWork : 1;
-            Draw(Name, CurrentIndex, work_left, total_work, energy, resource, resource_amount);
+            var rem = RemainingRequirements();
+            if(rem != null)
+            {
+                var total_work = rem.work > 0 ? CurrentStage.TotalWork : 1;
+                Draw(Name, CurrentIndex, total_work, rem);
+            }
         }
 
-        public string Status()
+        public override double DoSomeWork(double work)
         {
-            ResourceUsageInfo resource;
-            double energy, resource_amount;
-            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
-            var total_work = work_left > 0 ? CurrentStage.TotalWork : 1;
-            return Status(Name, CurrentIndex, work_left, total_work, energy, resource, resource_amount);
+            if(work > 0)
+                remainder = null;
+            return base.DoSomeWork(work);
         }
 
         //deprecated config conversion

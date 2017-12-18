@@ -12,7 +12,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public sealed class VesselKit : CompositeJob<PartKit>
+    public sealed class VesselKit : CompositeJob<PartKit>, iDIYKit
     {
         public new const string NODE_NAME = "VESSEL_KIT";
 
@@ -27,6 +27,8 @@ namespace GroundConstruction
         public Vessel CrewSource;
         public List<ProtoCrewMember> KitCrew;
         Dictionary<uint,float> workers = new Dictionary<uint, float>();
+
+        DIYKit.Requirements remainder;
 
         static void strip_resources(IShipconstruct ship, bool assembled)
         {
@@ -159,53 +161,44 @@ namespace GroundConstruction
             return true;
         }
 
-        public double RequirementsForWork(double work, out double energy, out ResourceUsageInfo resource, out double resource_amount)
+        public DIYKit.Requirements RequirementsForWork(double work)
         {
-            energy = 0;
-            resource = null;
-            resource_amount = 0;
             var job = CurrentJob;
             if(work <= 0 || job == null)
-                return 0;
-            return job.RequirementsForWork(work, out energy, out resource, out resource_amount);
+                return null;
+            return job.RequirementsForWork(work);
         }
 
-        public double RemainingRequirements(out double energy, out ResourceUsageInfo resource, out double resource_amount)
+        public DIYKit.Requirements RemainingRequirements()
         {
-            energy = 0;
-            resource = null;
-            resource_amount = 0;
-            var work = 0.0;
-            var njobs = Jobs.Count;
-            if(CurrentIndex < njobs)
+            if(remainder == null)
             {
-                for(int i = CurrentIndex; i < njobs; i++)
+                var njobs = Jobs.Count;
+                if(CurrentIndex < njobs)
                 {
-                    double e, ra;
-                    work += Jobs[i].RemainingRequirements(out e, out resource, out ra);
-                    energy += e;
-                    resource_amount += ra;
+                    remainder = new DIYKit.Requirements();
+                    for(int i = CurrentIndex; i < njobs; i++)
+                        remainder.Update(Jobs[i].RemainingRequirements());
                 }
             }
-            return work;
+            return remainder;
         }
 
-        public string Status()
+        public override double DoSomeWork(double work)
         {
-            ResourceUsageInfo resource;
-            double energy, resource_amount;
-            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
-            var total_work = work_left > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            return DIYKit.Status(Name, CurrentStageIndex, work_left, total_work, energy, resource, resource_amount);
+            if(work > 0)
+                remainder = null;
+            return base.DoSomeWork(work);
         }
 
         public void Draw()
         {
-            ResourceUsageInfo resource;
-            double energy, resource_amount;
-            var work_left = RemainingRequirements(out energy, out resource, out resource_amount);
-            var total_work = work_left > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            DIYKit.Draw(Name, CurrentStageIndex, work_left, total_work, energy, resource, resource_amount);
+            var rem = RemainingRequirements();
+            if(rem != null)
+            {
+                var total_work = rem.work > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
+                DIYKit.Draw(Name, CurrentStageIndex, total_work, rem);
+            }
         }
 
         public override void Load(ConfigNode node)

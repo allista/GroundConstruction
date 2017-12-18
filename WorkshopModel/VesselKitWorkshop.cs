@@ -16,26 +16,24 @@ namespace GroundConstruction
 
         protected double serve_requirements(double work)
         {
-            ResourceUsageInfo resource;
-            double energy, resource_amount;
-            work = CurrentTask.Kit.RequirementsForWork(work, out energy, out resource, out resource_amount);
+            var req = CurrentTask.Kit.RequirementsForWork(work);
             double have_res = 0, have_ec = 0, used_res = 0, used_ec = 0;
             //get required resource
-            if(resource_amount > 0)
+            if(req.resource_amount > 0)
             {
-                have_res = part.RequestResource(resource.id, resource_amount);
-                if(resource_amount > 0 && have_res.Equals(0))
+                have_res = part.RequestResource(req.resource.id, req.resource_amount);
+                if(req.resource_amount > 0 && have_res.Equals(0))
                 {
-                    Utils.Message("Not enough {0}. The work on {1} was put on hold.", resource.name, CurrentTask.Name);
+                    Utils.Message("Not enough {0}. The work on {1} was put on hold.", req.resource.name, CurrentTask.Name);
                     work = 0;
                     goto end;
                 }
             }
             //get required EC
-            if(energy > 0)
+            if(req.energy > 0)
             {
-                have_ec = part.RequestResource(Utils.ElectricCharge.id, energy);
-                if(have_ec/energy < GLB.WorkshopShutdownThreshold)
+                have_ec = part.RequestResource(Utils.ElectricCharge.id, req.energy);
+                if(have_ec/req.energy < GLB.WorkshopShutdownThreshold)
                 {
                     Utils.Message("Not enough energy. The work on {0} was put on hold.", CurrentTask.Name);
                     work = 0;
@@ -44,17 +42,17 @@ namespace GroundConstruction
             }
             //correct the amount of work we can do and of resources we need
             var frac = 1.0;
-            if(resource_amount > 0)
-                frac = have_res/resource_amount;
-            if(energy > 0)
-                frac = Math.Min(frac, have_ec/energy);
-            used_res = resource_amount*frac;
-            used_ec = energy*frac;
+            if(req.resource_amount > 0)
+                frac = have_res/req.resource_amount;
+            if(req.energy > 0)
+                frac = Math.Min(frac, have_ec/req.energy);
+            used_res = req.resource_amount*frac;
+            used_ec = req.energy*frac;
             work = work*frac;
             //return unused resources
             end:
             if(used_res < have_res)
-                part.RequestResource(resource.id, used_res-have_res);
+                part.RequestResource(req.resource.id, used_res-have_res);
             if(used_ec < have_ec)
                 part.RequestResource(Utils.ElectricCharge.id, used_ec-have_ec);
             if(work.Equals(0))
