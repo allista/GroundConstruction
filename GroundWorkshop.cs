@@ -432,7 +432,7 @@ namespace GroundConstruction
 				return 0;
 			}
 			//try to get EC
-			var have_ec = part.RequestResource(Utils.ElectricChargeID, required_ec);
+            var have_ec = part.RequestResource(Utils.ElectricCharge.id, required_ec);
 			if(have_ec/required_ec < GLB.WorkshopShutdownThreshold) 
 			{ 
 				Utils.Message("Not enough energy. Construction of {0} was put on hold.", 

@@ -55,7 +55,7 @@ namespace GroundConstruction
 			{ 
 				if(r.info.isTweakable && 
 				   r.info.density > 0 &&
-				   r.info.id != Utils.ElectricChargeID &&
+				   r.info.id != Utils.ElectricCharge.id &&
 				   !GLB.KeepResourcesIDs.Contains(r.info.id)) 
 					r.amount = 0; 
 			}));
