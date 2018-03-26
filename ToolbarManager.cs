@@ -26,7 +26,6 @@ namespace GroundConstruction
 		//icons
 		const string TB_ICON = "GroundConstruction/Icons/toolbar-icon";
 		const string AP_ICON = "GroundConstruction/Icons/applauncher-icon";
-		static Texture texture;
 		//buttons
 		static ApplicationLauncherButton ALButton;
 		const ApplicationLauncher.AppScenes AP_SCENES = ApplicationLauncher.AppScenes.FLIGHT|ApplicationLauncher.AppScenes.MAPVIEW|
@@ -79,13 +78,12 @@ namespace GroundConstruction
 		{
 			if(!ApplicationLauncher.Ready || ALButton != null) return;
 			Utils.Log("Adding AppLauncher button");
-			texture  = GameDatabase.Instance.GetTexture(AP_ICON,  false);
 			ALButton = ApplicationLauncher.Instance.AddModApplication(
 				onAppLaunchToggleOn,
 				onAppLaunchToggleOff,
 				null, null, null, null,
 				AP_SCENES,
-				texture);
+                TextureCache.GetTexture(AP_ICON));
 		}
 
 		static void AddToolbarButton()
@@ -101,37 +99,6 @@ namespace GroundConstruction
 		static void onToolbarToggle(ClickEvent e) { GroundConstructionScenario.ToggleWindow(); }
 		static void onAppLaunchToggleOn() { onToolbarToggle(null); }
 		static void onAppLaunchToggleOff() { onToolbarToggle(null); }
-
-		public static void SetDefaultButton()
-		{
-			if(TBButton != null) TBButton.TexturePath = TB_ICON;
-			if(ALButton != null) ALButton.SetTexture(texture);
-		}
-
-//		public void Update()
-//		{ 
-//			if(TCA != null)
-//			{
-//				if(TBButton != null)
-//				{
-//					if(TCA.IsStateSet(TCAState.Enabled))
-//						TBButton.TexturePath = TCA.State != TCAState.NoEC? ICON_ON : ICON_NC;
-//					else TBButton.TexturePath = ICON_OFF;
-//				}
-//				if(ALButton != null) 
-//				{
-//					if(TCA.IsStateSet(TCAState.Enabled))
-//						ALButton.SetTexture(TCA.State != TCAState.NoEC? texture : textureNoCharge);
-//					else ALButton.SetTexture(textureOff);
-//				}
-//			}
-//			else if(HighLogic.LoadedSceneIsEditor && TCAGuiEditor.Available)
-//			{
-//				if(TBButton != null) TBButton.TexturePath = ICON_OFF;
-//				if(ALButton != null) ALButton.SetTexture(textureOff);
-//			}
-//			else SetDefaultButton();
-//		}
 	}
 }
 
