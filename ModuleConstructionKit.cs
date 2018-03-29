@@ -19,6 +19,9 @@ namespace GroundConstruction
     {
         static Globals GLB { get { return Globals.Instance; } }
 
+        public enum SIZE_CONSTRAINT {NONE, WIDTH, LENGTH};
+        static readonly int num_constraints = Enum.GetValues(typeof(SIZE_CONSTRAINT)).Length;
+
         Transform model;
         List<Transform> spawn_transforms;
         [KSPField] public string SpawnTransforms;
@@ -27,6 +30,8 @@ namespace GroundConstruction
         [KSPField] public string TextureVAB;
         [KSPField] public string TextureSPH;
         [KSPField(isPersistant = true)] public EditorFacility Facility;
+
+        [KSPField(isPersistant = true)] public SIZE_CONSTRAINT SizeConstraint;
 
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
         [KSPField(isPersistant = true)] public Vector3 OrigSize;
@@ -284,6 +289,7 @@ namespace GroundConstruction
             model = part.transform.Find("model");
             OrigSize = metric.size;
             OrigScale = model.localScale;
+            Events["ToggleSizeConstraing"].guiName = "Size Constraint: "+SizeConstraint;
             if(kit.Valid)
             {
                 update_model(true);
@@ -329,6 +335,25 @@ namespace GroundConstruction
                     selection_canceled, false);
         }
 
+        void set_size_from_kit()
+        {
+            var V_ratio = kit.Mass/GLB.VesselKitDensity/(OrigSize.x*OrigSize.y*OrigSize.z);
+            switch(SizeConstraint)
+            {
+            case SIZE_CONSTRAINT.NONE:
+                Size = OrigSize * Mathf.Pow(V_ratio, 1/3f);
+                break;
+            case SIZE_CONSTRAINT.LENGTH:
+                var ratio = Mathf.Sqrt(V_ratio);
+                Size = new Vector3(OrigSize.x*ratio, OrigSize.y, OrigSize.z*ratio);
+                break;
+            case SIZE_CONSTRAINT.WIDTH:
+                Size = new Vector3(OrigSize.x, OrigSize.y*V_ratio, OrigSize.z);
+                break;
+            }
+            Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
+        }
+
         IEnumerator<YieldInstruction> delayed_store_construct(ShipConstruct construct)
         {
             if(construct == null) yield break;
@@ -338,10 +363,8 @@ namespace GroundConstruction
             KitName = kit.Name;
             KitMass = kit.Mass;
             KitCost = kit.Cost;
-            var V = OrigSize.x*OrigSize.y*OrigSize.z;
-            Size = OrigSize * Mathf.Pow(kit.Mass/GLB.VesselKitDensity/V, 1/3f);
-            Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
             Facility = construct.shipFacility;
+            set_size_from_kit();
             update_texture();
             update_model(false);
             construct.Unload();
@@ -519,6 +542,15 @@ namespace GroundConstruction
         { 
             kitname_editor.Text = KitName;
             kitname_editor.Toggle();
+        }
+
+        [KSPEvent(guiName = "Size Constraint: NONE", guiActiveEditor = true, active = true)]
+        public void ToggleSizeConstraing() 
+        { 
+            SizeConstraint = (SIZE_CONSTRAINT)(((int)SizeConstraint + 1) % num_constraints);
+            Events["ToggleSizeConstraing"].guiName = "Size Constraint: "+SizeConstraint;
+            set_size_from_kit();
+            update_model(false);
         }
 
         public void AllowLaunch(bool allow = true)
