@@ -19,9 +19,6 @@ namespace GroundConstruction
     {
         static Globals GLB { get { return Globals.Instance; } }
 
-        public enum SIZE_CONSTRAINT {NONE, WIDTH, LENGTH};
-        static readonly int num_constraints = Enum.GetValues(typeof(SIZE_CONSTRAINT)).Length;
-
         Transform model;
         List<Transform> spawn_transforms;
         [KSPField] public string SpawnTransforms;
@@ -31,7 +28,14 @@ namespace GroundConstruction
         [KSPField] public string TextureSPH;
         [KSPField(isPersistant = true)] public EditorFacility Facility;
 
-        [KSPField(isPersistant = true)] public SIZE_CONSTRAINT SizeConstraint;
+        [KSPField(isPersistant = true)] public bool ConstrainSize;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Bulkhead Size")]
+        [UI_ScaleEdit(scene = UI_Scene.Editor, 
+                      intervals = new float[] {0.625f, 1.25f, 2.5f, 3.75f, 5f},
+                      sigFigs = 3,
+                      unit = "m")]
+        public float BulkheadSize = 1.25f;
 
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
         [KSPField(isPersistant = true)] public Vector3 OrigSize;
@@ -263,6 +267,8 @@ namespace GroundConstruction
             Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
             Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
             update_unfocusedRange("Deploy", "Launch");
+            Fields["BulkheadSize"].OnValueModified += (obj) => set_size_from_kit();
+            update_size_constraint_controls();
             model = part.transform.Find("model");
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
@@ -289,7 +295,6 @@ namespace GroundConstruction
             model = part.transform.Find("model");
             OrigSize = metric.size;
             OrigScale = model.localScale;
-            Events["ToggleSizeConstraing"].guiName = "Size Constraint: "+SizeConstraint;
             if(kit.Valid)
             {
                 update_model(true);
@@ -337,21 +342,16 @@ namespace GroundConstruction
 
         void set_size_from_kit()
         {
-            var V_ratio = kit.Mass/GLB.VesselKitDensity/(OrigSize.x*OrigSize.y*OrigSize.z);
-            switch(SizeConstraint)
+            if(kit.Valid)
             {
-            case SIZE_CONSTRAINT.NONE:
-                Size = OrigSize * Mathf.Pow(V_ratio, 1/3f);
-                break;
-            case SIZE_CONSTRAINT.LENGTH:
-                var ratio = Mathf.Sqrt(V_ratio);
-                Size = new Vector3(OrigSize.x*ratio, OrigSize.y, OrigSize.z*ratio);
-                break;
-            case SIZE_CONSTRAINT.WIDTH:
-                Size = new Vector3(OrigSize.x, OrigSize.y*V_ratio, OrigSize.z);
-                break;
+                var kitV = kit.Mass/GLB.VesselKitDensity;
+                if(ConstrainSize)
+                    Size = new Vector3(BulkheadSize, kitV/(BulkheadSize*BulkheadSize), BulkheadSize);
+                else
+                    Size = OrigSize * Mathf.Pow(kitV/(OrigSize.x*OrigSize.y*OrigSize.z), 1/3f);
+                Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
+                update_model(false);
             }
-            Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
         }
 
         IEnumerator<YieldInstruction> delayed_store_construct(ShipConstruct construct)
@@ -364,9 +364,9 @@ namespace GroundConstruction
             KitMass = kit.Mass;
             KitCost = kit.Cost;
             Facility = construct.shipFacility;
-            set_size_from_kit();
             update_texture();
-            update_model(false);
+            set_size_from_kit();
+            update_size_constraint_controls();
             construct.Unload();
             Utils.LockControls("construct_loading", false);
         }
@@ -544,13 +544,20 @@ namespace GroundConstruction
             kitname_editor.Toggle();
         }
 
-        [KSPEvent(guiName = "Size Constraint: NONE", guiActiveEditor = true, active = true)]
+        [KSPEvent(guiName = "Constrain Size: No", guiActiveEditor = true, active = true)]
         public void ToggleSizeConstraing() 
         { 
-            SizeConstraint = (SIZE_CONSTRAINT)(((int)SizeConstraint + 1) % num_constraints);
-            Events["ToggleSizeConstraing"].guiName = "Size Constraint: "+SizeConstraint;
+            ConstrainSize = !ConstrainSize;
+            update_size_constraint_controls();
             set_size_from_kit();
-            update_model(false);
+        }
+
+        void update_size_constraint_controls()
+        {
+            Events["ToggleSizeConstraing"].guiActiveEditor = kit.Valid;
+            Events["ToggleSizeConstraing"].guiName = "Constraint Size: " + 
+                (ConstrainSize? "Yes": "No");
+            Fields["BulkheadSize"].guiActiveEditor = kit.Valid && ConstrainSize;
         }
 
         public void AllowLaunch(bool allow = true)
