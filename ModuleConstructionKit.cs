@@ -23,6 +23,9 @@ namespace GroundConstruction
         List<Transform> spawn_transforms;
         [KSPField] public string SpawnTransforms;
 
+        MeshFilter fwd_mesh;
+        static readonly Color fwd_color = new Color(0, 1, 0, 0.25f);
+
         TextureSwitcherServer texture_switcher;
         [KSPField] public string TextureVAB;
         [KSPField] public string TextureSPH;
@@ -258,6 +261,54 @@ namespace GroundConstruction
             base.OnAwake();
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
             kitname_editor.Show(false);
+            model = part.transform.Find("model");
+            var obj = new GameObject("SpawnTransformFwdMesh", typeof(MeshFilter), typeof(MeshRenderer));
+            obj.transform.SetParent(model);
+            fwd_mesh = obj.GetComponent<MeshFilter>();
+            fwd_mesh.mesh = new Mesh();
+            var fwd_renderer = obj.GetComponent<MeshRenderer>();
+            fwd_renderer.material = Utils.no_z_material;
+            fwd_renderer.material.color = fwd_color;
+            fwd_renderer.enabled = true;
+            obj.SetActive(false);
+        }
+
+        void OnDestroy() 
+        { 
+            detach_anchor();
+            Destroy(fwd_mesh.gameObject);
+            Destroy(kitname_editor);
+        }
+
+        void create_fwd_mesh()
+        {
+            var size = OrigSize.magnitude;
+            var mesh = fwd_mesh.mesh;
+            mesh.vertices = new []{
+                -Vector3.right*size/4,
+                Vector3.forward*size,
+                Vector3.right*size/4
+            };
+            mesh.triangles = new []{0,1,2};
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+        }
+
+        void update_fwd_mesh()
+        {
+            fwd_mesh.gameObject.SetActive(false);
+            if(GroundConstructionScenario.ShowSpawnTransfrom)
+            {
+                var T = get_spawn_transform();
+                if(T != null) 
+                {
+                    var fwd_T = fwd_mesh.gameObject.transform;
+                    fwd_T.position = T.position;
+                    fwd_T.rotation = T.rotation;
+                    fwd_mesh.gameObject.SetActive(true);
+                }
+            }
         }
 
         public override void OnStart(StartState state)
@@ -269,7 +320,7 @@ namespace GroundConstruction
             update_unfocusedRange("Deploy", "Launch");
             Fields["BulkheadSize"].OnValueModified += (obj) => set_size_from_kit();
             update_size_constraint_controls();
-            model = part.transform.Find("model");
+            create_fwd_mesh();
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
@@ -286,7 +337,6 @@ namespace GroundConstruction
 
         void OnPartPack() { detach_anchor(); }
         void OnPartUnpack() { if(Deployed) { attach_anchor(); setup_ground_contact(); } }
-        void OnDestroy() { detach_anchor(); }
 
         public override void OnLoad(ConfigNode node)
         {
@@ -310,6 +360,8 @@ namespace GroundConstruction
             if(HighLogic.LoadedSceneIsEditor && kit.Valid &&
                model.localScale == OrigScale)
                 update_model(true);
+            if(HighLogic.LoadedSceneIsFlight)
+                update_fwd_mesh();
             if(Deployed)
             {
                 setup_ground_contact();
@@ -791,22 +843,6 @@ namespace GroundConstruction
         public ModifierChangeWhen GetModuleMassChangeWhen()
         { return ModifierChangeWhen.CONSTANTLY; }
         #endregion
-
-        #if DEBUG
-        void OnRenderObject()
-        {
-            if(vessel == null) return;
-            var T = get_spawn_transform();
-            if(T != null) 
-            {
-                Utils.GLVec(T.position, T.up, Color.green);
-                Utils.GLVec(T.position, T.forward, Color.blue);
-                Utils.GLVec(T.position, T.right, Color.red);
-            }
-            if(launched_vessel != null)
-                Utils.GLDrawPoint(launched_vessel.vesselTransform.position, Color.magenta);
-        }
-        #endif
     }
 }
 
