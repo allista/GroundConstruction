@@ -15,7 +15,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, iDIYKit
+    public partial class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, iDIYKit
     {
         static Globals GLB { get { return Globals.Instance; } }
 
@@ -30,15 +30,6 @@ namespace GroundConstruction
         [KSPField] public string TextureVAB;
         [KSPField] public string TextureSPH;
         [KSPField(isPersistant = true)] public EditorFacility Facility;
-
-        [KSPField(isPersistant = true)] public bool ConstrainSize;
-
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Bulkhead Size")]
-        [UI_ScaleEdit(scene = UI_Scene.Editor, 
-                      intervals = new float[] {0.625f, 1.25f, 2.5f, 3.75f, 5f},
-                      sigFigs = 3,
-                      unit = "m")]
-        public float BulkheadSize = 1.25f;
 
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
         [KSPField(isPersistant = true)] public Vector3 OrigSize;
@@ -314,24 +305,34 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            if(Deployed) setup_ground_contact();
+
+            if (Deployed)
+                setup_ground_contact();
+
             Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
             Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
+
             update_unfocusedRange("Deploy", "Launch");
-            Fields["BulkheadSize"].OnValueModified += (obj) => set_size_from_kit();
-            update_size_constraint_controls();
+
+            OnStartConstraints(state);
+
             create_fwd_mesh();
             spawn_transforms = new List<Transform>();
-            if(!string.IsNullOrEmpty(SpawnTransforms))
+
+            if (!string.IsNullOrEmpty(SpawnTransforms))
             {
                 foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
                 {
                     var transforms = part.FindModelTransforms(t);
-                    if(transforms == null || transforms.Length == 0) continue;
+
+                    if (transforms == null || transforms.Length == 0)
+                        continue;
+
                     spawn_transforms.AddRange(transforms);
                 }
             }
-            if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
+
+            if (!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
                 texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
         }
 
@@ -392,20 +393,6 @@ namespace GroundConstruction
                     selection_canceled, false);
         }
 
-        void set_size_from_kit()
-        {
-            if(kit.Valid)
-            {
-                var kitV = kit.Mass/GLB.VesselKitDensity;
-                if(ConstrainSize)
-                    Size = new Vector3(BulkheadSize, kitV/(BulkheadSize*BulkheadSize), BulkheadSize);
-                else
-                    Size = OrigSize * Mathf.Pow(kitV/(OrigSize.x*OrigSize.y*OrigSize.z), 1/3f);
-                Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
-                update_model(false);
-            }
-        }
-
         IEnumerator<YieldInstruction> delayed_store_construct(ShipConstruct construct)
         {
             if(construct == null) yield break;
@@ -417,8 +404,9 @@ namespace GroundConstruction
             KitCost = kit.Cost;
             Facility = construct.shipFacility;
             update_texture();
-            set_size_from_kit();
-            update_size_constraint_controls();
+
+            OnKitTypeChanged();
+
             construct.Unload();
             Utils.LockControls("construct_loading", false);
         }
@@ -594,22 +582,6 @@ namespace GroundConstruction
         { 
             kitname_editor.Text = KitName;
             kitname_editor.Toggle();
-        }
-
-        [KSPEvent(guiName = "Constrain Size: No", guiActiveEditor = true, active = true)]
-        public void ToggleSizeConstraing() 
-        { 
-            ConstrainSize = !ConstrainSize;
-            update_size_constraint_controls();
-            set_size_from_kit();
-        }
-
-        void update_size_constraint_controls()
-        {
-            Events["ToggleSizeConstraing"].guiActiveEditor = kit.Valid;
-            Events["ToggleSizeConstraing"].guiName = "Constraint Size: " + 
-                (ConstrainSize? "Yes": "No");
-            Fields["BulkheadSize"].guiActiveEditor = kit.Valid && ConstrainSize;
         }
 
         public void AllowLaunch(bool allow = true)
