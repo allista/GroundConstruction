@@ -24,7 +24,7 @@ namespace GroundConstruction
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
 
-        float unbuilt_mass, built_mass;
+        float unbuilt_mass, built_mass, structure_mass;
         float unbuilt_cost, built_cost;
 
         public double WorkLeftFull
@@ -44,7 +44,7 @@ namespace GroundConstruction
             { 
                 var part_mass = PartUnderConstruction != null && PartUnderConstruction.Valid? 
                     PartUnderConstruction.MassLeft : 0;
-                return (unbuilt_mass+part_mass)/GLB.StructureResource.density; 
+                return (structure_mass+part_mass)/GLB.StructureResource.density; 
             } 
         }
 
@@ -66,7 +66,7 @@ namespace GroundConstruction
         public VesselKit(ShipConstruct ship)
         {
             TotalWork = 0;
-            Mass = Cost = 0;
+            Mass = Cost = structure_mass = 0;
             Name = ship.shipName;
             strip_resources(ship);
             Blueprint = ship.SaveShip();
@@ -77,6 +77,7 @@ namespace GroundConstruction
             { 
                 Mass += p.Mass;
                 Cost += p.Cost;
+                structure_mass += p.MassLeft;
                 TotalWork += p.TotalWork; 
             });
             unbuilt_mass = Mass;
@@ -136,11 +137,12 @@ namespace GroundConstruction
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            unbuilt_mass = unbuilt_cost = 0;
+            unbuilt_mass = unbuilt_cost = structure_mass = 0;
             UnbuiltParts.ForEach(p => 
             { 
                 unbuilt_mass += p.Mass;
                 unbuilt_cost += p.Cost;
+                structure_mass = p.MassLeft;
             });
             built_mass = built_cost = 0;
             BuiltParts.ForEach(p => 
@@ -159,6 +161,7 @@ namespace GroundConstruction
                 UnbuiltParts.RemoveAt(0);
                 unbuilt_mass -= PartUnderConstruction.Mass;
                 unbuilt_cost -= PartUnderConstruction.Cost;
+                structure_mass -= PartUnderConstruction.MassLeft;
             }
             return true;
         }

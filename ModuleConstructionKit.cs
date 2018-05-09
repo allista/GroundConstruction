@@ -342,7 +342,6 @@ namespace GroundConstruction
                 if(KitName == "None")
                     KitName = kit.Name;
             }
-//            this.Log("OnLoad: node: {}\n\nkit: {}", node, kit);//debug
         }
 
         void Update()
@@ -388,10 +387,8 @@ namespace GroundConstruction
             Utils.LockControls("construct_loading");
             for(int i = 0; i < 3; i++) yield return null;
             kit = new VesselKit(construct);
-            KitName = kit.Name;
-            KitMass = kit.Mass;
-            KitCost = kit.Cost;
             Facility = construct.shipFacility;
+            update_part_info();
             update_texture();
             set_kit_size();
             update_constraint_controls();
