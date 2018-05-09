@@ -57,7 +57,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KitConstraints.cs" />
+    <Compile Include="ConstructionKitConstraints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PartKit.cs" />
     <Compile Include="Globals.cs" />
