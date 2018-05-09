@@ -1,173 +1,172 @@
 ﻿using AT_Utils;
-using System;
 using UnityEngine;
 
 namespace GroundConstruction
 {
     public partial class ModuleConstructionKit
     {
-        [KSPField(isPersistant = true)]
-        public string KitType = "Box";
+        public const string CONST_NONE = "None";
+        public const string CONST_BULKHEAD = "Bulkhead";
+        public const string CONST_LENGTH = "Length";
+        public const string CONST_WIDTH = "Width";
+        public const string CONST_HEIGHT = "Height";
+        public const string CONST_WH = "Wid - Hgt";
+        public const string CONST_WL = "Wid - Len";
+        public const string CONST_HL = "Hgt - Len";
 
         [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Constrain:")]
-        [UI_ChooseOption(scene = UI_Scene.Editor, options = new string[] { "None", "Length", "Width", "Height", "Len + Wid", "Len + Hgt", "Wid + Hgt" })]
-        public string ConstrainBox = "None";
+        [UI_ChooseOption(scene = UI_Scene.Editor, options = new string[] {
+            CONST_NONE,
+            CONST_BULKHEAD,
+            CONST_LENGTH,
+            CONST_WIDTH,
+            CONST_HEIGHT,
+            CONST_WH,
+            CONST_WL,
+            CONST_HL
+        })]
+        public string ConstraintType = "None";
 
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Constrain:")]
-        [UI_ChooseOption(scene = UI_Scene.Editor, options = new string[] { "None", "Diameter", "Height" })]
-        public string ConstrainCylinder = "None";
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Bulkhead:")]
+        [UI_ScaleEdit(scene = UI_Scene.Editor,
+                      intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f },
+                      incrementSlide = new float[] { 0.025f },
+                      sigFigs = 3, unit = "m")]
+        public float ConstrainBulkhead = 1.25f;
 
         [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Length:")]
-        [UI_ScaleEdit(scene = UI_Scene.Editor, intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f }, incrementSlide = new float[] { 0.025f }, sigFigs = 3, unit = "m")]
-        public float ConstrainLength = 1.6f;
+        [UI_ScaleEdit(scene = UI_Scene.Editor,
+                      intervals = new float[] { 0.5f, 1, 2, 4, 6, 8, 10, 12 },
+                      incrementSlide = new float[] { 0.025f },
+                      sigFigs = 3, unit = "m")]
+        public float ConstrainLength = 1.0f;
 
         [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Width:")]
-        [UI_ScaleEdit(scene = UI_Scene.Editor, intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f }, incrementSlide = new float[] { 0.025f }, sigFigs = 3, unit = "m")]
-        public float ConstrainWidth = 1.6f;
-
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Diameter:")]
-        [UI_ScaleEdit(scene = UI_Scene.Editor, intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f }, incrementSlide = new float[] { 0.025f }, sigFigs = 3, unit = "m")]
-        public float ConstrainDiameter = 1.6f;
+        [UI_ScaleEdit(scene = UI_Scene.Editor,
+                      intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f },
+                      incrementSlide = new float[] { 0.025f },
+                      sigFigs = 3, unit = "m")]
+        public float ConstrainWidth = 1.25f;
 
         [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Height:")]
-        [UI_ScaleEdit(scene = UI_Scene.Editor, intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f }, incrementSlide = new float[] { 0.025f }, sigFigs = 3, unit = "m")]
+        [UI_ScaleEdit(scene = UI_Scene.Editor,
+                      intervals = new float[] { 0.625f, 1.25f, 2.5f, 3.75f, 5.0f, 7.5f },
+                      incrementSlide = new float[] { 0.025f },
+                      sigFigs = 3, unit = "m")]
         public float ConstrainHeight = 1.25f;
 
-        public void OnStartConstraints(StartState state)
+        void setup_constraint_fields()
         {
-            Fields["ConstrainBox"].OnValueModified += (obj) => OnKitConstraintsChanged();
-            Fields["ConstrainCylinder"].OnValueModified += (obj) => OnKitConstraintsChanged();
-            Fields["ConstrainLength"].OnValueModified += (obj) => SetKitSize();
-            Fields["ConstrainWidth"].OnValueModified += (obj) => SetKitSize();
-            Fields["ConstrainDiameter"].OnValueModified += (obj) => SetKitSize();
-            Fields["ConstrainHeight"].OnValueModified += (obj) => SetKitSize();
-
-            OnKitTypeChanged();
+            Fields["ConstrainLength"].OnValueModified += (obj) => set_kit_size();
+            Fields["ConstrainWidth"].OnValueModified += (obj) => set_kit_size();
+            Fields["ConstrainHeight"].OnValueModified += (obj) => set_kit_size();
+            Fields["ConstrainBulkhead"].OnValueModified += (obj) => set_kit_size();
+            Fields["ConstraintType"].OnValueModified += (obj) => { on_constraint_type_change(); set_kit_size(); };
+            update_constraint_controls();
         }
 
-        public void OnKitTypeChanged()
+        void update_constraint_controls()
         {
-            switch (KitType)
-            {
-                case "Box":
-                    Fields["ConstrainBox"].guiActiveEditor = kit.Valid;
-                    Fields["ConstrainCylinder"].guiActiveEditor = false;
-                    OnKitConstraintsChanged();
-                    break;
-
-                case "Cylinder":
-                    Fields["ConstrainBox"].guiActiveEditor = false;
-                    Fields["ConstrainCylinder"].guiActiveEditor = kit.Valid;
-                    OnKitConstraintsChanged();
-                    break;
-            }
+            Fields["ConstraintType"].guiActiveEditor = kit.Valid;
+            on_constraint_type_change();
         }
 
-        public void OnKitConstraintsChanged()
+        void on_constraint_type_change()
         {
-            string Constraint = KitType == "Box" ? ConstrainBox : ConstrainCylinder;
-
             Fields["ConstrainLength"].guiActiveEditor = false;
             Fields["ConstrainWidth"].guiActiveEditor = false;
-            Fields["ConstrainDiameter"].guiActiveEditor = false;
             Fields["ConstrainHeight"].guiActiveEditor = false;
-
-            if (kit.Valid)
+            Fields["ConstrainBulkhead"].guiActiveEditor = false;
+            if(kit.Valid)
             {
-                switch (Constraint)
+                switch(ConstraintType)
                 {
-                    case "Length":
-                        Fields["ConstrainLength"].guiActiveEditor = true;
-                        break;
+                case CONST_BULKHEAD:
+                    Fields["ConstrainBulkhead"].guiActiveEditor = true;
+                    break;
 
-                    case "Width":
-                        Fields["ConstrainWidth"].guiActiveEditor = true;
-                        break;
+                case CONST_LENGTH:
+                    Fields["ConstrainLength"].guiActiveEditor = true;
+                    break;
 
-                    case "Height":
-                        Fields["ConstrainHeight"].guiActiveEditor = true;
-                        break;
+                case CONST_WIDTH:
+                    Fields["ConstrainWidth"].guiActiveEditor = true;
+                    break;
 
-                    case "Diameter":
-                        Fields["ConstrainDiameter"].guiActiveEditor = true;
-                        break;
+                case CONST_HEIGHT:
+                    Fields["ConstrainHeight"].guiActiveEditor = true;
+                    break;
 
-                    case "Len + Wid":
-                        Fields["ConstrainLength"].guiActiveEditor = true;
-                        Fields["ConstrainWidth"].guiActiveEditor = true;
-                        break;
+                case CONST_WL:
+                    Fields["ConstrainLength"].guiActiveEditor = true;
+                    Fields["ConstrainWidth"].guiActiveEditor = true;
+                    break;
 
-                    case "Len + Hgt":
-                        Fields["ConstrainLength"].guiActiveEditor = true;
-                        Fields["ConstrainHeight"].guiActiveEditor = true;
-                        break;
+                case CONST_HL:
+                    Fields["ConstrainLength"].guiActiveEditor = true;
+                    Fields["ConstrainHeight"].guiActiveEditor = true;
+                    break;
 
-                    case "Wid + Hgt":
-                        Fields["ConstrainWidth"].guiActiveEditor = true;
-                        Fields["ConstrainHeight"].guiActiveEditor = true;
-                        break;
+                case CONST_WH:
+                    Fields["ConstrainWidth"].guiActiveEditor = true;
+                    Fields["ConstrainHeight"].guiActiveEditor = true;
+                    break;
                 }
-
-                SetKitSize();
             }
         }
 
-        public void SetKitSize()
+        void set_kit_size()
         {
-            if (kit.Valid)
+            if(kit.Valid)
             {
                 var kitV = kit.Mass / GLB.VesselKitDensity;
-                var Constraint = KitType == "Box" ? ConstrainBox : ConstrainCylinder;
                 var Area = 0f;
                 var SideLength = 0f;
-
-                switch (Constraint)
+                switch(ConstraintType)
                 {
-                    case "Length":
-                        Area = kitV / ConstrainLength;
-                        SideLength = (float)Math.Sqrt(Area);
-                        Size = new Vector3(ConstrainLength, SideLength, SideLength);
-                        break;
+                case CONST_BULKHEAD:
+                    SideLength = kitV / (ConstrainBulkhead * ConstrainBulkhead);
+                    Size = new Vector3(ConstrainBulkhead, SideLength, ConstrainBulkhead);
+                    break;
 
-                    case "Width":
-                        Area = kitV / ConstrainWidth;
-                        SideLength = (float)Math.Sqrt(Area);
-                        Size = new Vector3(SideLength, SideLength, ConstrainWidth);
-                        break;
+                case CONST_LENGTH:
+                    Area = kitV / ConstrainLength;
+                    SideLength = Mathf.Sqrt(Area);
+                    Size = new Vector3(SideLength, ConstrainLength, SideLength);
+                    break;
 
-                    case "Height":
-                        Area = kitV / ConstrainHeight;
-                        SideLength = (float)(KitType == "Box" ? Math.Sqrt(Area) : Math.Sqrt(Area / Math.PI) * 2.0f);
-                        Size = new Vector3(SideLength, ConstrainHeight, SideLength);
-                        break;
+                case CONST_WIDTH:
+                    Area = kitV / ConstrainWidth;
+                    SideLength = Mathf.Sqrt(Area);
+                    Size = new Vector3(ConstrainWidth, SideLength, SideLength);
+                    break;
 
-                    case "Diameter":
-                        SideLength = kitV / (float)(Math.PI * Math.Pow(ConstrainDiameter / 2f, 2));
-                        Size = new Vector3(ConstrainDiameter, SideLength, ConstrainDiameter);
-                        break;
+                case CONST_HEIGHT:
+                    Area = kitV / ConstrainHeight;
+                    SideLength = Mathf.Sqrt(Area);
+                    Size = new Vector3(SideLength, SideLength, ConstrainHeight);
+                    break;
 
-                    case "Len + Wid":
-                        SideLength = kitV / (ConstrainLength * ConstrainWidth);
-                        Size = new Vector3(ConstrainLength, SideLength, ConstrainWidth);
-                        break;
+                case CONST_WL:
+                    SideLength = kitV / (ConstrainWidth * ConstrainLength);
+                    Size = new Vector3(ConstrainWidth, ConstrainLength, SideLength);
+                    break;
 
-                    case "Len + Hgt":
-                        SideLength = kitV / (ConstrainLength * ConstrainHeight);
-                        Size = new Vector3(ConstrainLength, ConstrainHeight, SideLength);
-                        break;
+                case CONST_HL:
+                    SideLength = kitV / (ConstrainHeight * ConstrainLength);
+                    Size = new Vector3(SideLength, ConstrainLength, ConstrainHeight);
+                    break;
 
-                    case "Wid + Hgt":
-                        SideLength = kitV / (ConstrainWidth * ConstrainWidth);
-                        Size = new Vector3(SideLength, ConstrainHeight, ConstrainWidth);
-                        break;
+                case CONST_WH:
+                    SideLength = kitV / (ConstrainWidth * ConstrainHeight);
+                    Size = new Vector3(ConstrainWidth, SideLength, ConstrainHeight);
+                    break;
 
-                    default:
-                        Size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
-                        break;
+                default:
+                    Size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
+                    break;
                 }
-
                 Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
-
                 update_model(false);
             }
         }

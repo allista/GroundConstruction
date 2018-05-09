@@ -69,10 +69,10 @@ namespace GroundConstruction
 
         public bool Valid { get { return part != null && vessel != null && kit.Valid; } }
 
-        public float Completeness { get { return kit.Valid? kit.Completeness : 0; } }
+        public float Completeness { get { return kit.Valid ? kit.Completeness : 0; } }
 
-        public float PartCompleteness 
-        { get { return kit.Valid && kit.PartUnderConstruction != null? kit.PartUnderConstruction.Completeness : 0; } }
+        public float PartCompleteness
+        { get { return kit.Valid && kit.PartUnderConstruction != null ? kit.PartUnderConstruction.Completeness : 0; } }
 
         public VesselResources GetConstructResources()
         {
@@ -84,7 +84,7 @@ namespace GroundConstruction
         public List<ProtoCrewMember> KitCrew;
         public int KitCrewCapacity() { return kit.CrewCapacity(); }
 
-        Dictionary<uint,float> workers = new Dictionary<uint, float>();
+        Dictionary<uint, float> workers = new Dictionary<uint, float>();
         public void CheckinWorker(GroundWorkshop module)
         {
             workers[module.part.flightID] = module.EffectiveWorkforce;
@@ -100,7 +100,7 @@ namespace GroundConstruction
             if(!kit.Valid) return -1;
             if(kit.Completeness >= 1) return 0;
             var workforce = workers.Values.Sum();
-            return workforce > 0? kit.WorkLeftFull/workforce : -1;
+            return workforce > 0 ? kit.WorkLeftFull / workforce : -1;
         }
         #endregion
 
@@ -117,7 +117,7 @@ namespace GroundConstruction
         void dump_velocity()
         {
             if(vessel == null || !vessel.loaded) return;
-            for (int i = 0, nparts = vessel.parts.Count; i < nparts; i++)
+            for(int i = 0, nparts = vessel.parts.Count; i < nparts; i++)
             {
                 var r = vessel.parts[i].Rigidbody;
                 if(r == null) continue;
@@ -152,7 +152,7 @@ namespace GroundConstruction
         {
             if(texture_switcher == null ||
                Facility == EditorFacility.None) return;
-            texture_switcher.SetTexture(Facility == EditorFacility.VAB? 
+            texture_switcher.SetTexture(Facility == EditorFacility.VAB ?
                                         TextureVAB : TextureSPH);
         }
 
@@ -162,15 +162,15 @@ namespace GroundConstruction
             {
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
-                KitWork = (float)(kit.WorkLeft)/3600;
-                KitRes  = kit.StructureLeft;
+                KitWork = (float)(kit.WorkLeft) / 3600;
+                KitRes = kit.StructureLeft;
                 if(Deploying) KitStatus = string.Format("Deployed: {0:P1}", DeploymentTime);
-                else if(Deployed) 
+                else if(Deployed)
                 {
                     KitStatus = string.Format("Complete: {0:P1}", kit.Completeness);
-                    PartStatus = kit.PartUnderConstruction == null? "Nothing" :
-                        string.Format("{0}: {1:P1}", 
-                                      kit.PartUnderConstruction.Title, 
+                    PartStatus = kit.PartUnderConstruction == null ? "Nothing" :
+                        string.Format("{0}: {1:P1}",
+                                      kit.PartUnderConstruction.Title,
                                       kit.PartUnderConstruction.Completeness);
                 }
                 else KitStatus = "Idle";
@@ -241,7 +241,7 @@ namespace GroundConstruction
             var alt = double.MaxValue;
             foreach(var T in spawn_transforms)
             {
-                var t_alt = vessel.mainBody.GetAltitude(T.position)-vessel.mainBody.TerrainAltitude(T.position);
+                var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
                 if(t_alt < alt) { alt = t_alt; minT = T; }
             }
             return minT;
@@ -264,8 +264,8 @@ namespace GroundConstruction
             obj.SetActive(false);
         }
 
-        void OnDestroy() 
-        { 
+        void OnDestroy()
+        {
             detach_anchor();
             Destroy(fwd_mesh.gameObject);
             Destroy(kitname_editor);
@@ -275,12 +275,12 @@ namespace GroundConstruction
         {
             var size = OrigSize.magnitude;
             var mesh = fwd_mesh.mesh;
-            mesh.vertices = new []{
+            mesh.vertices = new[]{
                 -Vector3.right*size/4,
                 Vector3.forward*size,
                 Vector3.right*size/4
             };
-            mesh.triangles = new []{0,1,2};
+            mesh.triangles = new[] { 0, 1, 2 };
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
@@ -292,7 +292,7 @@ namespace GroundConstruction
             if(GroundConstructionScenario.ShowSpawnTransfrom)
             {
                 var T = get_spawn_transform();
-                if(T != null) 
+                if(T != null)
                 {
                     var fwd_T = fwd_mesh.gameObject.transform;
                     fwd_T.position = T.position;
@@ -305,34 +305,23 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-
-            if (Deployed)
-                setup_ground_contact();
-
+            if(Deployed) setup_ground_contact();
             Events["Deploy"].active = kit.Valid && !Deployed && !Deploying;
-            Events["Launch"].active = kit.Valid &&  Deployed && LaunchAllowed && kit.Completeness >= 1;
-
+            Events["Launch"].active = kit.Valid && Deployed && LaunchAllowed && kit.Completeness >= 1;
             update_unfocusedRange("Deploy", "Launch");
-
-            OnStartConstraints(state);
-
+            setup_constraint_fields();
             create_fwd_mesh();
             spawn_transforms = new List<Transform>();
-
-            if (!string.IsNullOrEmpty(SpawnTransforms))
+            if(!string.IsNullOrEmpty(SpawnTransforms))
             {
                 foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
                 {
                     var transforms = part.FindModelTransforms(t);
-
-                    if (transforms == null || transforms.Length == 0)
-                        continue;
-
+                    if(transforms == null || transforms.Length == 0) continue;
                     spawn_transforms.AddRange(transforms);
                 }
             }
-
-            if (!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
+            if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
                 texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
         }
 
@@ -385,7 +374,7 @@ namespace GroundConstruction
         public void SelectVessel()
         {
             if(vessel_selector != null) return;
-            vessel_selector = 
+            vessel_selector =
                 CraftBrowserDialog.Spawn(
                     EditorLogic.fetch.ship.shipFacility,
                     HighLogic.SaveFolder,
@@ -404,9 +393,8 @@ namespace GroundConstruction
             KitCost = kit.Cost;
             Facility = construct.shipFacility;
             update_texture();
-
-            OnKitTypeChanged();
-
+            set_kit_size();
+            update_constraint_controls();
             construct.Unload();
             Utils.LockControls("construct_loading", false);
         }
@@ -432,7 +420,7 @@ namespace GroundConstruction
             bool cant_launch = false;
             var preFlightCheck = new PreFlightCheck(new Callback(() => cant_launch = false), new Callback(() => cant_launch = true));
             preFlightCheck.AddTest(new PreFlightTests.ExperimentalPartsAvailable(construct));
-            preFlightCheck.RunTests(); 
+            preFlightCheck.RunTests();
             //cleanup loaded parts and try to store construct
             if(cant_launch) construct.Unload();
             else StartCoroutine(delayed_store_construct(construct));
@@ -484,7 +472,7 @@ namespace GroundConstruction
 
         bool kit_is_settled
         {
-            get 
+            get
             {
                 return vessel.srfSpeed < GLB.DeployMaxSpeed &&
                     vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
@@ -529,8 +517,8 @@ namespace GroundConstruction
             //resize the kit gradually
             while(DeploymentTime < 1)
             {
-                DeploymentTime += DeployingSpeed*TimeWarp.deltaTime;
-                Size = Vector3.Lerp(start, end, DeploymentTime-start_time);
+                DeploymentTime += DeployingSpeed * TimeWarp.deltaTime;
+                Size = Vector3.Lerp(start, end, DeploymentTime - start_time);
                 model.localScale = Vector3.Scale(Size, start_local_size);
                 model.hasChanged = true;
                 part.transform.hasChanged = true;
@@ -549,26 +537,26 @@ namespace GroundConstruction
             Deployed = true;
         }
 
-        [KSPEvent(guiName = "Deploy", 
-                  #if DEBUG
+        [KSPEvent(guiName = "Deploy",
+#if DEBUG
                   guiActive = true,
-                  #endif
+#endif
                   guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
         public void Deploy()
         {
             if(!can_deploy()) return;
             Events["Deploy"].active = false;
-            DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed/kit.ShipMetric.volume, 1/GLB.MinDeploymentTime);
-            Utils.SaveGame(kit.Name+"-before_deployment");
+            DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / kit.ShipMetric.volume, 1 / GLB.MinDeploymentTime);
+            Utils.SaveGame(kit.Name + "-before_deployment");
             Deploying = true;
         }
         #endregion
 
         #region Launching
-        [KSPEvent(guiName = "Launch", 
-                  #if DEBUG
+        [KSPEvent(guiName = "Launch",
+#if DEBUG
                   guiActive = true,
-                  #endif
+#endif
                   guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
         public void Launch()
         {
@@ -576,23 +564,23 @@ namespace GroundConstruction
             StartCoroutine(launch_complete_construct());
         }
 
-        [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true, 
+        [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true,
                   guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
-        public void EditName() 
-        { 
+        public void EditName()
+        {
             kitname_editor.Text = KitName;
             kitname_editor.Toggle();
         }
 
         public void AllowLaunch(bool allow = true)
-        { 
+        {
             LaunchAllowed = allow;
-            Events["Launch"].active = allow; 
+            Events["Launch"].active = allow;
         }
 
         void update_unfocusedRange(params string[] events)
         {
-            var range = Size.magnitude+1;
+            var range = Size.magnitude + 1;
             for(int i = 0, len = events.Length; i < len; i++)
             {
                 var ename = events[i];
@@ -642,13 +630,13 @@ namespace GroundConstruction
         {
             var partHeightQuery = new PartHeightQuery(float.MaxValue);
             int count = ship.parts.Count;
-            for (int i = 0; i < count; i++)
+            for(int i = 0; i < count; i++)
             {
                 var p = ship[i];
                 partHeightQuery.lowestOnParts.Add(p, float.MaxValue);
                 Collider[] componentsInChildren = p.GetComponentsInChildren<Collider>();
                 int num = componentsInChildren.Length;
-                for (int j = 0; j < num; j++)
+                for(int j = 0; j < num; j++)
                 {
                     Collider collider = componentsInChildren[j];
                     if(collider.enabled && collider.gameObject.layer != 21)
@@ -659,7 +647,7 @@ namespace GroundConstruction
                 }
             }
             count = ship.parts.Count;
-            for (int k = 0; k < count; k++)
+            for(int k = 0; k < count; k++)
                 ship[k].SendMessage("OnPutToGround", partHeightQuery, SendMessageOptions.DontRequireReceiver);
             Utils.Log("putting ship to ground: " + partHeightQuery.lowestPoint);
             float angle;
@@ -668,7 +656,7 @@ namespace GroundConstruction
             var root = ship.parts[0].localRoot.transform;
             var offset = spawnPoint.position;
             var CoG = root.TransformDirection(ship.Bounds(root).center);
-            offset -= new Vector3(root.position.x+CoG.x, partHeightQuery.lowestPoint, root.position.z+CoG.z);
+            offset -= new Vector3(root.position.x + CoG.x, partHeightQuery.lowestPoint, root.position.z + CoG.z);
             root.Translate(offset, Space.World);
             root.RotateAround(spawnPoint.position, axis, angle);
         }
@@ -692,11 +680,11 @@ namespace GroundConstruction
             GameEvents.onHideUI.Fire();
             yield return null;
             //save the game
-            Utils.SaveGame(kit.Name+"-before_launch");
+            Utils.SaveGame(kit.Name + "-before_launch");
             yield return null;
             //load ship construct and launch it
             var construct = kit.LoadConstruct();
-            if(construct == null) 
+            if(construct == null)
             {
                 Utils.Log("PackedConstruct: unable to load ShipConstruct {}. " +
                           "This usually means that some parts are missing " +
@@ -712,19 +700,19 @@ namespace GroundConstruction
             if(FlightGlobals.ready)
                 FloatingOrigin.SetOffset(launch_transform.position);
             PutShipToGround(construct, launch_transform);
-            ShipConstruction.AssembleForLaunch(construct, 
-                                               vessel.landedAt, vessel.displaylandedAt, part.flagURL, 
+            ShipConstruction.AssembleForLaunch(construct,
+                                               vessel.landedAt, vessel.displaylandedAt, part.flagURL,
                                                FlightDriver.FlightStateCache,
                                                new VesselCrewManifest());
             launched_vessel = FlightGlobals.Vessels[FlightGlobals.Vessels.Count - 1];
             StageManager.BeginFlight();
-            while(!launched_vessel.loaded) 
+            while(!launched_vessel.loaded)
             {
                 FlightCameraOverride.UpdateDurationSeconds(1);
                 yield return new WaitForFixedUpdate();
             }
             FXMonger.Explode(part, part.partTransform.position, 0);
-            while(launched_vessel.packed) 
+            while(launched_vessel.packed)
             {
                 launched_vessel.precalc.isEasingGravity = true;
                 launched_vessel.situation = Vessel.Situations.PRELAUNCH;
@@ -760,10 +748,10 @@ namespace GroundConstruction
         IEnumerable stabilize_launched_vessel(int frames)
         {
             if(launched_vessel == null) yield break;
-            var step = 1f/frames;
+            var step = 1f / frames;
             for(int i = 0; i < frames; i++)
             {
-                stabilize_launched_vessel(step*i);
+                stabilize_launched_vessel(step * i);
                 yield return null;
             }
             launched_vessel.permanentGroundContact = false;
@@ -774,7 +762,7 @@ namespace GroundConstruction
             if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
             Styles.Init();
             if(launch_in_progress)
-                GUI.Label(new Rect(Screen.width/2-190, 30, 380, 70),
+                GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
                           "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
                           Styles.rich_label);
             //rename the kit
@@ -802,7 +790,7 @@ namespace GroundConstruction
 
         #region IPartCostModifier implementation
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
-        { return kit.Valid? kit.Cost : 0; }
+        { return kit.Valid ? kit.Cost : 0; }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
         { return ModifierChangeWhen.CONSTANTLY; }
@@ -810,7 +798,7 @@ namespace GroundConstruction
 
         #region IPartMassModifier implementation
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
-        { return kit.Valid? kit.Mass : 0; }
+        { return kit.Valid ? kit.Mass : 0; }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
         { return ModifierChangeWhen.CONSTANTLY; }
