@@ -28,9 +28,9 @@ using AT_Utils;
 #if NIGHTBUILD
 [assembly: AssemblyVersion("1.2.*")]
 #else
-[assembly: AssemblyVersion("1.2.1.1")]
+[assembly: AssemblyVersion("1.3.0")]
 #endif
-[assembly: KSPAssembly("GroundConstruction", 1, 2)]
+[assembly: KSPAssembly("GroundConstruction", 1, 3)]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.
@@ -44,8 +44,8 @@ namespace GroundConstruction
     {
         public ModInfo()
         {
-            MinKSPVersion = new Version(1,4,1);
-            MaxKSPVersion = new Version(1,4,1);
+            MinKSPVersion = new Version(1,4,3);
+            MaxKSPVersion = new Version(1,4,3);
 
             VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
             UpgradeURL   = "https://spacedock.info/mod/1123/Ground%20Construction";
