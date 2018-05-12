@@ -65,8 +65,7 @@ namespace GroundConstruction
             CurrentIndex = 0;
         }
 
-        public override bool Valid
-        { get { return base.Valid && Host != null && Host.part != null; } }
+        public override bool Valid => base.Valid && Host != null && Host.part != null;
 
         public float Mass
         {
@@ -99,18 +98,14 @@ namespace GroundConstruction
             }
         }
 
-        public VesselResources ConstructResources
-        { get { return Complete ? new VesselResources(Blueprint) : null; } }
+        public VesselResources ConstructResources => 
+        Complete ? new VesselResources(Blueprint) : null;
 
-        public void CheckinWorker(WorkshopBase module)
-        {
-            workers[module.part.flightID] = module.Workforce;
-        }
+        public void CheckinWorker(WorkshopBase module) => 
+        workers[module.part.flightID] = module.Workforce;
 
-        public void CheckoutWorker(WorkshopBase module)
-        {
-            workers.Remove(module.part.flightID);
-        }
+        public void CheckoutWorker(WorkshopBase module) => 
+        workers.Remove(module.part.flightID);
 
         public ShipConstruct LoadConstruct()
         {
@@ -165,20 +160,22 @@ namespace GroundConstruction
         {
             var job = CurrentJob;
             if(work <= 0 || job == null)
-                return null;
+                return new DIYKit.Requirements();
             return job.RequirementsForWork(work);
         }
 
         public DIYKit.Requirements RemainingRequirements()
         {
-            if(remainder == null)
+            if(!remainder && Jobs.Count > 0)
             {
                 var njobs = Jobs.Count;
                 if(CurrentIndex < njobs)
                 {
-                    remainder = new DIYKit.Requirements();
+                    if(remainder == null)
+                        remainder = new DIYKit.Requirements();
                     for(int i = CurrentIndex; i < njobs; i++)
                         remainder.Update(Jobs[i].RemainingRequirements());
+                    Utils.Log("VesselKit.remainder {}", remainder);//debug
                 }
             }
             return remainder;
@@ -187,18 +184,16 @@ namespace GroundConstruction
         public override double DoSomeWork(double work)
         {
             if(work > 0)
-                remainder = null;
+                remainder.Clear();
             return base.DoSomeWork(work);
         }
 
         public void Draw()
         {
             var rem = RemainingRequirements();
-            if(rem != null)
-            {
-                var total_work = rem.work > 0 ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-                DIYKit.Draw(Name, CurrentStageIndex, total_work, rem);
-            }
+            var stage = CurrentStageIndex;
+            var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
+            DIYKit.Draw(Name, stage, total_work, rem);
         }
 
         public override void Load(ConfigNode node)
@@ -206,7 +201,9 @@ namespace GroundConstruction
             base.Load(node);
             if(node.HasValue("Completeness"))
             {   
+                Utils.Log("VesselKit.Load: {}", node);//debug
                 //deprecated config conversion
+                CurrentIndex = 0;
                 var list = new PersistentList<PartKit>();
                 var n = node.GetNode("BuiltParts");
                 if(n != null)
@@ -214,6 +211,7 @@ namespace GroundConstruction
                     list.Load(n);
                     Jobs.AddRange(list);
                     list.Clear();
+                    CurrentIndex = Jobs.Count;
                 }
                 n = node.GetNode("PartUnderConstruction");
                 if(n != null)
@@ -229,6 +227,7 @@ namespace GroundConstruction
                     Jobs.AddRange(list);
                     list.Clear();
                 }
+                Utils.Log("VesselKit.Loaded: {}", this);//debug
             }
         }
     }

@@ -15,9 +15,9 @@ namespace GroundConstruction
 
         public readonly ResourceUsageInfo Resource;
 
-        public override double WorkLeft { get { return TotalWork - WorkDone; } }
+        public override double WorkLeft => TotalWork - WorkDone;
 
-        public override bool Complete { get { return WorkDone >= TotalWork; } }
+        public override bool Complete => WorkDone >= TotalWork;
 
         public readonly int Index;
 
@@ -27,24 +27,24 @@ namespace GroundConstruction
             Resource = res;
         }
 
-        public override void SetComplete(bool complete)
-        {
-            WorkDone = complete ? TotalWork : 0;
-        }
+        public override void SetComplete(bool complete) => 
+        WorkDone = complete ? TotalWork : 0;
 
         public override double DoSomeWork(double work)
         { 
             if(Complete)
                 return work;
-            var dwork = Math.Min(work, WorkLeft);
-            WorkDone += dwork;
-            return work - dwork;
+            if(work >= WorkLeft)
+            {
+                var dwork = WorkLeft;
+                WorkDone = TotalWork;
+                return work - dwork;
+            }
+            WorkDone += work;
+            return 0;
         }
 
-        public int CompareTo(JobStage other)
-        {
-            return Index.CompareTo(other.Index);
-        }
+        public int CompareTo(JobStage other) => Index.CompareTo(other.Index);
     }
 }
 

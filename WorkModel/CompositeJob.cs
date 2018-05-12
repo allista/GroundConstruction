@@ -14,8 +14,7 @@ namespace GroundConstruction
     {
         [Persistent] public PersistentList<T> Jobs = new PersistentList<T>();
 
-        public override bool Valid
-        { get { return base.Valid && Jobs.Count > 0; } }
+        public override bool Valid => base.Valid && Jobs.Count > 0;
 
         public override double WorkLeft
         {
@@ -34,22 +33,15 @@ namespace GroundConstruction
             return work;
         }
 
-        public override bool Complete
-        { get { return Jobs.TrueForAll(j => j.Complete); } }
+        public override bool Complete => Jobs.TrueForAll(j => j.Complete);
 
-        public bool StageComplete(int stage)
-        {
-            return Jobs.TrueForAll(j => j[stage].Complete);
-        }
+        public bool StageComplete(int stage) => Jobs.TrueForAll(j => j[stage].Complete);
 
-        public T CurrentJob 
-        { get { return CurrentIndex < Jobs.Count ? Jobs[CurrentIndex] : null; } }
+        public T CurrentJob => CurrentIndex < Jobs.Count ? Jobs[CurrentIndex] : null;
 
-        public int CurrentStageIndex
-        { get { return Jobs.Count > 0 ? Jobs[0].CurrentIndex : -1; } }
+        public int CurrentStageIndex => Jobs.Count > 0 ? Jobs[0].CurrentIndex : -1;
 
-        public override int StagesCount
-        { get { return Jobs.Count > 0 ? Jobs[0].StagesCount : -1; } }
+        public override int StagesCount => Jobs.Count > 0 ? Jobs[0].StagesCount : -1;
 
         public override void NextStage()
         {
@@ -73,15 +65,11 @@ namespace GroundConstruction
             return work;
         }
 
-        public override void SetComplete(bool complete)
-        {
-            Jobs.ForEach(j => j.SetComplete(complete));
-        }
+        public override void SetComplete(bool complete) => 
+        Jobs.ForEach(j => j.SetComplete(complete));
 
-        public override void SetStageComplete(int stage, bool complete)
-        {
-            Jobs.ForEach(j => j.SetStageComplete(stage, complete));
-        }
+        public override void SetStageComplete(int stage, bool complete) => 
+        Jobs.ForEach(j => j.SetStageComplete(stage, complete));
     }
 }
 

@@ -37,11 +37,11 @@ namespace GroundConstruction
 
         public string ETA_Display { get; protected set; } = "Stalled...";
 
-        public string Workforce_Display
-        { get { return string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce); } }
+        public string Workforce_Display => 
+        string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce);
 
-        public float Workforce { get { return workforce; } }
-        public virtual float EffectiveWorkforce { get { return workforce; } }
+        public float Workforce => workforce;
+        public virtual float EffectiveWorkforce => workforce;
 
         public abstract IWorkshopTask GetCurrentTask();
 
@@ -53,10 +53,8 @@ namespace GroundConstruction
             LockName = GetType().Name+GetInstanceID();
         }
 
-        protected virtual void update_max_workforce()
-        {
-            max_workforce = part.CrewCapacity*5;
-        }
+        protected virtual void update_max_workforce() => 
+        max_workforce = part.CrewCapacity * 5;
 
         protected virtual void update_workforce<E>()
             where E : ExperienceEffect
@@ -64,15 +62,13 @@ namespace GroundConstruction
             workforce = 0;
             foreach(var kerbal in part.protoModuleCrew)
             {
-                var worker = 0f;
                 var trait = kerbal.experienceTrait;
-                foreach(var effect in trait.Effects)
-                {
-                    if(effect is E)
-                    { worker = 1; break; }
-                }
-                worker *= Mathf.Max(trait.CrewMemberExperienceLevel(), 0.5f);
-                workforce += worker;
+                for(int i = 0, traitEffectsCount = trait.Effects.Count; i < traitEffectsCount; i++)
+                    if(trait.Effects[i] is E)
+                    {
+                        workforce += Mathf.Max(trait.CrewMemberExperienceLevel(), 0.5f);
+                        break;
+                    }
             }
         }
 
@@ -108,7 +104,7 @@ namespace GroundConstruction
         {
             if(workforce.Equals(0))
             {
-                Utils.Message("No engineers in the workshop.");
+                Utils.Message("No workers in the workshop.");
                 return false;
             }
             return true;
@@ -184,10 +180,7 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public PersistentQueue<T> Queue = new PersistentQueue<T>();
         [KSPField(isPersistant = true)] public T CurrentTask = new T();
 
-        public override IWorkshopTask GetCurrentTask()
-        {
-            return CurrentTask;
-        }
+        public override IWorkshopTask GetCurrentTask() => CurrentTask;
 
         public override void StartTask(IWorkshopTask task)
         {
@@ -204,15 +197,9 @@ namespace GroundConstruction
             }
         }
 
-        protected void reset_current_task()
-        {
-            CurrentTask = new T();
-        }
+        protected void reset_current_task() => CurrentTask = new T();
 
-        protected virtual void update_workforce()
-        {
-            update_workforce<E>();
-        }
+        protected virtual void update_workforce() => update_workforce<E>();
 
         protected void update_and_checkin(Vessel vsl)
         {
@@ -237,7 +224,7 @@ namespace GroundConstruction
         }
         protected virtual void on_start() {}
 
-        protected virtual bool check_task(T task) { return task.Recheck(); }
+        protected virtual bool check_task(T task) => task.Recheck();
         protected abstract bool can_start_next();
         protected override bool start_next_item()
         {

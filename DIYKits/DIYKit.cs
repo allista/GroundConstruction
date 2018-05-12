@@ -34,11 +34,14 @@ namespace GroundConstruction
             public ResourceUsageInfo resource;
             public double resource_amount;
             public double resource_mass;
+            public bool Valid => resource != null;
 
             public void Update(Requirements other)
             {
-                if(resource != null && other.resource != null &&
-                   resource.id == other.resource.id)
+                if(!other) return;
+                if(resource == null)
+                    resource = other.resource;
+                if(resource.id == other.resource.id)
                 {
                     work += other.work;
                     energy += other.energy;
@@ -46,6 +49,18 @@ namespace GroundConstruction
                     resource_mass += other.resource_mass;
                 }
             }
+
+            public void Clear()
+            {
+                work = energy = resource_mass = resource_amount = 0;
+                resource = null;
+            }
+
+            public static implicit operator bool(Requirements r) => r != null && r.Valid;
+
+            public override string ToString() =>
+            string.Format("Requirements: work {0}, energy {1}, resource {2}, amount {3}, mass {4}",
+                          work, energy, resource, resource_amount, resource_mass);
         }
 
         public const int ASSEMBLY = 0;
@@ -66,14 +81,15 @@ namespace GroundConstruction
 
         public Requirements RequirementsForWork(double work)
         {
+            var req = new Requirements();
             if(work <= 0)
-                return null;
+                return req;
             var stage = CurrentStage;
             if(stage == null)
-                return null;
-            var req = new Requirements();
+                return req;
             work = Math.Min(work, stage.WorkLeft);
             var frac = (float)get_fraction();
+            req.resource = stage.Resource;
             req.resource_mass = Math.Max(Mass.Curve.Evaluate(frac + (float)(work / TotalWork)) -
                                 Mass.Curve.Evaluate(frac), 0);
             req.resource_amount = req.resource_mass / stage.Resource.def.density;
@@ -85,11 +101,13 @@ namespace GroundConstruction
 
         public Requirements RemainingRequirements()
         {
-            if(remainder == null)
+            if(!remainder)
             {
+                if(remainder == null)
+                    remainder = new Requirements();
                 var stage = CurrentStage;
                 if(stage != null)
-                    remainder = RequirementsForWork(stage.WorkLeft);
+                    remainder.Update(RequirementsForWork(stage.WorkLeft));
             }
             return remainder;
         }
@@ -99,22 +117,22 @@ namespace GroundConstruction
             GUILayout.BeginVertical(Styles.white);
             GUILayout.BeginHorizontal();
             GUILayout.Label(string.Format("<b>{0}</b>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
-            var status = "";
+            var status = StringBuilderCache.Acquire();
             if(remainder.work > 0)
             {
-                status += stage == ASSEMBLY ? " Assembly:" : " Construction:";
-                status += string.Format(" <b>{0:P1}</b>", (total_work - remainder.work) / total_work);
+                status.Append(stage == ASSEMBLY ? " Assembly:" : " Construction:");
+                status.AppendFormat(" <b>{0:P1}</b>", (total_work - remainder.work) / total_work);
             }
             else
-                status += " Complete.";
-            GUILayout.Label(status, Styles.rich_label, GUILayout.ExpandWidth(true));
+                status.Append(" Complete.");
+            GUILayout.Label(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
             if(remainder.work > 0)
             {
                 var requirements = string.Format("Needs: <b>{0}</b> of {1}, <b>{2}</b>, <b>{3:F1}</b> SKH.",
-                                                 Utils.formatBigValue((float)remainder.resource_amount, "u"), 
-                                                 remainder.resource.name, 
-                                                 Utils.formatBigValue((float)remainder.energy, "EC"),
+                                                 Utils.formatBigValue((float)remainder.resource_amount, " u"),
+                                                 remainder.resource.name,
+                                                 Utils.formatBigValue((float)remainder.energy, " EC"),
                                                  remainder.work / 3600);
                 GUILayout.Label(requirements, Styles.rich_label, GUILayout.ExpandWidth(true));
             }
@@ -123,18 +141,15 @@ namespace GroundConstruction
 
         public void Draw()
         {
+			var stage = CurrentStage;
             var rem = RemainingRequirements();
-            if(rem != null)
-            {
-                var total_work = rem.work > 0 ? CurrentStage.TotalWork : 1;
-                Draw(Name, CurrentIndex, total_work, rem);
-            }
+            Draw(Name, CurrentIndex, stage != null? stage.TotalWork : 1, rem);
         }
 
         public override double DoSomeWork(double work)
         {
             if(work > 0)
-                remainder = null;
+                remainder.Clear();
             return base.DoSomeWork(work);
         }
 

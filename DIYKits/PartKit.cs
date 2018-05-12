@@ -63,10 +63,8 @@ namespace GroundConstruction
             }
         }
 
-        double total_work(JobStage task, double end_mass)
-        {
-            return (Complexity * task.Resource.ComplexityWork + end_mass * Construction.Resource.WorkPerMass) * 3600;
-        }
+        double total_work(JobStage task, double end_mass) => 
+        (Complexity * task.Resource.ComplexityWork + Construction.Resource.WorkPerMass) * end_mass * 3600;
 
         //deprecated config conversion
         public override void Load(ConfigNode node)
@@ -74,6 +72,7 @@ namespace GroundConstruction
             base.Load(node);
             if(node.HasValue("Completeness"))
             {
+                CurrentIndex = CONSTRUCTION;
                 Assembly.TotalWork = Assembly.WorkDone = Construction.TotalWork;
                 update_total_work();
                 float v;
@@ -93,6 +92,9 @@ namespace GroundConstruction
                 val = node.GetValue("KitCost");
                 if(float.TryParse(val, out v))
                     Cost.Add(frac, v);
+                frac = (float)get_fraction();
+                Mass.Update(frac);
+                Cost.Update(frac);
             }
         }
     }

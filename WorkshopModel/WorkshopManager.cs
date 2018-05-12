@@ -19,13 +19,13 @@ namespace GroundConstruction
         public Dictionary<uint, ProtoWorkshop> ProtoWorkshops = new Dictionary<uint, ProtoWorkshop>();
         public SortedDictionary<string,uint> DisplayOrder = new SortedDictionary<string,uint>();
 
-        public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vessel.id == FlightGlobals.ActiveVessel.id; } }
-        public string VesselName { get { return vessel.vesselName; } }
-        public Guid VesselID { get { return vessel.id; } }
-        public string CB { get { return FlightGlobals.Bodies[vessel.protoVessel.orbitSnapShot.ReferenceBodyIndex].bodyName; } }
-        public bool Empty { get { return ProtoWorkshops.Count == 0; } }
-        public bool IsLanded { get { return vessel.Landed; } }
-        public string DisplayID { get { return vessel.vesselName+vessel.id; } }
+        public bool IsActive => FlightGlobals.ActiveVessel != null && vessel.id == FlightGlobals.ActiveVessel.id;
+        public string VesselName => vessel.vesselName;
+        public Guid VesselID => vessel.id;
+        public string CB => FlightGlobals.Bodies[vessel.protoVessel.orbitSnapShot.ReferenceBodyIndex].bodyName;
+        public bool Empty => ProtoWorkshops.Count == 0;
+        public bool IsLanded => vessel.Landed;
+        public string DisplayID => vessel.vesselName + vessel.id;
 
         void add_protoworkshop(ProtoWorkshop info)
         {

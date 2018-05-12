@@ -14,7 +14,7 @@ namespace GroundConstruction
         [Persistent] public string Name;
         [Persistent] public int CurrentIndex = -1;
 
-        public virtual bool Valid { get { return CurrentIndex >= 0; } }
+        public virtual bool Valid => CurrentIndex >= 0;
 
         public abstract int StagesCount { get; }
 
@@ -22,10 +22,7 @@ namespace GroundConstruction
 
         public abstract void SetStageComplete(int stage, bool complete);
 
-        public static implicit operator bool(JobBase job)
-        {
-            return job != null && job.Valid;
-        }
+        public static implicit operator bool(JobBase job) => job != null && job.Valid;
     }
 }
 

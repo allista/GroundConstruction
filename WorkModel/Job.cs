@@ -18,28 +18,25 @@ namespace GroundConstruction
         readonly List<JobStage> stages = new List<JobStage>();
         readonly List<JobParameter> parameters = new List<JobParameter>();
 
-        public override bool Valid
-        { get { return base.Valid && stages.Count > 0; } }
+        public override bool Valid => base.Valid && stages.Count > 0;
 
-        public override bool Complete 
-        { get { return CurrentIndex >= stages.Count; } }
+        public override bool Complete => CurrentIndex >= stages.Count;
 
-        public override double WorkLeft
-        { get { return TotalWork * (1 - get_fraction()); } }
+        public override double WorkLeft => TotalWork * (1 - get_fraction());
 
-        public override int StagesCount
-        { get { return stages.Count; } }
+        public override int StagesCount => stages.Count;
 
-        public JobStage this[int index] 
-        { get { return stages[index]; } }
+        public JobStage this[int index] => stages[index];
 
-        public JobStage CurrentStage 
-        { get { return CurrentIndex < stages.Count ? stages[CurrentIndex] : null; } }
+        public JobStage CurrentStage => 
+        CurrentIndex >= 0 && CurrentIndex < stages.Count ? stages[CurrentIndex] : null;
 
         protected void fill_member_collection<T>(IList<T> collection) where T : class
         {
             foreach(var fi in GetType()
-                    .GetFields(BindingFlags.Public|BindingFlags.Instance|BindingFlags.FlattenHierarchy)
+                    .GetFields(BindingFlags.Public|
+                               BindingFlags.Instance|
+                               BindingFlags.FlattenHierarchy)
                     .Where(fi => typeof(T).IsAssignableFrom(fi.FieldType)))
             {
                 var item = fi.GetValue(this) as T;

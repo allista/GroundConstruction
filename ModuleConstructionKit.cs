@@ -238,6 +238,20 @@ namespace GroundConstruction
                 if(KitName == "None")
                     KitName = kit.Name;
             }
+            //deprecated config conversion
+            if(node.HasValue("Deploying"))
+            {
+                state = ContainerState.IDLE;
+                var val = node.GetValue("Deploying");
+                if(bool.TryParse(val, out bool _deploy) && _deploy)
+                    state = ContainerState.DEPLOYING;
+                else
+                {
+                    val = node.GetValue("Deployed");
+                    if(bool.TryParse(val, out _deploy) && _deploy)
+                        state = ContainerState.DEPLOYED;
+                }
+            }
 //            this.Log("OnLoad: node: {}\n\nkit: {}", node, kit);//debug
         }
 
