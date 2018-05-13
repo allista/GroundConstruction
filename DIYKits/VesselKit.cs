@@ -158,10 +158,20 @@ namespace GroundConstruction
 
         public DIYKit.Requirements RequirementsForWork(double work)
         {
-            var job = CurrentJob;
-            if(work <= 0 || job == null)
-                return new DIYKit.Requirements();
-            return job.RequirementsForWork(work);
+            var req = new DIYKit.Requirements();
+            if(work > 0 && Jobs.Count > 0)
+            {
+                var njobs = Jobs.Count;
+                if(CurrentIndex < njobs)
+                {
+                    for(int i = CurrentIndex; i < njobs; i++)
+                    {
+                        req.Update(Jobs[i].RequirementsForWork(work-req.work));
+                        if(work <= req.work) break;
+                    }
+                }
+            }
+            return req;
         }
 
         public DIYKit.Requirements RemainingRequirements()
@@ -175,7 +185,6 @@ namespace GroundConstruction
                         remainder = new DIYKit.Requirements();
                     for(int i = CurrentIndex; i < njobs; i++)
                         remainder.Update(Jobs[i].RemainingRequirements());
-                    Utils.Log("VesselKit.remainder {}", remainder);//debug
                 }
             }
             return remainder;

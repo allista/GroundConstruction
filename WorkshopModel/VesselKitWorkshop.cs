@@ -17,6 +17,7 @@ namespace GroundConstruction
         protected double serve_requirements(double work)
         {
             var req = CurrentTask.Kit.RequirementsForWork(work);
+            //this.Log(req.ToString());//debug
             double have_res = 0, have_ec = 0, used_res = 0, used_ec = 0;
             //get required resource
             if(req.resource_amount > 0)
@@ -48,7 +49,7 @@ namespace GroundConstruction
                 frac = Math.Min(frac, have_ec/req.energy);
             used_res = req.resource_amount*frac;
             used_ec = req.energy*frac;
-            work = work*frac;
+            work = req.work*frac;
             //return unused resources
             end:
             if(used_res < have_res)
@@ -63,7 +64,7 @@ namespace GroundConstruction
         protected override double do_some_work(double available_work)
         {
             var work = serve_requirements(available_work);
-            this.Log("can do work: {}", work);//debug
+            //this.Log("can do work: {}", work);//debug
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
