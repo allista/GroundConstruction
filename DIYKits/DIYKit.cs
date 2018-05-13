@@ -59,8 +59,8 @@ namespace GroundConstruction
             public static implicit operator bool(Requirements r) => r != null && r.Valid;
 
             public override string ToString() =>
-            string.Format("Requirements: work {0}, energy {1}, resource {2}, amount {3}, mass {4}",
-                          work, energy, resource, resource_amount, resource_mass);
+            string.Format("Requirements: work {0}, energy {1}, amount {2}, mass {3}, resource {4}",
+                          work, energy, resource_amount, resource_mass, resource);
         }
 
         public const int ASSEMBLY = 0;

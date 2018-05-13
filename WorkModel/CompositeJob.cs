@@ -58,7 +58,7 @@ namespace GroundConstruction
 			var job = CurrentJob;
             while(work > 0 && job != null)
             {
-                Utils.Log("Doing {} work on {}", work, job);//debug
+                //Utils.Log("Doing {} work on {}", work, job);//debug
                 work = job.DoSomeWork(work);
                 if(job.CurrentStage.Complete)
                 {

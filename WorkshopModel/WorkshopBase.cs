@@ -297,14 +297,15 @@ namespace GroundConstruction
             var deltaTime = get_delta_time();
             if(deltaTime < 0) return;
             //check current kit
-            this.Log("0 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
+            //this.Log("Delta time: {}", deltaTime);//debug
+            //this.Log("0 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
             if(!check_task(CurrentTask) && !start_next_item()) return;
             var available_work = workforce*deltaTime;
-            this.Log("1 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
-            this.Log("available work: {}", available_work);//debug
+            //this.Log("1 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
+            //this.Log("available work: {}", available_work);//debug
             while(Working && available_work > TimeWarp.fixedDeltaTime/10)
                 available_work = do_some_work(available_work);
-            this.Log("available work left: {}", available_work);//debug
+            //this.Log("available work left: {}", available_work);//debug
             if(deltaTime > TimeWarp.fixedDeltaTime*2)
             {
                 update_ETA();
