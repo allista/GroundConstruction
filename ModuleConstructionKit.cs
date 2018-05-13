@@ -42,6 +42,7 @@ namespace GroundConstruction
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
         SimpleTextEntry kitname_editor;
+        ShipConstructLoader construct_loader;
 
         [KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
         public float KitMass;
@@ -123,7 +124,7 @@ namespace GroundConstruction
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
                 var rem = kit.RemainingRequirements();
-				KitWork = (float)rem.work;
+				KitWork = (float)rem.work/3600;
                 KitRes  = (float)rem.resource_amount;
             }
             else
@@ -201,7 +202,8 @@ namespace GroundConstruction
         {
             base.OnAwake();
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
-            kitname_editor.Show(false);
+            construct_loader = gameObject.AddComponent<ShipConstructLoader>();
+            construct_loader.process_construct = store_construct;
             model = part.transform.Find("model");
             var obj = new GameObject("SpawnTransformFwdMesh", typeof(MeshFilter), typeof(MeshRenderer));
             obj.transform.SetParent(model);
@@ -219,6 +221,7 @@ namespace GroundConstruction
             detach_anchor();
             Destroy(fwd_mesh.gameObject);
             Destroy(kitname_editor);
+            Destroy(construct_loader);
         }
 
         void create_fwd_mesh()
@@ -322,7 +325,7 @@ namespace GroundConstruction
             if(HighLogic.LoadedSceneIsEditor && kit.Valid &&
                model.localScale == OrigScale)
                 update_model(true);
-            if(HighLogic.LoadedSceneIsEditor)
+            if(HighLogic.LoadedSceneIsFlight)
                 update_fwd_mesh();
             if(state == ContainerState.DEPLOYED)
             {
@@ -339,25 +342,20 @@ namespace GroundConstruction
         }
 
         #region Select Ship Construct
-        CraftBrowserDialog vessel_selector;
-
         [KSPEvent(guiName = "Select Vessel", guiActive = false, guiActiveEditor = true, active = true)]
         public void SelectVessel()
         {
-            if(vessel_selector != null) return;
-            vessel_selector =
-                CraftBrowserDialog.Spawn(
-                    EditorLogic.fetch.ship.shipFacility,
-                    HighLogic.SaveFolder,
-                    vessel_selected,
-                    selection_canceled, false);
+            construct_loader.SelectVessel();
         }
 
-        IEnumerator<YieldInstruction> delayed_store_construct(ShipConstruct construct)
+        [KSPEvent(guiName = "Select Subassembly", guiActive = false, guiActiveEditor = true, active = true)]
+        public void SelectSubassembly()
         {
-            if(construct == null) yield break;
-            Utils.LockControls("construct_loading");
-            for(int i = 0; i < 3; i++) yield return null;
+            construct_loader.SelectSubassembly();
+        }
+
+        void store_construct(ShipConstruct construct)
+        {
             kit = new VesselKit(this, construct);
             Facility = construct.shipFacility;
             update_part_info();
@@ -367,36 +365,7 @@ namespace GroundConstruction
             construct.Unload();
             this.Log("mass {}, cost {}, name {}, kit {}",
                      kit.Mass, kit.Cost, kit.Name, kit);//debug
-            Utils.LockControls("construct_loading", false);
         }
-
-        void vessel_selected(string filename, CraftBrowserDialog.LoadType t)
-        {
-            vessel_selector = null;
-            EditorLogic EL = EditorLogic.fetch;
-            if(EL == null) return;
-            //load vessel config
-            var node = ConfigNode.Load(filename);
-            if(node == null) return;
-            var construct = new ShipConstruct();
-            if(!construct.LoadShip(node))
-            {
-                Utils.Log("Unable to load ShipConstruct from {}. " +
-                          "This usually means that some parts are missing " +
-                          "or some modules failed to initialize.", filename);
-                Utils.Message("Unable to load {0}", filename);
-                return;
-            }
-            //check if it's possible to launch such vessel
-            bool cant_launch = false;
-            var preFlightCheck = new PreFlightCheck(new Callback(() => cant_launch = false), new Callback(() => cant_launch = true));
-            preFlightCheck.AddTest(new PreFlightTests.ExperimentalPartsAvailable(construct));
-            preFlightCheck.RunTests();
-            //cleanup loaded parts and try to store construct
-            if(cant_launch) construct.Unload();
-            else StartCoroutine(delayed_store_construct(construct));
-        }
-        void selection_canceled() { vessel_selector = null; }
         #endregion
 
         #region Deployment
@@ -615,7 +584,6 @@ namespace GroundConstruction
                     }
                 }
             }
-            count = ship.parts.Count;
             for(int k = 0; k < count; k++)
                 ship[k].SendMessage("OnPutToGround", partHeightQuery, SendMessageOptions.DontRequireReceiver);
             Utils.Log("putting ship to ground: " + partHeightQuery.lowestPoint);
@@ -728,15 +696,21 @@ namespace GroundConstruction
 
         void OnGUI()
         {
-            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
+            if(Event.current.type != EventType.Layout && 
+               Event.current.type != EventType.Repaint) return;
             Styles.Init();
             if(launch_in_progress)
                 GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
                           "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
                           Styles.rich_label);
-            //rename the kit
-            if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
-                KitName = kit.Name = kitname_editor.Text;
+            else
+            {
+                //load ship construct
+                construct_loader.Draw();
+                //rename the kit
+                if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
+                    KitName = kit.Name = kitname_editor.Text;
+            }
         }
         #endregion
 
