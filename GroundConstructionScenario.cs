@@ -27,6 +27,7 @@ namespace GroundConstruction
         static SortedDictionary<string,Guid> DisplayOrder = new SortedDictionary<string,Guid>();
         static List<string> CelestialBodies = new List<string>();
         static string CelestialBodyTab = "";
+        public static bool ShowSpawnTransfrom;
         double now = -1;
 
         public static void CheckinVessel(WorkshopManager workshop_manager)
@@ -179,8 +180,14 @@ namespace GroundConstruction
             }
             else GUILayout.Label("No Ground Workshops", Styles.white, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
-            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
+            GUILayout.BeginHorizontal();
+            Utils.ButtonSwitch("Show Kit Orientation", ref ShowSpawnTransfrom,
+                               "Draw forward direction of a vessel spawned from a DIY kit (only for landed kits)",
+                               GUILayout.ExpandWidth(false));
+            GUILayout.FlexibleSpace();
+            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(false)))
                 show_window = false;
+            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUIWindowBase.TooltipsAndDragWindow();
         }

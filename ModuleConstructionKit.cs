@@ -14,13 +14,16 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IKitContainer
+    public partial class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IKitContainer
     {
         static Globals GLB { get { return Globals.Instance; } }
 
         Transform model;
         List<Transform> spawn_transforms;
         [KSPField] public string SpawnTransforms;
+
+        MeshFilter fwd_mesh;
+        static readonly Color fwd_color = new Color(0, 1, 0, 0.25f);
 
         TextureSwitcherServer texture_switcher;
         [KSPField] public string TextureVAB;
@@ -199,6 +202,54 @@ namespace GroundConstruction
             base.OnAwake();
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
             kitname_editor.Show(false);
+            model = part.transform.Find("model");
+            var obj = new GameObject("SpawnTransformFwdMesh", typeof(MeshFilter), typeof(MeshRenderer));
+            obj.transform.SetParent(model);
+            fwd_mesh = obj.GetComponent<MeshFilter>();
+            fwd_mesh.mesh = new Mesh();
+            var fwd_renderer = obj.GetComponent<MeshRenderer>();
+            fwd_renderer.material = Utils.no_z_material;
+            fwd_renderer.material.color = fwd_color;
+            fwd_renderer.enabled = true;
+            obj.SetActive(false);
+        }
+
+        void OnDestroy()
+        {
+            detach_anchor();
+            Destroy(fwd_mesh.gameObject);
+            Destroy(kitname_editor);
+        }
+
+        void create_fwd_mesh()
+        {
+            var size = OrigSize.magnitude;
+            var mesh = fwd_mesh.mesh;
+            mesh.vertices = new[]{
+                -Vector3.right*size/4,
+                Vector3.forward*size,
+                Vector3.right*size/4
+            };
+            mesh.triangles = new[] { 0, 1, 2 };
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+        }
+
+        void update_fwd_mesh()
+        {
+            fwd_mesh.gameObject.SetActive(false);
+            if(GroundConstructionScenario.ShowSpawnTransfrom)
+            {
+                var T = get_spawn_transform();
+                if(T != null)
+                {
+                    var fwd_T = fwd_mesh.gameObject.transform;
+                    fwd_T.position = T.position;
+                    fwd_T.rotation = T.rotation;
+                    fwd_mesh.gameObject.SetActive(true);
+                }
+            }
         }
 
         public override void OnStart(StartState state)
@@ -208,7 +259,8 @@ namespace GroundConstruction
             Events["Deploy"].active = kit.Valid && State == ContainerState.IDLE;
             Events["Launch"].active = kit.Valid && State == ContainerState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
-            model = part.transform.Find("model");
+            setup_constraint_fields();
+            create_fwd_mesh();
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
@@ -233,7 +285,6 @@ namespace GroundConstruction
                 setup_ground_contact();
             }
         }
-        void OnDestroy() { detach_anchor(); }
 
         public override void OnLoad(ConfigNode node)
         {
@@ -264,7 +315,6 @@ namespace GroundConstruction
                         state = ContainerState.DEPLOYED;
                 }
             }
-//            this.Log("OnLoad: node: {}\n\nkit: {}", node, kit);//debug
         }
 
         void Update()
@@ -272,6 +322,8 @@ namespace GroundConstruction
             if(HighLogic.LoadedSceneIsEditor && kit.Valid &&
                model.localScale == OrigScale)
                 update_model(true);
+            if(HighLogic.LoadedSceneIsEditor)
+                update_fwd_mesh();
             if(state == ContainerState.DEPLOYED)
             {
                 setup_ground_contact();
@@ -307,13 +359,11 @@ namespace GroundConstruction
             Utils.LockControls("construct_loading");
             for(int i = 0; i < 3; i++) yield return null;
             kit = new VesselKit(this, construct);
-            var V = OrigSize.x * OrigSize.y * OrigSize.z;
-            Size = OrigSize * Mathf.Pow(KitMass / GLB.VesselKitDensity / V, 1 / 3f);
-            Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
             Facility = construct.shipFacility;
-			update_part_info();
+            update_part_info();
             update_texture();
-            update_model(false);
+            set_kit_size();
+            update_constraint_controls();
             construct.Unload();
             this.Log("mass {}, cost {}, name {}, kit {}",
                      kit.Mass, kit.Cost, kit.Name, kit);//debug
@@ -705,7 +755,6 @@ namespace GroundConstruction
         public ModifierChangeWhen GetModuleMassChangeWhen()
         { return ModifierChangeWhen.CONSTANTLY; }
         #endregion
-
 #if DEBUG
         void OnRenderObject()
         {

@@ -1,6 +1,16 @@
 #Ground Construction ChangeLog
 
-* **v1.2.1**
+* **v1.3.0**
+    * Added on-demand rendering of spawn transform's forward direction
+    * Fix for EL 6.0 by @LatiMacciato
+    * Added DIY kit size constraints. Code greatly improved by **llinard**
+    * Fixed KitRes display and Remaining Structure Mass calculation.
+    * Fixed SpaceCrane RCS effects.
+
+* v1.2.1.1
+    * Using TextureCache to load icons.
+
+* v1.2.1
     * Remove ISRU patch if USI is detected.
     * Fixed PartCost calculation.
 
