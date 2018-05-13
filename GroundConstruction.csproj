@@ -72,7 +72,6 @@
     <Compile Include="DIYKits\VesselKit.cs" />
     <Compile Include="WorkshopModel\WorkshopBase.cs" />
     <Compile Include="WorkshopModel\WorkshopManager.cs" />
-    <Compile Include="WorkshopModel\AssemblyLineBase.cs" />
     <Compile Include="WorkshopModel\ProtoWorkshop.cs" />
     <Compile Include="WorkshopModel\IKitContainer.cs" />
     <Compile Include="WorkshopModel\VesselKitWorkshop.cs" />
