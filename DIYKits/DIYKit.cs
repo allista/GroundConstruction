@@ -116,7 +116,7 @@ namespace GroundConstruction
         {
             GUILayout.BeginVertical(Styles.white);
             GUILayout.BeginHorizontal();
-            GUILayout.Label(string.Format("<b>{0}</b>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(string.Format("<color=lime><b>{0}</b></color>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
             var status = StringBuilderCache.Acquire();
             if(remainder.work > 0)
             {
@@ -125,15 +125,16 @@ namespace GroundConstruction
             }
             else
                 status.Append(" Complete.");
-            GUILayout.Label(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
             if(remainder.work > 0)
             {
-                var requirements = string.Format("Needs: <b>{0}</b> of {1}, <b>{2}</b>, <b>{3:F1}</b> SKH.",
-                                                 Utils.formatBigValue((float)remainder.resource_amount, " u"),
-                                                 remainder.resource.name,
-                                                 Utils.formatBigValue((float)remainder.energy, " EC"),
-                                                 remainder.work / 3600);
+                var requirements = string
+                    .Format("Needs: <color=brown><b>{0}</b></color> of {1}, <color=orange><b>{2}</b></color>, <b>{3:F1} SKH</b>",
+                            Utils.formatBigValue((float)remainder.resource_amount, " u"),
+                            remainder.resource.name,
+                            Utils.formatBigValue((float)remainder.energy, " EC"),
+                            remainder.work / 3600);
                 GUILayout.Label(requirements, Styles.rich_label, GUILayout.ExpandWidth(true));
             }
             GUILayout.EndVertical();
@@ -141,9 +142,9 @@ namespace GroundConstruction
 
         public void Draw()
         {
-			var stage = CurrentStage;
+            var stage = CurrentStage;
             var rem = RemainingRequirements();
-            Draw(Name, CurrentIndex, stage != null? stage.TotalWork : 1, rem);
+            Draw(Name, CurrentIndex, stage != null ? stage.TotalWork : 1, rem);
         }
 
         public override double DoSomeWork(double work)

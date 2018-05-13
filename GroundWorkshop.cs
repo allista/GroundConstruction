@@ -244,11 +244,9 @@ namespace GroundConstruction
             if(CurrentTask.Valid)
             {
                 GUILayout.BeginVertical(Styles.white);
-                CurrentTask.Draw();
-                CurrentTask.DrawCurrentPart();
-//                GUILayout.Label(CurrentTask.ToString(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
-//                GUILayout.Label(CurrentTask.CurrentPartStatus(), Working? Styles.green : Styles.yellow, GUILayout.ExpandWidth(true));
-//                GUILayout.EndHorizontal();
+                GUILayout.Label("<color=yellow><b>Currentrly building</b></color>", 
+                                Styles.boxed_label, GUILayout.ExpandWidth(true));
+                current_task_pane();
                 if(Working)
                 {
                     if(distance_mod < 1)
@@ -271,7 +269,7 @@ namespace GroundConstruction
             }
             if(CurrentTask.Valid || Queue.Count > 0)
             {
-                if(Utils.ButtonSwitch("Construct Kit", ref Working, "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
+                if(Utils.ButtonSwitch("Construct", ref Working, "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
                 {
                     if(Working && can_construct()) start();
                     else stop();
@@ -283,7 +281,7 @@ namespace GroundConstruction
         void built_kits_pane()
         {
             if(nearby_built_kits.Count == 0) return;
-            GUILayout.Label("Completed DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.Label("Built DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
             built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
             VesselKitInfo crew = null;
@@ -293,7 +291,6 @@ namespace GroundConstruction
             {
                 GUILayout.BeginHorizontal();
                 info.Draw();
-//                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
                                     Styles.active_button, GUILayout.ExpandWidth(false)))
@@ -320,7 +317,7 @@ namespace GroundConstruction
         void nearby_kits_pane()
         {
             if(nearby_unbuilt_kits.Count == 0) return;
-            GUILayout.Label("Uncompleted DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.Label("Unbuilt DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
             unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
             VesselKitInfo add = null;
@@ -329,7 +326,6 @@ namespace GroundConstruction
             {
                 GUILayout.BeginHorizontal();
                 info.Draw();
-//                GUILayout.Label(info.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
                 set_highlighted_task(info);
                 if(info.Container.State == ContainerState.DEPLOYED)
                 {

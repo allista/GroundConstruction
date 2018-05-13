@@ -122,6 +122,22 @@ namespace GroundConstruction
                                          GUILayout.Height(height)).clampToScreen();
         }
         #endregion
+
+        protected void current_task_pane()
+        {
+			GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("<color=yellow><b>Kit:</b></color>", 
+                            Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
+            CurrentTask.Draw();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("<color=yellow><b>Part:</b></color>", 
+                            Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
+            CurrentTask.DrawCurrentPart();
+            GUILayout.EndHorizontal();
+			GUILayout.EndVertical();
+        }
     }
 }
 
