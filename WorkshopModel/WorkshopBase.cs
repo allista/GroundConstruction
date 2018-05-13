@@ -308,7 +308,8 @@ namespace GroundConstruction
             //this.Log("available work left: {}", available_work);//debug
             if(deltaTime > TimeWarp.fixedDeltaTime*2)
             {
-                update_ETA();
+                if(Working)
+                    update_ETA();
                 checkin();
             }
         }
