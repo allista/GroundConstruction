@@ -283,7 +283,9 @@ namespace GroundConstruction
             if(nearby_built_kits.Count == 0) return;
             GUILayout.Label("Built DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-            built_scroll = GUILayout.BeginScrollView(built_scroll, GUILayout.Height(height), GUILayout.Width(width));
+            built_scroll = GUILayout.BeginScrollView(built_scroll, 
+                                                     GUILayout.Height(height*Math.Min(nearby_built_kits.Count, 2)), 
+                                                     GUILayout.Width(width));
             VesselKitInfo crew = null;
             VesselKitInfo resources = null;
             VesselKitInfo launch = null;
@@ -319,7 +321,9 @@ namespace GroundConstruction
             if(nearby_unbuilt_kits.Count == 0) return;
             GUILayout.Label("Unbuilt DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-            unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, GUILayout.Height(height), GUILayout.Width(width));
+            unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, 
+                                                       GUILayout.Height(height*Math.Min(nearby_unbuilt_kits.Count, 2)), 
+                                                       GUILayout.Width(width));
             VesselKitInfo add = null;
             VesselKitInfo deploy = null;
             foreach(var info in nearby_unbuilt_kits)

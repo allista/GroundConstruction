@@ -329,7 +329,9 @@ namespace GroundConstruction
             {
                 GUILayout.Label("Construction Queue", Styles.label, GUILayout.ExpandWidth(true));
                 GUILayout.BeginVertical(Styles.white);
-                queue_scroll = GUILayout.BeginScrollView(queue_scroll, GUILayout.Height(height), GUILayout.Width(width));
+                queue_scroll = GUILayout.BeginScrollView(queue_scroll, 
+                                                         GUILayout.Height(height*Math.Min(Queue.Count, 2)), 
+                                                         GUILayout.Width(width));
                 T del = null;
                 T up = null;
                 foreach(var task in Queue)
