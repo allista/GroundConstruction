@@ -27,7 +27,7 @@ namespace GroundConstruction
         static SortedDictionary<string,Guid> DisplayOrder = new SortedDictionary<string,Guid>();
         static List<string> CelestialBodies = new List<string>();
         static string CelestialBodyTab = "";
-        public static bool ShowSpawnTransfrom;
+        public static bool ShowDeployHint;
         double now = -1;
 
         public static void CheckinVessel(WorkshopManager workshop_manager)
@@ -181,8 +181,8 @@ namespace GroundConstruction
             else GUILayout.Label("No Ground Workshops", Styles.white, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            Utils.ButtonSwitch("Show Kit Orientation", ref ShowSpawnTransfrom,
-                               "Draw forward direction of a vessel spawned from a DIY kit (only for landed kits)",
+            Utils.ButtonSwitch("Show Deploy Hints", ref ShowDeployHint,
+                               "Draw visual cues to help position a DIY Kit",
                                GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
             if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(false)))
@@ -196,7 +196,7 @@ namespace GroundConstruction
         void OnGUI()
         {
             if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
-            if(Time.timeSinceLevelLoad > 3 && show_window && GUIWindowBase.HUD_enabled)
+            if(show_window && GUIWindowBase.HUD_enabled)
             {
                 Styles.Init();
                 Utils.LockIfMouseOver(LockName, WindowPos);
