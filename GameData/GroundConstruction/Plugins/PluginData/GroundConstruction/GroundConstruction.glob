@@ -35,5 +35,5 @@ VesselKitMinSize = 0.5
 
 DeployMaxSpeed   = 0.5
 DeployMaxAV      = 1E-03
-DeploymentSpeed  = 50
+DeploymentSpeed  = 20
 MinDeploymentTime = 3
