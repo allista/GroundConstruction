@@ -597,8 +597,8 @@ namespace GroundConstruction
             spawnPoint.rotation.ToAngleAxis(out angle, out axis);
             var root = ship.parts[0].localRoot.transform;
             var offset = spawnPoint.position;
-            var CoG = root.TransformDirection(ship.Bounds(root).center);
-            offset -= new Vector3(root.position.x + CoG.x, partHeightQuery.lowestPoint, root.position.z + CoG.z);
+            var CoG = ship.Bounds().center;
+            offset -= new Vector3(CoG.x, partHeightQuery.lowestPoint, CoG.z);
             root.Translate(offset, Space.World);
             root.RotateAround(spawnPoint.position, axis, angle);
         }

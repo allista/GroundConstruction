@@ -59,7 +59,7 @@ namespace GroundConstruction
             Name = ship.shipName;
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
-            ShipMetric = new Metric(ship, true);
+            ShipMetric = new Metric(ship, true, true);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             CurrentIndex = 0;
@@ -176,13 +176,13 @@ namespace GroundConstruction
 
         public DIYKit.Requirements RemainingRequirements()
         {
-            if(!remainder && Jobs.Count > 0)
+            if(!remainder)
             {
+                if(remainder == null)
+                    remainder = new DIYKit.Requirements();
                 var njobs = Jobs.Count;
-                if(CurrentIndex < njobs)
+                if(njobs > 0 && CurrentIndex >= 0 && CurrentIndex < njobs)
                 {
-                    if(remainder == null)
-                        remainder = new DIYKit.Requirements();
                     for(int i = CurrentIndex; i < njobs; i++)
                         remainder.Update(Jobs[i].RemainingRequirements());
                 }
