@@ -37,7 +37,7 @@ namespace GroundConstruction
 
         public string ETA_Display { get; protected set; } = "Stalled...";
 
-        public string Workforce_Display => 
+        public string Workforce_Display =>
         string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce);
 
         public float Workforce => workforce;
@@ -50,10 +50,10 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            LockName = GetType().Name+GetInstanceID();
+            LockName = GetType().Name + GetInstanceID();
         }
 
-        protected virtual void update_max_workforce() => 
+        protected virtual void update_max_workforce() =>
         max_workforce = part.CrewCapacity * 5;
 
         protected virtual void update_workforce<E>()
@@ -84,7 +84,7 @@ namespace GroundConstruction
             on_stop(reset);
             checkin();
         }
-        protected virtual void on_stop(bool reset) {}
+        protected virtual void on_stop(bool reset) { }
 
         protected double get_delta_time()
         {
@@ -145,7 +145,7 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public bool show_window;
         protected const float width = 550;
         protected const float height = 60;
-        protected Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
+        protected Rect WindowPos = new Rect((Screen.width - width) / 2, Screen.height / 4, width, height * 4);
         protected string LockName = ""; //inited OnStart
 
         [KSPEvent(guiName = "Open Workshop", guiActive = true, active = true)]
@@ -153,7 +153,7 @@ namespace GroundConstruction
         { show_window = !show_window; }
 
         protected abstract void draw();
-        protected virtual void unlock() {}
+        protected virtual void unlock() { }
 
         void OnGUI()
         {
@@ -173,8 +173,8 @@ namespace GroundConstruction
         #endregion
     }
 
-    public abstract class WorkshopBase<T, E> : WorkshopBase 
-        where T : class, IWorkshopTask, new() 
+    public abstract class WorkshopBase<T, E> : WorkshopBase
+        where T : class, IWorkshopTask, new()
         where E : ExperienceEffect
     {
         [KSPField(isPersistant = true)] public PersistentQueue<T> Queue = new PersistentQueue<T>();
@@ -222,7 +222,7 @@ namespace GroundConstruction
             on_start();
             checkin();
         }
-        protected virtual void on_start() {}
+        protected virtual void on_start() { }
 
         protected virtual bool check_task(T task) => task.Recheck();
         protected abstract bool can_start_next();
@@ -245,11 +245,11 @@ namespace GroundConstruction
 
         protected abstract void on_task_complete(T task);
 
-        protected virtual void on_update() {}
+        protected virtual void on_update() { }
         protected virtual void update_ui_data()
         {
             if(Queue.Count == 0) return;
-            Queue = new PersistentQueue<T>(Queue.Where(task => task.Valid && !task.Complete));
+            Queue = new PersistentQueue<T>(Queue.Where(task => task.Recheck() && !task.Complete));
         }
 
         public override void OnAwake()
@@ -285,9 +285,9 @@ namespace GroundConstruction
                     else
                         stop(true);
                 }
+                if(show_window)
+                    update_ui_data();
             }
-            if(show_window)
-                update_ui_data();
             on_update();
         }
 
@@ -300,13 +300,13 @@ namespace GroundConstruction
             //this.Log("Delta time: {}", deltaTime);//debug
             //this.Log("0 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
             if(!check_task(CurrentTask) && !start_next_item()) return;
-            var available_work = workforce*deltaTime;
+            var available_work = workforce * deltaTime;
             //this.Log("1 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
             //this.Log("available work: {}", available_work);//debug
-            while(Working && available_work > TimeWarp.fixedDeltaTime/10)
+            while(Working && available_work > TimeWarp.fixedDeltaTime / 10)
                 available_work = do_some_work(available_work);
             //this.Log("available work left: {}", available_work);//debug
-            if(deltaTime > TimeWarp.fixedDeltaTime*2)
+            if(deltaTime > TimeWarp.fixedDeltaTime * 2)
             {
                 if(Working)
                     update_ETA();
@@ -329,8 +329,8 @@ namespace GroundConstruction
             {
                 GUILayout.Label("Construction Queue", Styles.label, GUILayout.ExpandWidth(true));
                 GUILayout.BeginVertical(Styles.white);
-                queue_scroll = GUILayout.BeginScrollView(queue_scroll, 
-                                                         GUILayout.Height(height*Math.Min(Queue.Count, 2)), 
+                queue_scroll = GUILayout.BeginScrollView(queue_scroll,
+                                                         GUILayout.Height(height * Math.Min(Queue.Count, 2)),
                                                          GUILayout.Width(width));
                 T del = null;
                 T up = null;
@@ -338,7 +338,6 @@ namespace GroundConstruction
                 {
                     GUILayout.BeginHorizontal();
                     task.Draw();
-//                    GUILayout.Label(task.ToString(), Styles.boxed_label, GUILayout.ExpandWidth(true));
                     set_highlighted_task(task);
                     if(GUILayout.Button(new GUIContent("^", "Move up"),
                                         Styles.normal_button, GUILayout.Width(25)))
