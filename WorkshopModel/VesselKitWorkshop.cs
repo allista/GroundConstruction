@@ -130,6 +130,7 @@ namespace GroundConstruction
             GUILayout.Label("<color=yellow><b>Kit:</b></color>", 
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
             CurrentTask.Draw();
+            set_highlighted_task(CurrentTask);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("<color=yellow><b>Part:</b></color>", 

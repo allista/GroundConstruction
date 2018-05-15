@@ -80,10 +80,10 @@ namespace GroundConstruction
         {
             Efficiency = 0;
             if(part.CrewCapacity == 0) return;
-            var usefull_volume = (Metric.Volume(part)-part.mass)*GLB.PartVolumeFactor;
+            var usefull_volume = (Metric.Volume(part) - part.mass) * GLB.PartVolumeFactor;
             if(usefull_volume <= 0) return;
             Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency,
-                                    Mathf.Min(usefull_volume/part.CrewCapacity/GLB.VolumePerKerbal, 1));
+                                    Mathf.Min(usefull_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
         }
 
@@ -104,7 +104,7 @@ namespace GroundConstruction
                 {
                     if(vsl_kit != null && vsl_kit.Valid && vsl_kit.Host is ModuleConstructionKit &&
                        vsl_kit != CurrentTask.Kit && !queued.Contains(vsl.id) &&
-                       (vessel.vesselTransform.position-vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                       (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
                     {
                         if(!vsl_kit.Complete)
                             nearby_unbuilt_kits.Add(new VesselKitInfo(vsl_kit));
@@ -135,7 +135,7 @@ namespace GroundConstruction
         {
             if(!base.can_construct())
                 return false;
-            if(loadedUT < 0 || Planetarium.GetUniversalTime()-loadedUT < 3)
+            if(loadedUT < 0 || Planetarium.GetUniversalTime() - loadedUT < 3)
                 return true;
             if(!vessel.Landed)
             {
@@ -151,14 +151,14 @@ namespace GroundConstruction
         }
 
         float dist2target(VesselKitInfo kit)
-        { return (kit.Kit.Host.vessel.transform.position-vessel.transform.position).magnitude; }
+        { return (kit.Kit.Host.vessel.transform.position - vessel.transform.position).magnitude; }
 
         void update_distance_mod()
         {
             var dist = dist2target(CurrentTask);
             if(dist > GLB.MaxDistanceToWorkshop) distance_mod = 0;
             else distance_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency,
-                                           Mathf.Max((dist-GLB.MinDistanceToWorkshop)/GLB.MaxDistanceToWorkshop, 0));
+                                           Mathf.Max((dist - GLB.MinDistanceToWorkshop) / GLB.MaxDistanceToWorkshop, 0));
         }
 
         protected override void on_update()
@@ -182,16 +182,16 @@ namespace GroundConstruction
 
         protected override double do_some_work(double available_work)
         {
-            if(distance_mod < 0) 
+            if(distance_mod < 0)
                 update_distance_mod();
             if(distance_mod.Equals(0))
             {
                 Utils.Message("{0} is too far away.", CurrentTask.Name);
-                if(start_next_item()) 
+                if(start_next_item())
                     Utils.Message("Switching to the next kit in line.");
                 return available_work;
             }
-            return base.do_some_work(available_work*distance_mod)/distance_mod;
+            return base.do_some_work(available_work * distance_mod) / distance_mod;
         }
 
         #region Target Actions
@@ -244,7 +244,9 @@ namespace GroundConstruction
             if(CurrentTask.Valid)
             {
                 GUILayout.BeginVertical(Styles.white);
-                GUILayout.Label("<color=yellow><b>Currentrly building</b></color>", 
+                GUILayout.Label(Working ?
+                                "<color=yellow><b>Constructing...</b></color>" :
+                                "<color=silver><b>Under Construction</b></color>",
                                 Styles.boxed_label, GUILayout.ExpandWidth(true));
                 current_task_pane();
                 if(Working)
@@ -259,21 +261,30 @@ namespace GroundConstruction
                         TimeWarp.fetch.WarpTo(EndUT);
                     GUILayout.EndHorizontal();
                 }
-                if(GUILayout.Button(new GUIContent("Stop", " And move back to the Queue"),
-                                    Styles.danger_button, GUILayout.ExpandWidth(true)))
-                {
-                    Queue.Enqueue(CurrentTask);
-                    stop(true);
-                }
                 GUILayout.EndVertical();
             }
             if(CurrentTask.Valid || Queue.Count > 0)
             {
-                if(Utils.ButtonSwitch("Construct", ref Working, "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
+                GUILayout.BeginHorizontal();
+                if(Utils.ButtonSwitch("Pause Construction", "Start Construction", ref Working,
+                                      "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
                 {
                     if(Working && can_construct()) start();
                     else stop();
                 }
+                if(Working)
+                {
+                    if(GUILayout.Button(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                        Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    {
+                        Queue.Enqueue(CurrentTask);
+                        stop(true);
+                    }
+                }
+                else
+                    GUILayout.Label(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                    Styles.grey_button, GUILayout.ExpandWidth(false));
+                GUILayout.EndHorizontal();
             }
         }
 
@@ -283,8 +294,8 @@ namespace GroundConstruction
             if(nearby_built_kits.Count == 0) return;
             GUILayout.Label("Built DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-            built_scroll = GUILayout.BeginScrollView(built_scroll, 
-                                                     GUILayout.Height(height*Math.Min(nearby_built_kits.Count, 2)), 
+            built_scroll = GUILayout.BeginScrollView(built_scroll,
+                                                     GUILayout.Height(height * Math.Min(nearby_built_kits.Count, 2)),
                                                      GUILayout.Width(width));
             VesselKitInfo crew = null;
             VesselKitInfo resources = null;
@@ -321,8 +332,8 @@ namespace GroundConstruction
             if(nearby_unbuilt_kits.Count == 0) return;
             GUILayout.Label("Unbuilt DIY kits nearby:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-            unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll, 
-                                                       GUILayout.Height(height*Math.Min(nearby_unbuilt_kits.Count, 2)), 
+            unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll,
+                                                       GUILayout.Height(height * Math.Min(nearby_unbuilt_kits.Count, 2)),
                                                        GUILayout.Width(width));
             VesselKitInfo add = null;
             VesselKitInfo deploy = null;
