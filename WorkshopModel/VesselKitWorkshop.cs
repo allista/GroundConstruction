@@ -10,7 +10,8 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public abstract class VesselKitWorkshop : WorkshopBase<VesselKitInfo, ConstructionSkill>
+    public abstract class VesselKitWorkshop<KitInfo> : WorkshopBase<KitInfo, ConstructionSkill>
+        where KitInfo : VesselKitInfo, new()
     {
         protected abstract int STAGE { get; }
 
@@ -25,7 +26,8 @@ namespace GroundConstruction
                 have_res = part.RequestResource(req.resource.id, req.resource_amount);
                 if(req.resource_amount > 0 && have_res.Equals(0))
                 {
-                    Utils.Message("Not enough {0}. The work on {1} was put on hold.", req.resource.name, CurrentTask.Name);
+                    Utils.Message("Not enough {0}. The work on {1} was put on hold.", 
+                                  req.resource.name, CurrentTask.Name);
                     work = 0;
                     goto end;
                 }
@@ -36,7 +38,8 @@ namespace GroundConstruction
                 have_ec = part.RequestResource(Utils.ElectricCharge.id, req.energy);
                 if(have_ec/req.energy < GLB.WorkshopShutdownThreshold)
                 {
-                    Utils.Message("Not enough energy. The work on {0} was put on hold.", CurrentTask.Name);
+                    Utils.Message("Not enough energy. The work on {0} was put on hold.", 
+                                  CurrentTask.Name);
                     work = 0;
                     goto end;
                 }

@@ -14,7 +14,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public partial class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IKitContainer
+    public partial class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IDeployableContainer
     {
         static Globals GLB { get { return Globals.Instance; } }
 
@@ -37,7 +37,7 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public float DeploymentTime;
         [KSPField(isPersistant = true)] public float DeployingSpeed;
 
-        [KSPField(isPersistant = true)] public ContainerState state;
+        [KSPField(isPersistant = true)] public ContainerDeplyomentState state;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
@@ -62,7 +62,7 @@ namespace GroundConstruction
 
         public List<VesselKit> GetKits() { return new List<VesselKit> { kit }; }
 
-        public ContainerState State { get { return state; } }
+        public ContainerDeplyomentState State { get { return state; } }
 
         #region Anchor
         FixedJoint anchorJoint;
@@ -263,9 +263,9 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            if(State == ContainerState.DEPLOYED) setup_ground_contact();
-            Events["Deploy"].active = kit.Valid && State == ContainerState.IDLE;
-            Events["Launch"].active = kit.Valid && State == ContainerState.DEPLOYED && kit.Complete;
+            if(State == ContainerDeplyomentState.DEPLOYED) setup_ground_contact();
+            Events["Deploy"].active = kit.Valid && State == ContainerDeplyomentState.IDLE;
+            Events["Launch"].active = kit.Valid && State == ContainerDeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
             create_fwd_mesh();
@@ -287,7 +287,7 @@ namespace GroundConstruction
         void OnPartPack() { detach_anchor(); }
         void OnPartUnpack()
         {
-            if(state == ContainerState.DEPLOYED)
+            if(state == ContainerDeplyomentState.DEPLOYED)
             {
                 attach_anchor();
                 setup_ground_contact();
@@ -312,15 +312,15 @@ namespace GroundConstruction
             //deprecated config conversion
             if(node.HasValue("Deploying"))
             {
-                state = ContainerState.IDLE;
+                state = ContainerDeplyomentState.IDLE;
                 var val = node.GetValue("Deploying");
                 if(bool.TryParse(val, out bool _deploy) && _deploy)
-                    state = ContainerState.DEPLOYING;
+                    state = ContainerDeplyomentState.DEPLOYING;
                 else
                 {
                     val = node.GetValue("Deployed");
                     if(bool.TryParse(val, out _deploy) && _deploy)
-                        state = ContainerState.DEPLOYED;
+                        state = ContainerDeplyomentState.DEPLOYED;
                 }
             }
         }
@@ -332,14 +332,14 @@ namespace GroundConstruction
                 update_model(true);
             if(HighLogic.LoadedSceneIsFlight)
                 update_deploy_hint();
-            if(state == ContainerState.DEPLOYED)
+            if(state == ContainerDeplyomentState.DEPLOYED)
             {
                 setup_ground_contact();
                 if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
                     attach_anchor();
                 else dump_velocity();
             }
-            else if(state == ContainerState.DEPLOYING)
+            else if(state == ContainerDeplyomentState.DEPLOYING)
             {
                 if(deployment == null) deployment = deploy();
                 if(!deployment.MoveNext()) deployment = null;
@@ -424,6 +424,8 @@ namespace GroundConstruction
             }
         }
 
+        public bool Empty => kit;
+
         RealTimer settled_timer = new RealTimer(3);
         IEnumerable wait_for_ground_contact(string wait_message)
         {
@@ -478,7 +480,7 @@ namespace GroundConstruction
                 yield return w;
             attach_anchor();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
-            state = ContainerState.DEPLOYED;
+            state = ContainerDeplyomentState.DEPLOYED;
         }
 
         [KSPEvent(guiName = "Deploy",
@@ -492,7 +494,7 @@ namespace GroundConstruction
             Events["Deploy"].active = false;
             DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / kit.ShipMetric.volume, 1 / GLB.MinDeploymentTime);
             Utils.SaveGame(kit.Name + "-before_deployment");
-            state = ContainerState.DEPLOYING;
+            state = ContainerDeplyomentState.DEPLOYING;
         }
         #endregion
 

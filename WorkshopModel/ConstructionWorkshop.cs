@@ -9,13 +9,13 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public abstract class ConstructionWorkshop : VesselKitWorkshop
+    public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo> 
     {
         protected override int STAGE { get { return DIYKit.CONSTRUCTION; } }
 
         #region Target Actions
-        protected VesselKitInfo target_kit;
-        protected virtual bool check_target_kit(VesselKitInfo target)
+        protected ConstructionKitInfo target_kit;
+        protected virtual bool check_target_kit(ConstructionKitInfo target)
         {
             return target.Recheck() && target.Complete;
         }
@@ -26,7 +26,7 @@ namespace GroundConstruction
         VesselResources host_resources, kit_resources;
         ResourceTransferWindow resources_window;
 
-        protected void setup_resource_transfer(VesselKitInfo target)
+        protected void setup_resource_transfer(ConstructionKitInfo target)
         {
             target_kit = null;
             if(check_target_kit(target))
@@ -60,7 +60,7 @@ namespace GroundConstruction
         int kit_crew_capacity;
         CrewTransferWindow crew_window;
 
-        protected void setup_crew_transfer(VesselKitInfo target)
+        protected void setup_crew_transfer(ConstructionKitInfo target)
         {
             check_target_kit(target);
             if(target_kit == null) return;
@@ -86,16 +86,16 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        protected override bool check_task(VesselKitInfo task)
+        protected override bool check_task(ConstructionKitInfo task)
         {
             return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
         }
 
-        protected override void on_task_complete(VesselKitInfo task)
+        protected override void on_task_complete(ConstructionKitInfo task)
         {
-            var container = task.Container;
-            if(container != null)
-                container.EnableLaunchControls();
+            var space = task.ConstructionSpace;
+            if(space != null)
+                space.EnableLaunchControls();
         }
 
         protected override void draw()

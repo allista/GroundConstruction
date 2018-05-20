@@ -87,12 +87,12 @@ namespace GroundConstruction
 
         public bool CheckETA(double now)
         {
-            if(State != ProtoWorkshop.Status.ACTIVE) return false;
+            if(State != Status.ACTIVE) return false;
             if(EndUT > 0 && EndUT < now)
             {
                 Utils.Message(10, "Engineers at '{0}' should have completed the work on the '{1}' by now.",
                               VesselName, TaskName);
-                State = ProtoWorkshop.Status.COMPLETE;
+                State = Status.COMPLETE;
                 EndUT = -1;
                 return true;
             }

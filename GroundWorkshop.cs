@@ -87,8 +87,8 @@ namespace GroundConstruction
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
         }
 
-        List<VesselKitInfo> nearby_unbuilt_kits = new List<VesselKitInfo>();
-        List<VesselKitInfo> nearby_built_kits = new List<VesselKitInfo>();
+        List<ConstructionKitInfo> nearby_unbuilt_kits = new List<ConstructionKitInfo>();
+        List<ConstructionKitInfo> nearby_built_kits = new List<ConstructionKitInfo>();
         void update_nearby_kits()
         {
             if(!FlightGlobals.ready) return;
@@ -98,17 +98,17 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var containers = VesselKitInfo.GetKitContainers(vsl);
+                var containers = ConstructionKitInfo.GetKitContainers<IConstructionSpace>(vsl);
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
-                    if(vsl_kit != null && vsl_kit.Valid && vsl_kit.Host is ModuleConstructionKit &&
+                    if(vsl_kit != null && vsl_kit.Valid && 
                        vsl_kit != CurrentTask.Kit && !queued.Contains(vsl.id) &&
                        (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
                     {
                         if(!vsl_kit.Complete)
-                            nearby_unbuilt_kits.Add(new VesselKitInfo(vsl_kit));
-                        else nearby_built_kits.Add(new VesselKitInfo(vsl_kit));
+                            nearby_unbuilt_kits.Add(new ConstructionKitInfo(vsl_kit));
+                        else nearby_built_kits.Add(new ConstructionKitInfo(vsl_kit));
                     }
                 }
             }
@@ -195,7 +195,7 @@ namespace GroundConstruction
         }
 
         #region Target Actions
-        protected override bool check_target_kit(VesselKitInfo target)
+        protected override bool check_target_kit(ConstructionKitInfo target)
         {
             if(!base.check_target_kit(target))
                 return false;
@@ -227,6 +227,20 @@ namespace GroundConstruction
                 }
                 highlighted_kits.Clear();
             }
+        }
+
+        public string ContainerStatus(IDeployableContainer container)
+        {
+            switch(container.State)
+            {
+            case ContainerDeplyomentState.IDLE:
+                return "Idle";
+            case ContainerDeplyomentState.DEPLOYING:
+                return "Deploying...";
+            case ContainerDeplyomentState.DEPLOYED:
+                return "Deployed";
+            }
+            return "";
         }
 
         void info_pane()
@@ -297,9 +311,9 @@ namespace GroundConstruction
             built_scroll = GUILayout.BeginScrollView(built_scroll,
                                                      GUILayout.Height(height * Math.Min(nearby_built_kits.Count, 2)),
                                                      GUILayout.Width(width));
-            VesselKitInfo crew = null;
-            VesselKitInfo resources = null;
-            VesselKitInfo launch = null;
+            ConstructionKitInfo crew = null;
+            ConstructionKitInfo resources = null;
+            ConstructionKitInfo launch = null;
             foreach(var info in nearby_built_kits)
             {
                 GUILayout.BeginHorizontal();
@@ -321,7 +335,7 @@ namespace GroundConstruction
             if(crew != null)
                 setup_crew_transfer(crew);
             if(launch != null && launch.Recheck())
-                launch.Container.Launch();
+                launch.ConstructionSpace.Launch();
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
@@ -335,33 +349,40 @@ namespace GroundConstruction
             unbuilt_scroll = GUILayout.BeginScrollView(unbuilt_scroll,
                                                        GUILayout.Height(height * Math.Min(nearby_unbuilt_kits.Count, 2)),
                                                        GUILayout.Width(width));
-            VesselKitInfo add = null;
-            VesselKitInfo deploy = null;
+            ConstructionKitInfo add = null;
+            IDeployableContainer deploy = null;
             foreach(var info in nearby_unbuilt_kits)
             {
                 GUILayout.BeginHorizontal();
                 info.Draw();
                 set_highlighted_task(info);
-                if(info.Container.State == ContainerState.DEPLOYED)
+                var depl = info.ConstructionSpace as IDeployableContainer;
+                if(depl != null)
                 {
-                    if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                        Styles.enabled_button, GUILayout.ExpandWidth(false)))
-                        add = info;
+                    if(depl.State == ContainerDeplyomentState.DEPLOYED)
+                    {
+                        if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                            Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                            add = info;
+                    }
+                    else if(depl.State != ContainerDeplyomentState.DEPLOYING)
+                    {
+                        if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
+                                            Styles.active_button, GUILayout.ExpandWidth(false)))
+                            deploy = depl;
+                    }
+                    else
+                        GUILayout.Label(ContainerStatus(depl), Styles.boxed_label, GUILayout.ExpandWidth(true));
                 }
-                else if(info.Container.State != ContainerState.DEPLOYING)
-                {
-                    if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-                                        Styles.active_button, GUILayout.ExpandWidth(false)))
-                        deploy = info;
-                }
-                else
-                    GUILayout.Label(info.ContainerStatus, Styles.boxed_label, GUILayout.ExpandWidth(true));
+                else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                         Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                    add = info;
                 GUILayout.EndHorizontal();
             }
             if(add != null)
                 Queue.Enqueue(add);
-            else if(deploy != null && deploy.Recheck())
-                deploy.Container.Deploy();
+            else if(deploy != null)
+                deploy.Deploy();
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }

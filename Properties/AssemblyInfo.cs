@@ -26,7 +26,7 @@ using AT_Utils;
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
 #if NIGHTBUILD
-[assembly: AssemblyVersion("1.2.*")]
+[assembly: AssemblyVersion("1.3.*")]
 #else
 [assembly: AssemblyVersion("1.3.0")]
 #endif
