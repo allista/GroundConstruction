@@ -239,6 +239,8 @@ namespace GroundConstruction
                 Utils.Log("VesselKit.Loaded: {}", this);//debug
             }
         }
-    }
+
+        public bool Equals(VesselKit other) => id == other.id;
+	}
 }
 
