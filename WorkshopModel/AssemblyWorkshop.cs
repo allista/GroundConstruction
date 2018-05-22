@@ -103,6 +103,26 @@ namespace GroundConstruction
         protected IAssemblySpace find_best_assembly_space(VesselKit kit, Vessel vsl) =>
         find_best_assembly_space(kit, VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl));
 
+        protected void update_kits(List<IKitContainer> containers)
+        {
+            if(containers == null) return
+            var queued = get_queued_ids();
+            foreach(var container in containers)
+            {
+                if(container == this) continue;
+                foreach(var vsl_kit in container.GetKits())
+                {
+                    if(vsl_kit != null && vsl_kit.Valid && vsl_kit.CurrentStageIndex == STAGE &&
+                           vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id))
+                    {
+                        if(!vsl_kit.StageComplete(STAGE))
+                            unbuilt_kits.Add(new AssemblyKitInfo(vsl_kit));
+                        else built_kits.Add(new AssemblyKitInfo(vsl_kit));
+                    }
+                }
+            }
+        }
+
         public override void OnAwake()
         {
             base.OnAwake();

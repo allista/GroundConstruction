@@ -18,26 +18,26 @@ namespace GroundConstruction
     {
         protected override void update_kits()
         {
-            if(!FlightGlobals.ready) return;
-            var queued = new HashSet<Guid>(Queue.Select(k => k.vesselID));
-            unbuilt_kits.Clear();
-            built_kits.Clear();
+            base.update_kits();
+            var queued = get_queued_ids();
             if(vessel.loaded)
             {
                 var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vessel);
                 if(containers != null)
                 {
                     foreach(var container in containers.Where(c => (c as IDeployableContainer) == null))
+                    {
                         foreach(var vsl_kit in container.GetKits())
                         {
-                            if(vsl_kit != null && vsl_kit.Valid && 
-                               vsl_kit != CurrentTask.Kit && !queued.Contains(vessel.id))
+                            if(vsl_kit != null && vsl_kit.Valid && vsl_kit.CurrentStageIndex == STAGE &&
+                               vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id))
                             {
                                 if(!vsl_kit.Complete)
                                     unbuilt_kits.Add(new ConstructionKitInfo(vsl_kit));
                                 else built_kits.Add(new ConstructionKitInfo(vsl_kit));
                             }
                         }
+                    }
                 }
             }
         }

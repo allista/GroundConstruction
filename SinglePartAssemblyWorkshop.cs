@@ -17,6 +17,13 @@ namespace GroundConstruction
         protected override bool check_host(AssemblyKitInfo task) => 
         task.Module != null && task.Module.part == part;
 
+        protected override void update_kits()
+        {
+            base.update_kits();
+            if(vessel.loaded)
+                update_kits(part.FindModulesImplementing<IKitContainer>());
+        }
+
         protected override void main_window(int WindowID)
         {
             throw new NotImplementedException();

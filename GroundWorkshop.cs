@@ -83,12 +83,10 @@ namespace GroundConstruction
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
         }
 
-        protected override  update_nearby_kits()
+        protected override void update_kits()
         {
-            if(!FlightGlobals.ready) return;
-            var queued = new HashSet<Guid>(Queue.Select(k => k.vesselID));
-            unbuilt_kits.Clear();
-            built_kits.Clear();
+            base.update_kits();
+            var queued = get_queued_ids();
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
@@ -96,8 +94,8 @@ namespace GroundConstruction
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
-                    if(vsl_kit != null && vsl_kit.Valid && 
-                       vsl_kit != CurrentTask.Kit && !queued.Contains(vsl.id) &&
+                    if(vsl_kit != null && vsl_kit.Valid && vsl_kit.CurrentStageIndex == STAGE &&
+                       vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id) &&
                        (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
                     {
                         if(!vsl_kit.Complete)

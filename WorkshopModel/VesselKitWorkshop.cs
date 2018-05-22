@@ -104,13 +104,19 @@ namespace GroundConstruction
 
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
         protected List<KitInfo> built_kits = new List<KitInfo>();
-        protected abstract void update_kits();
+        protected HashSet<Guid>get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
+        protected virtual void update_kits()
+        {
+            unbuilt_kits.Clear();
+            built_kits.Clear();
+        }
 
         #region implemented abstract members of WorkshopBase
         protected override void update_ui_data()
         {
             base.update_ui_data();
-            update_kits();
+            if(FlightGlobals.ready)
+                update_kits();
         }
 
         protected override void update_ETA()
