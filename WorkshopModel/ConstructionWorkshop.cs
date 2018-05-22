@@ -91,13 +91,6 @@ namespace GroundConstruction
             return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
         }
 
-        protected override void on_task_complete(ConstructionKitInfo task)
-        {
-            var space = task.ConstructionSpace;
-            if(space != null)
-                space.EnableLaunchControls();
-        }
-
         protected override void draw()
         {
             base.draw();

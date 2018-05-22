@@ -98,7 +98,7 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var containers = ConstructionKitInfo.GetKitContainers<IConstructionSpace>(vsl);
+                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl);
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
@@ -126,7 +126,7 @@ namespace GroundConstruction
             workforce *= Efficiency;
         }
 
-        protected override bool can_start_next()
+        protected override bool init_task(ConstructionKitInfo task)
         {
             return true;
         }

@@ -16,10 +16,22 @@ namespace GroundConstruction
         VesselKit GetKit(Guid id);
     }
 
-    public interface IConstructionSpace : IKitContainer
+    public interface IControllableContainer : IKitContainer
+    {
+        void ShowUI(bool enable = true);
+        void EnableControls(bool enable = true);        
+    }
+
+    public interface IAssemblySpace : IControllableContainer
+    {
+        float KitToSpaceRatio(VesselKit kit);
+        AssemblyKitInfo SetKit(VesselKit kit);
+        void SpawnKit();
+    }
+
+    public interface IConstructionSpace : IControllableContainer
     {
         void Launch();
-        void EnableLaunchControls(bool enable = true);
     }
 
     public enum ContainerDeplyomentState {
@@ -32,14 +44,6 @@ namespace GroundConstruction
     {
         ContainerDeplyomentState State { get; }
         void Deploy();
-
-    }
-
-    public interface IAssemblySpace : IKitContainer
-    {
-        float KitToSpaceRatio(VesselKit kit);
-        AssemblyKitInfo SetKit(VesselKit kit);
-        void SpawnKit();
     }
 }
 

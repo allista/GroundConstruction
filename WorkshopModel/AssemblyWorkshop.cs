@@ -32,21 +32,39 @@ namespace GroundConstruction
             return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.ASSEMBLY;
         }
 
-        protected virtual void process_construct(ShipConstruct construct)
+		protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct);
-            if(find_assembly_space(kit) != null)
+            if(find_assembly_space(kit, false) != null)
             {
 				Kits.Add(kit);
                 Queue.Enqueue(new AssemblyKitInfo(kit));
             }
         }
 
-        protected abstract IAssemblySpace find_assembly_space(VesselKit kit);
-
-        protected IAssemblySpace find_assembly_space(VesselKit kit, Vessel vsl)
+        protected override bool init_task(AssemblyKitInfo task)
         {
-            foreach(var space in VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl))
+            if(task.Recheck())
+            {
+                var space = task.AssemblySpace;
+                if(space != null) return true;
+                space = find_assembly_space(task.Kit, true);
+                var space_module = space as PartModule;
+                if(space != null && space_module != null)
+                {
+                    space.SetKit(task.Kit);
+                    task.Kit.Host = space_module;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected abstract IAssemblySpace find_assembly_space(VesselKit kit, bool best);
+
+        IAssemblySpace find_assembly_space(VesselKit kit, IEnumerable<IAssemblySpace> spaces)
+        {
+            foreach(var space in spaces)
             {
                 var ratio = space.KitToSpaceRatio(kit);
                 if(ratio > 0)
@@ -55,11 +73,11 @@ namespace GroundConstruction
             return null;
         }
 
-        protected IAssemblySpace find_best_assembly_space(VesselKit kit, Vessel vsl)
+        IAssemblySpace find_best_assembly_space(VesselKit kit, IEnumerable<IAssemblySpace> spaces)
         {
             float best_ratio = -1;
             IAssemblySpace available_space = null;
-            foreach(var space in VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl))
+            foreach(var space in spaces)
             {
                 var ratio = space.KitToSpaceRatio(kit);
                 if(ratio > 0)
@@ -74,7 +92,19 @@ namespace GroundConstruction
             return available_space;
         }
 
-        public override void OnAwake()
+        protected IAssemblySpace find_assembly_space(VesselKit kit, Part p) =>
+        find_assembly_space(kit, p.FindModulesImplementing<IAssemblySpace>());
+
+        protected IAssemblySpace find_best_assembly_space(VesselKit kit, Part p) =>
+        find_best_assembly_space(kit, p.FindModulesImplementing<IAssemblySpace>());
+
+        protected IAssemblySpace find_assembly_space(VesselKit kit, Vessel vsl) =>
+        find_assembly_space(kit, VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl));
+
+        protected IAssemblySpace find_best_assembly_space(VesselKit kit, Vessel vsl) =>
+        find_best_assembly_space(kit, VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl));
+
+		public override void OnAwake()
         {
             base.OnAwake();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();

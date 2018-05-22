@@ -189,9 +189,12 @@ namespace GroundConstruction
             {
                 if(Task.Valid)
                     Queue.Enqueue(CurrentTask);
-                CurrentTask = Task;
-                if(check_task(CurrentTask))
+                reset_current_task();
+                if(check_task(Task) && init_task(Task))
+                {
+                    CurrentTask = Task;
                     start();
+                }
                 else
                     stop(true);
             }
@@ -225,25 +228,31 @@ namespace GroundConstruction
         protected virtual void on_start() { }
 
         protected virtual bool check_task(T task) => task.Recheck();
-        protected abstract bool can_start_next();
+        protected abstract bool init_task(T task);
         protected override bool start_next_item()
         {
             reset_current_task();
-            if(Queue.Count > 0 && can_start_next())
+            if(Queue.Count > 0)
             {
-                while(Queue.Count > 0 && !check_task(CurrentTask))
-                    CurrentTask = Queue.Dequeue();
-                if(check_task(CurrentTask))
+                while(Queue.Count > 0)
                 {
-                    start();
-                    return true;
+                    var task = Queue.Peek();
+                    if(check_task(task))
+                    {
+                        if(init_task(task))
+                        {
+                            CurrentTask = task;
+                            Queue.Dequeue();
+                            start();
+                            return true;
+                        }
+                        break;
+                    }
                 }
             }
             stop(true);
             return false;
         }
-
-        protected abstract void on_task_complete(T task);
 
         protected virtual void on_update() { }
         protected virtual void update_ui_data()

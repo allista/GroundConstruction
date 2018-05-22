@@ -64,6 +64,13 @@ namespace GroundConstruction
             return work;
         }
 
+        protected virtual void on_task_complete(KitInfo task)
+        {
+            var space = task.ControllableContainer;
+            if(space != null)
+                space.EnableControls();
+        }
+
         protected override double do_some_work(double available_work)
         {
             var work = serve_requirements(available_work);

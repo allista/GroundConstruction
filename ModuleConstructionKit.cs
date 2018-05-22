@@ -518,7 +518,7 @@ namespace GroundConstruction
             kitname_editor.Toggle();
         }
 
-        public void EnableLaunchControls(bool enable = true)
+        public void EnableControls(bool enable = true)
         {
             Events["Launch"].active = enable;
         }
@@ -701,6 +701,8 @@ namespace GroundConstruction
             launched_vessel.permanentGroundContact = false;
         }
 
+        public void ShowUI(bool enable = true) {}
+
         void OnGUI()
         {
             if(Event.current.type != EventType.Layout && 
@@ -722,19 +724,17 @@ namespace GroundConstruction
         #endregion
 
         #region IPartCostModifier implementation
-        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
-        { return kit.Valid ? kit.Cost : 0; }
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) => 
+        kit.Valid ? kit.Cost : 0;
 
-        public ModifierChangeWhen GetModuleCostChangeWhen()
-        { return ModifierChangeWhen.CONSTANTLY; }
+        public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 
         #region IPartMassModifier implementation
-        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
-        { return kit.Valid ? kit.Mass : 0; }
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) => 
+        kit.Valid ? kit.Mass : 0;
 
-        public ModifierChangeWhen GetModuleMassChangeWhen()
-        { return ModifierChangeWhen.CONSTANTLY; }
+        public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 #if DEBUG
         void OnRenderObject()

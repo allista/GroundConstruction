@@ -23,6 +23,9 @@ namespace GroundConstruction
         public bool Valid => Kit;
         public bool Complete => Recheck() && Kit.Complete;
 
+        public IKitContainer Container => Kit.Host as IKitContainer;
+        public IControllableContainer ControllableContainer => Kit.Host as IControllableContainer;
+
         public bool Recheck()
         {
             if(Kit == null)
