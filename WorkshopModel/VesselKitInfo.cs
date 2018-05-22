@@ -21,7 +21,7 @@ namespace GroundConstruction
         public string Name => Kit ? Kit.Name : "";
         public Guid ID => kitID;
         public bool Valid => Kit;
-        public bool Complete => Recheck() && Kit.Complete;
+        public abstract bool Complete { get; }
 
         public IKitContainer Container => Kit.Host as IKitContainer;
         public IControllableContainer ControllableContainer => Kit.Host as IControllableContainer;
@@ -75,6 +75,8 @@ namespace GroundConstruction
         public ConstructionKitInfo() {}
         public ConstructionKitInfo(VesselKit kit) : base(kit) {}
 
+        public override bool Complete => Recheck() && Kit.Complete;
+
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
     }
@@ -83,6 +85,8 @@ namespace GroundConstruction
     {
         public AssemblyKitInfo() {}
         public AssemblyKitInfo(VesselKit kit) : base(kit) {}
+
+        public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.ASSEMBLY);
 
         public IAssemblySpace AssemblySpace => Kit.Host as IAssemblySpace;
         public override VesselKit FindKit() => FindKit<IKitContainer>();

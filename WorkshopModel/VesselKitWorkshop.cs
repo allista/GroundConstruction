@@ -102,14 +102,28 @@ namespace GroundConstruction
 
         protected abstract bool check_host(KitInfo task);
 
+        #region available kits
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
         protected List<KitInfo> built_kits = new List<KitInfo>();
+
         protected HashSet<Guid>get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
+
+        protected virtual void sort_task(KitInfo task)
+        {
+            if(check_task(task))
+            {
+                if(!task.Complete)
+                    unbuilt_kits.Add(task);
+                else built_kits.Add(task);
+            }
+        }
+
         protected virtual void update_kits()
         {
             unbuilt_kits.Clear();
             built_kits.Clear();
         }
+        #endregion
 
         #region implemented abstract members of WorkshopBase
         protected override void update_ui_data()
