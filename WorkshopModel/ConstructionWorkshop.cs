@@ -15,14 +15,11 @@ namespace GroundConstruction
 
         #region Target Actions
         protected ConstructionKitInfo target_kit;
-        protected virtual bool check_target_kit(ConstructionKitInfo target)
-        {
-            return target.Recheck() && target.Complete;
-        }
-        #endregion
+		protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
+		#endregion
 
-        #region Resource Transfer
-        readonly ResourceManifestList transfer_list = new ResourceManifestList();
+		#region Resource Transfer
+		readonly ResourceManifestList transfer_list = new ResourceManifestList();
         VesselResources host_resources, kit_resources;
         ResourceTransferWindow resources_window;
 
@@ -86,12 +83,10 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        protected override bool check_task(ConstructionKitInfo task)
-        {
-            return base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
-        }
+		protected override bool check_task(ConstructionKitInfo task) => 
+		base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
 
-        protected override void draw()
+		protected override void draw()
         {
             base.draw();
             if(target_kit != null && target_kit.Recheck())

@@ -84,7 +84,8 @@
     <Compile Include="WorkModel\CompositeJob.cs" />
     <Compile Include="WorkModel\JobBase.cs" />
     <Compile Include="WorkModel\WorkBase.cs" />
-    <Compile Include="GroundAssemblyLine.cs" />
+    <Compile Include="SinglePartAssemblyWorkshop.cs" />
+    <Compile Include="SingleVesselAssemblyWorkshop.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

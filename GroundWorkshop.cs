@@ -126,12 +126,10 @@ namespace GroundConstruction
             workforce *= Efficiency;
         }
 
-        protected override bool init_task(ConstructionKitInfo task)
-        {
-            return true;
-        }
+		protected override bool init_task(ConstructionKitInfo task) => true;
+		protected override bool check_host(ConstructionKitInfo task) => true;
 
-        protected override bool can_construct()
+		protected override bool can_construct()
         {
             if(!base.can_construct())
                 return false;

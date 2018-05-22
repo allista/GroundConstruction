@@ -185,18 +185,17 @@ namespace GroundConstruction
         public override void StartTask(IWorkshopTask task)
         {
             var Task = task as T;
-            if(Task != null && CurrentTask.ID != Task.ID)
+			if(Task != null && CurrentTask.ID != Task.ID && 
+			   check_task(Task) && init_task(Task))
             {
-                if(Task.Valid)
+				if(CurrentTask.Valid)
+				{
                     Queue.Enqueue(CurrentTask);
-                reset_current_task();
-                if(check_task(Task) && init_task(Task))
-                {
-                    CurrentTask = Task;
-                    start();
-                }
-                else
-                    stop(true);
+					stop(true);
+				}
+				reset_current_task();
+                CurrentTask = Task;
+                start();
             }
         }
 

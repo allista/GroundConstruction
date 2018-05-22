@@ -96,6 +96,11 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
+		protected override bool check_task(ConstructionKitInfo task) => 
+		base.check_task(task) && check_host(task);
+
+		protected abstract bool check_host(KitInfo task);
+
         #region implemented abstract members of WorkshopBase
         protected override void update_ETA()
         {
