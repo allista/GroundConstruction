@@ -55,7 +55,7 @@ namespace GroundConstruction
 
         public override double DoSomeWork(double work)
         {
-			var job = CurrentJob;
+            var job = CurrentJob;
             while(work > 0 && job != null)
             {
                 //Utils.Log("Doing {} work on {}", work, job);//debug

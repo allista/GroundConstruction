@@ -124,7 +124,7 @@ namespace GroundConstruction
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
                 var rem = kit.RemainingRequirements();
-				KitWork = (float)rem.work/3600;
+                KitWork = (float)rem.work/3600;
                 KitRes  = (float)rem.resource_amount;
             }
             else

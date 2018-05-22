@@ -75,7 +75,7 @@ namespace GroundConstruction
         public ConstructionKitInfo() {}
         public ConstructionKitInfo(VesselKit kit) : base(kit) {}
 
-		public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
+        public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
     }
 

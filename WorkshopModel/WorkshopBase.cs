@@ -156,12 +156,12 @@ namespace GroundConstruction
         protected abstract void draw();
         protected virtual void unlock() { }
 
-		protected void BeginScroll(int num_items, ref Vector2d scroll_pos)
-		{
-			scroll_pos = GUILayout.BeginScrollView(scroll_pos,
-			                                       GUILayout.Height(height * Math.Min(num_items, 2)),
-			                                       GUILayout.Width(width));
-		}
+        protected void BeginScroll(int num_items, ref Vector2d scroll_pos)
+        {
+            scroll_pos = GUILayout.BeginScrollView(scroll_pos,
+                                                   GUILayout.Height(height * Math.Min(num_items, 2)),
+                                                   GUILayout.Width(width));
+        }
 
         void OnGUI()
         {
@@ -193,15 +193,15 @@ namespace GroundConstruction
         public override void StartTask(IWorkshopTask task)
         {
             var Task = task as T;
-			if(Task != null && CurrentTask.ID != Task.ID && 
-			   check_task(Task) && init_task(Task))
+            if(Task != null && CurrentTask.ID != Task.ID && 
+               check_task(Task) && init_task(Task))
             {
-				if(CurrentTask.Valid)
-				{
+                if(CurrentTask.Valid)
+                {
                     Queue.Enqueue(CurrentTask);
-					stop(true);
-				}
-				reset_current_task();
+                    stop(true);
+                }
+                reset_current_task();
                 CurrentTask = Task;
                 start();
             }
@@ -262,8 +262,8 @@ namespace GroundConstruction
         }
 
         protected virtual void on_update() 
-		{ 
-			//highlight kit under the mouse
+        { 
+            //highlight kit under the mouse
             disable_highlights();
             if(highlight_task != null)
             {
@@ -271,7 +271,7 @@ namespace GroundConstruction
                 highlighted_kits.Add(highlight_task);
             }
             highlight_task = null;
-		}
+        }
 
         protected virtual void update_ui_data()
         {
@@ -291,17 +291,17 @@ namespace GroundConstruction
             GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
         }
 
-		public override void OnStart(StartState state)
-		{
-			base.OnStart(state);
-			if(HighLogic.LoadedSceneIsFlight)
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            if(HighLogic.LoadedSceneIsFlight)
             {
                 update_workforce();
                 update_max_workforce();
             }
-		}
+        }
 
-		void Update()
+        void Update()
         {
             if(!HighLogic.LoadedSceneIsFlight) return;
             if(!FlightDriver.Pause && FlightGlobals.ready && Time.timeSinceLevelLoad > 1)
@@ -352,15 +352,15 @@ namespace GroundConstruction
         }
 
         #region GUI
-		protected HashSet<VesselKitInfo> highlighted_kits = new HashSet<VesselKitInfo>();
+        protected HashSet<VesselKitInfo> highlighted_kits = new HashSet<VesselKitInfo>();
 
-		protected void set_highlighted_task(T task)
+        protected void set_highlighted_task(T task)
         {
             if(Event.current.type == EventType.Repaint && Utils.MouseInLastElement())
                 highlight_task = task;
         }
 
-		protected void disable_highlights()
+        protected void disable_highlights()
         {
             if(highlighted_kits.Count > 0)
             {
@@ -385,7 +385,7 @@ namespace GroundConstruction
             {
                 GUILayout.Label("Construction Queue", Styles.label, GUILayout.ExpandWidth(true));
                 GUILayout.BeginVertical(Styles.white);
-				BeginScroll(Queue.Count, ref queue_scroll);
+                BeginScroll(Queue.Count, ref queue_scroll);
                 T del = null;
                 T up = null;
                 foreach(var task in Queue)

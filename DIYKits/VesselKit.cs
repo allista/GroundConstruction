@@ -241,6 +241,6 @@ namespace GroundConstruction
         }
 
         public bool Equals(VesselKit other) => id == other.id;
-	}
+    }
 }
 

@@ -83,7 +83,7 @@ namespace GroundConstruction
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
         }
 
-		protected override  update_nearby_kits()
+        protected override  update_nearby_kits()
         {
             if(!FlightGlobals.ready) return;
             var queued = new HashSet<Guid>(Queue.Select(k => k.vesselID));
@@ -120,10 +120,10 @@ namespace GroundConstruction
             workforce *= Efficiency;
         }
 
-		protected override bool init_task(ConstructionKitInfo task) => true;
-		protected override bool check_host(ConstructionKitInfo task) => true;
+        protected override bool init_task(ConstructionKitInfo task) => true;
+        protected override bool check_host(ConstructionKitInfo task) => true;
 
-		protected override bool can_construct()
+        protected override bool can_construct()
         {
             if(!base.can_construct())
                 return false;
@@ -197,7 +197,7 @@ namespace GroundConstruction
             return "";
         }
 
-		protected override void info_pane()
+        protected override void info_pane()
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(string.Format("<color=silver>Efficiency:</color> <b>{0:P1}</b> " +
@@ -208,12 +208,12 @@ namespace GroundConstruction
         }
 
         Vector2 unbuilt_scroll = Vector2.zero;
-		protected override void unbuilt_kits_pane()
+        protected override void unbuilt_kits_pane()
         {
             if(unbuilt_kits.Count == 0) return;
             GUILayout.Label("Unbuilt DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-			BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
+            BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
             ConstructionKitInfo add = null;
             IDeployableContainer deploy = null;
             foreach(var info in unbuilt_kits)

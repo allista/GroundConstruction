@@ -97,17 +97,17 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
-		protected override bool check_task(KitInfo task) => 
-		base.check_task(task) && check_host(task);
+        protected override bool check_task(KitInfo task) => 
+        base.check_task(task) && check_host(task);
 
-		protected abstract bool check_host(KitInfo task);
+        protected abstract bool check_host(KitInfo task);
 
-		protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
-		protected List<KitInfo> built_kits = new List<KitInfo>();
+        protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
+        protected List<KitInfo> built_kits = new List<KitInfo>();
         protected abstract void update_kits();
 
         #region implemented abstract members of WorkshopBase
-		protected override void update_ui_data()
+        protected override void update_ui_data()
         {
             base.update_ui_data();
             update_kits();
@@ -151,7 +151,7 @@ namespace GroundConstruction
 
         protected void current_task_pane()
         {
-			GUILayout.BeginVertical();
+            GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             GUILayout.Label("<color=yellow><b>Kit:</b></color>", 
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
@@ -163,7 +163,7 @@ namespace GroundConstruction
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
             CurrentTask.DrawCurrentPart();
             GUILayout.EndHorizontal();
-			GUILayout.EndVertical();
+            GUILayout.EndVertical();
         }
     }
 }

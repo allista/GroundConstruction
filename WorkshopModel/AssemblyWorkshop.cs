@@ -19,19 +19,19 @@ namespace GroundConstruction
 
         ShipConstructLoader construct_loader;
 
-		protected override int STAGE => DIYKit.ASSEMBLY;
+        protected override int STAGE => DIYKit.ASSEMBLY;
         public bool Empty => Kits.Count == 0;
         public List<VesselKit> GetKits() => Kits;
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
-		protected override bool check_task(AssemblyKitInfo task) => 
-		base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.ASSEMBLY;
+        protected override bool check_task(AssemblyKitInfo task) => 
+        base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.ASSEMBLY;
 
-		protected virtual void process_construct(ShipConstruct construct)
+        protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct);
             if(find_assembly_space(kit, false) != null)
             {
-				Kits.Add(kit);
+                Kits.Add(kit);
                 Queue.Enqueue(new AssemblyKitInfo(kit));
             }
         }
@@ -54,14 +54,14 @@ namespace GroundConstruction
             return false;
         }
 
-		protected abstract List<IAssemblySpace> get_assembly_spaces();
-		protected virtual IAssemblySpace find_assembly_space(VesselKit kit, bool best)
-		{
-			var spaces = get_assembly_spaces();
-			return best ? find_best_assembly_space(kit, spaces) : find_assembly_space(kit, spaces);
-		}
+        protected abstract List<IAssemblySpace> get_assembly_spaces();
+        protected virtual IAssemblySpace find_assembly_space(VesselKit kit, bool best)
+        {
+            var spaces = get_assembly_spaces();
+            return best ? find_best_assembly_space(kit, spaces) : find_assembly_space(kit, spaces);
+        }
 
-		IAssemblySpace find_assembly_space(VesselKit kit, IList<IAssemblySpace> spaces)
+        IAssemblySpace find_assembly_space(VesselKit kit, IList<IAssemblySpace> spaces)
         {
             foreach(var space in spaces)
             {
@@ -72,7 +72,7 @@ namespace GroundConstruction
             return null;
         }
 
-		IAssemblySpace find_best_assembly_space(VesselKit kit, IList<IAssemblySpace> spaces)
+        IAssemblySpace find_best_assembly_space(VesselKit kit, IList<IAssemblySpace> spaces)
         {
             float best_ratio = -1;
             IAssemblySpace available_space = null;
@@ -103,7 +103,7 @@ namespace GroundConstruction
         protected IAssemblySpace find_best_assembly_space(VesselKit kit, Vessel vsl) =>
         find_best_assembly_space(kit, VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl));
 
-		public override void OnAwake()
+        public override void OnAwake()
         {
             base.OnAwake();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
@@ -117,11 +117,11 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-		protected override void draw()
-		{
+        protected override void draw()
+        {
             base.draw();
             construct_loader.Draw();
-		}
-	}
+        }
+    }
 }
 

@@ -15,11 +15,11 @@ namespace GroundConstruction
 
         #region Target Actions
         protected ConstructionKitInfo target_kit;
-		protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
-		#endregion
+        protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
+        #endregion
 
-		#region Resource Transfer
-		readonly ResourceManifestList transfer_list = new ResourceManifestList();
+        #region Resource Transfer
+        readonly ResourceManifestList transfer_list = new ResourceManifestList();
         VesselResources host_resources, kit_resources;
         ResourceTransferWindow resources_window;
 
@@ -83,10 +83,10 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-		protected override bool check_task(ConstructionKitInfo task) => 
-		base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
+        protected override bool check_task(ConstructionKitInfo task) => 
+        base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
 
-		protected override void draw()
+        protected override void draw()
         {
             base.draw();
             if(target_kit != null && target_kit.Recheck())
@@ -109,11 +109,11 @@ namespace GroundConstruction
         }
         #endregion
 
-		#region GUI
-		protected abstract void info_pane();
-		protected abstract void unbuilt_kits_pane();
+        #region GUI
+        protected abstract void info_pane();
+        protected abstract void unbuilt_kits_pane();
 
-		protected void construction_pane()
+        protected void construction_pane()
         {
             if(CurrentTask.Valid)
             {
@@ -162,13 +162,13 @@ namespace GroundConstruction
             }
         }
 
-		Vector2 built_scroll = Vector2.zero;
-		protected virtual void built_kits_pane()
+        Vector2 built_scroll = Vector2.zero;
+        protected virtual void built_kits_pane()
         {
             if(built_kits.Count == 0) return;
             GUILayout.Label("Built DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
-			BeginScroll(built_kits.Count, ref built_scroll);
+            BeginScroll(built_kits.Count, ref built_scroll);
             ConstructionKitInfo crew = null;
             ConstructionKitInfo resources = null;
             ConstructionKitInfo launch = null;
@@ -198,7 +198,7 @@ namespace GroundConstruction
             GUILayout.EndVertical();
         }
 
-		protected override void main_window(int WindowID)
+        protected override void main_window(int WindowID)
         {
             GUILayout.BeginVertical();
             info_pane();
