@@ -108,5 +108,109 @@ namespace GroundConstruction
             crew_window.UnlockControls();
         }
         #endregion
+
+		#region GUI
+		protected abstract void info_pane();
+		protected abstract void unbuilt_kits_pane();
+
+		protected void construction_pane()
+        {
+            if(CurrentTask.Valid)
+            {
+                GUILayout.BeginVertical(Styles.white);
+                GUILayout.Label(Working ?
+                                "<color=yellow><b>Constructing...</b></color>" :
+                                "<color=silver><b>Under Construction</b></color>",
+                                Styles.boxed_label, GUILayout.ExpandWidth(true));
+                current_task_pane();
+                if(Working)
+                {
+                    if(distance_mod < 1)
+                        GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(ETA_Display, Styles.boxed_label, GUILayout.ExpandWidth(true));
+                    if(EndUT > 0 &&
+                       TimeWarp.fetch != null &&
+                       GUILayout.Button(ProtoWorkshop.WarpToButton, Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                        TimeWarp.fetch.WarpTo(EndUT);
+                    GUILayout.EndHorizontal();
+                }
+                GUILayout.EndVertical();
+            }
+            if(CurrentTask.Valid || Queue.Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+                if(Utils.ButtonSwitch("Pause Construction", "Start Construction", ref Working,
+                                      "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
+                {
+                    if(Working && can_construct()) start();
+                    else stop();
+                }
+                if(Working)
+                {
+                    if(GUILayout.Button(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                        Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    {
+                        Queue.Enqueue(CurrentTask);
+                        stop(true);
+                    }
+                }
+                else
+                    GUILayout.Label(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                    Styles.grey_button, GUILayout.ExpandWidth(false));
+                GUILayout.EndHorizontal();
+            }
+        }
+
+		Vector2 built_scroll = Vector2.zero;
+		protected virtual void built_kits_pane()
+        {
+            if(built_kits.Count == 0) return;
+            GUILayout.Label("Built DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+			BeginScroll(built_kits.Count, ref built_scroll);
+            ConstructionKitInfo crew = null;
+            ConstructionKitInfo resources = null;
+            ConstructionKitInfo launch = null;
+            foreach(var info in built_kits)
+            {
+                GUILayout.BeginHorizontal();
+                info.Draw();
+                set_highlighted_task(info);
+                if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
+                                    Styles.active_button, GUILayout.ExpandWidth(false)))
+                    resources = info;
+                if(GUILayout.Button(new GUIContent("Crew", "Select crew for the assembled vessel"),
+                                    Styles.active_button, GUILayout.ExpandWidth(false)))
+                    crew = info;
+                if(GUILayout.Button(new GUIContent("Launch", "Launch assembled vessel"),
+                                    Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    launch = info;
+                GUILayout.EndHorizontal();
+            }
+            if(resources != null)
+                setup_resource_transfer(resources);
+            if(crew != null)
+                setup_crew_transfer(crew);
+            if(launch != null && launch.Recheck())
+                launch.ConstructionSpace.Launch();
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
+
+		protected override void main_window(int WindowID)
+        {
+            GUILayout.BeginVertical();
+            info_pane();
+            unbuilt_kits_pane();
+            queue_pane();
+            construction_pane();
+            built_kits_pane();
+            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
+                show_window = false;
+            GUILayout.EndVertical();
+            GUIWindowBase.TooltipsAndDragWindow();
+        }
+        #endregion
     }
 }

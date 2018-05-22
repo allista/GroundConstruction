@@ -7,6 +7,7 @@
 using System;
 using UnityEngine;
 using AT_Utils;
+using System.Collections.Generic;
 
 namespace GroundConstruction
 {
@@ -96,12 +97,22 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
-		protected override bool check_task(ConstructionKitInfo task) => 
+		protected override bool check_task(KitInfo task) => 
 		base.check_task(task) && check_host(task);
 
 		protected abstract bool check_host(KitInfo task);
 
+		protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
+		protected List<KitInfo> built_kits = new List<KitInfo>();
+        protected abstract void update_kits();
+
         #region implemented abstract members of WorkshopBase
+		protected override void update_ui_data()
+        {
+            base.update_ui_data();
+            update_kits();
+        }
+
         protected override void update_ETA()
         {
             update_workforce();
