@@ -69,11 +69,7 @@ namespace GroundConstruction
             if(AutoEfficiency) compute_part_efficiency();
             if(Efficiency.Equals(0)) this.EnableModule(false);
             else if(HighLogic.LoadedSceneIsFlight)
-            {
                 loadedUT = -1;
-                update_workforce();
-                update_max_workforce();
-            }
         }
 
         void compute_part_efficiency()

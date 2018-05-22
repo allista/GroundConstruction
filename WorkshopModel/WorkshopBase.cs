@@ -272,7 +272,17 @@ namespace GroundConstruction
             GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
         }
 
-        void Update()
+		public override void OnStart(StartState state)
+		{
+			base.OnStart(state);
+			if(HighLogic.LoadedSceneIsFlight)
+            {
+                update_workforce();
+                update_max_workforce();
+            }
+		}
+
+		void Update()
         {
             if(!HighLogic.LoadedSceneIsFlight) return;
             if(!FlightDriver.Pause && FlightGlobals.ready && Time.timeSinceLevelLoad > 1)
