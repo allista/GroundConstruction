@@ -23,10 +23,5 @@ namespace GroundConstruction
             if(vessel.loaded)
                 update_kits(part.FindModulesImplementing<IKitContainer>());
         }
-
-        protected override void main_window(int WindowID)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

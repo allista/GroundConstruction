@@ -4,10 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2016 Allis Tauri
-
-using System;
 using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
 
@@ -193,19 +190,21 @@ namespace GroundConstruction
 
         protected override void info_pane()
         {
-            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
             GUILayout.Label(string.Format("<color=silver>Efficiency:</color> <b>{0:P1}</b> " +
                                           "<color=silver>Workforce:</color> <b>{1:F1}</b>/{2:F1} SK",
                                           Efficiency, workforce, max_workforce),
                             Styles.boxed_label, GUILayout.ExpandWidth(true));
-            GUILayout.EndHorizontal();
+            if(distance_mod < 1)
+                GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), 
+                                Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
+            GUILayout.EndVertical();
         }
 
-        Vector2 unbuilt_scroll = Vector2.zero;
         protected override void unbuilt_kits_pane()
         {
             if(unbuilt_kits.Count == 0) return;
-            GUILayout.Label("Unbuilt DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
             BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
             ConstructionKitInfo add = null;

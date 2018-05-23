@@ -8,6 +8,7 @@ using System;
 using UnityEngine;
 using AT_Utils;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GroundConstruction
 {
@@ -123,6 +124,36 @@ namespace GroundConstruction
             unbuilt_kits.Clear();
             built_kits.Clear();
         }
+
+        protected void disable_highlights()
+        {
+            if(highlighted_tasks.Count > 0)
+            {
+                foreach(var kit in highlighted_tasks)
+                {
+                    if(kit.Kit &&
+                       (highlight_task == null ||
+                        kit.Kit != highlight_task.Kit))
+                    {
+                        kit.Kit.Host.part.SetHighlightDefault();
+                    }
+                }
+                highlighted_tasks.Clear();
+            }
+        }
+
+        protected override void on_update()
+        {
+            base.on_update();
+            //highlight kit under the mouse
+            disable_highlights();
+            if(highlight_task != null)
+            {
+                highlight_task.Kit.Host.part.HighlightAlways(Color.yellow);
+                highlighted_tasks.Add(highlight_task);
+            }
+            highlight_task = null;
+        }
         #endregion
 
         #region implemented abstract members of WorkshopBase
@@ -158,7 +189,6 @@ namespace GroundConstruction
                 checkin();
         }
 
-        protected abstract void main_window(int WindowID);
         protected override void draw()
         {
             Utils.LockIfMouseOver(LockName, WindowPos);
@@ -168,6 +198,41 @@ namespace GroundConstruction
                                          GUILayout.Height(height)).clampToScreen();
         }
         #endregion
+
+        #region GUI
+        protected Vector2 built_scroll = Vector2.zero;
+        protected abstract void built_kits_pane();
+
+        protected virtual void info_pane()
+        {
+            GUILayout.Label(string.Format("<color=silver>Workforce:</color> <b>{0:F1}</b>/{1:F1} SK",
+                                          workforce, max_workforce),
+                            Styles.boxed_label, GUILayout.ExpandWidth(true));
+        }
+
+        protected Vector2 unbuilt_scroll = Vector2.zero;
+        protected virtual void unbuilt_kits_pane()
+        {
+            if(unbuilt_kits.Count == 0) return;
+            GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+            BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
+            KitInfo add = null;
+            foreach(var info in unbuilt_kits)
+            {
+                GUILayout.BeginHorizontal();
+                info.Draw();
+                set_highlighted_task(info);
+                if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                    Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                    add = info;
+                GUILayout.EndHorizontal();
+            }
+            if(add != null)
+                Queue.Enqueue(add);
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
 
         protected void current_task_pane()
         {
@@ -185,6 +250,68 @@ namespace GroundConstruction
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
         }
+
+        protected void construction_pane()
+        {
+            if(CurrentTask.Valid)
+            {
+                GUILayout.BeginVertical(Styles.white);
+                GUILayout.Label(Working ?
+                                "<color=yellow><b>Working on</b></color>" :
+                                "<color=silver><b>Paused</b></color>",
+                                Styles.boxed_label, GUILayout.ExpandWidth(true));
+                current_task_pane();
+                if(Working)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(ETA_Display, Styles.boxed_label, GUILayout.ExpandWidth(true));
+                    if(EndUT > 0 &&
+                       TimeWarp.fetch != null &&
+                       GUILayout.Button(ProtoWorkshop.WarpToButton, Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                        TimeWarp.fetch.WarpTo(EndUT);
+                    GUILayout.EndHorizontal();
+                }
+                GUILayout.EndVertical();
+            }
+            if(CurrentTask.Valid || Queue.Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+                if(Utils.ButtonSwitch("Pause Construction", "Start Construction", ref Working,
+                                      "Start, Pause or Resume construction", GUILayout.ExpandWidth(true)))
+                {
+                    if(Working && can_construct()) start();
+                    else stop();
+                }
+                if(Working)
+                {
+                    if(GUILayout.Button(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                        Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    {
+                        Queue.Enqueue(CurrentTask);
+                        stop(true);
+                    }
+                }
+                else
+                    GUILayout.Label(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
+                                    Styles.grey_button, GUILayout.ExpandWidth(false));
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        protected virtual void main_window(int WindowID)
+        {
+            GUILayout.BeginVertical();
+            info_pane();
+            unbuilt_kits_pane();
+            queue_pane();
+            construction_pane();
+            built_kits_pane();
+            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
+                show_window = false;
+            GUILayout.EndVertical();
+            GUIWindowBase.TooltipsAndDragWindow();
+        }
+        #endregion
     }
 }
 

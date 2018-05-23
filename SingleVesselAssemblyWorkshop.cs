@@ -4,7 +4,6 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2018 Allis Tauri
-using System;
 using System.Collections.Generic;
 
 namespace GroundConstruction
@@ -22,11 +21,6 @@ namespace GroundConstruction
             base.update_kits();
             if(vessel.loaded)
                 update_kits(VesselKitInfo.GetKitContainers<IKitContainer>(vessel));
-        }
-
-        protected override void main_window(int WindowID)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -156,7 +156,7 @@ namespace GroundConstruction
         protected abstract void draw();
         protected virtual void unlock() { }
 
-        protected void BeginScroll(int num_items, ref Vector2d scroll_pos)
+        protected void BeginScroll(int num_items, ref Vector2 scroll_pos)
         {
             scroll_pos = GUILayout.BeginScrollView(scroll_pos,
                                                    GUILayout.Height(height * Math.Min(num_items, 2)),
@@ -261,17 +261,7 @@ namespace GroundConstruction
             return false;
         }
 
-        protected virtual void on_update() 
-        { 
-            //highlight kit under the mouse
-            disable_highlights();
-            if(highlight_task != null)
-            {
-                highlight_task.Kit.Host.part.HighlightAlways(Color.yellow);
-                highlighted_kits.Add(highlight_task);
-            }
-            highlight_task = null;
-        }
+        protected virtual void on_update() {}
 
         protected virtual void update_ui_data()
         {
@@ -352,7 +342,8 @@ namespace GroundConstruction
         }
 
         #region GUI
-        protected HashSet<VesselKitInfo> highlighted_kits = new HashSet<VesselKitInfo>();
+        protected HashSet<T> highlighted_tasks = new HashSet<T>();
+        protected T highlight_task;
 
         protected void set_highlighted_task(T task)
         {
@@ -360,26 +351,8 @@ namespace GroundConstruction
                 highlight_task = task;
         }
 
-        protected void disable_highlights()
-        {
-            if(highlighted_kits.Count > 0)
-            {
-                foreach(var kit in highlighted_kits)
-                {
-                    if(kit.Kit &&
-                       (highlight_task == null ||
-                        kit.Kit != highlight_task.Kit))
-                    {
-                        kit.Kit.Host.part.SetHighlightDefault();
-                    }
-                }
-                highlighted_kits.Clear();
-            }
-        }
-
-        protected T highlight_task;
         Vector2 queue_scroll = Vector2.zero;
-        protected void queue_pane()
+        protected virtual void queue_pane()
         {
             if(Queue.Count > 0)
             {

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using AT_Utils;
-using KSP.UI.Screens;
 using UnityEngine;
 
 namespace GroundConstruction
@@ -109,7 +108,7 @@ namespace GroundConstruction
             var queued = get_queued_ids();
             foreach(var container in containers)
             {
-                if(container == this) continue;
+                if(container as AssemblyWorkshop == this) continue;
                 foreach(var vsl_kit in container.GetKits())
                 {
                     if(vsl_kit != null && vsl_kit.Valid &&
@@ -138,6 +137,46 @@ namespace GroundConstruction
             base.draw();
             construct_loader.Draw();
         }
+
+        #region GUI
+        protected override void queue_pane()
+        {
+            GUILayout.BeginHorizontal();
+            if(GUILayout.Button(new GUIContent("Add Vessel", 
+                                               "Add a vessel from VAB/SPH to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectVessel();
+            if(GUILayout.Button(new GUIContent("Add Subassembly", 
+                                               "Add a subassembly to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectSubassembly();
+            GUILayout.EndHorizontal();
+            base.queue_pane();
+        }
+
+        protected override void built_kits_pane()
+        {
+            if(built_kits.Count == 0) return;
+            GUILayout.Label("Built DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+            BeginScroll(built_kits.Count, ref built_scroll);
+            AssemblyKitInfo spawn = null;
+            foreach(var info in built_kits)
+            {
+                GUILayout.BeginHorizontal();
+                info.Draw();
+                set_highlighted_task(info);
+                if(GUILayout.Button(new GUIContent("Release", "Release complete kit from the dock"),
+                                    Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    spawn = info;
+                GUILayout.EndHorizontal();
+            }
+            if(spawn != null && spawn.Recheck())
+                spawn.AssemblySpace.SpawnKit();
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
+        #endregion
     }
 }
 
