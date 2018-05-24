@@ -25,7 +25,7 @@ namespace GroundConstruction
     public interface IAssemblySpace : IControllableContainer
     {
         float KitToSpaceRatio(VesselKit kit);
-        AssemblyKitInfo SetKit(VesselKit kit);
+        void SetKit(VesselKit kit);
         void SpawnKit();
     }
 
