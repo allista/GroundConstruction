@@ -204,7 +204,6 @@ namespace GroundConstruction
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
-            //model = part.transform.Find("model");
             var obj = new GameObject("SpawnTransformFwdMesh", typeof(MeshFilter), typeof(MeshRenderer));
             obj.transform.SetParent(part.transform);
             deploy_hint_mesh = obj.GetComponent<MeshFilter>();
@@ -361,13 +360,17 @@ namespace GroundConstruction
 
         void store_construct(ShipConstruct construct)
         {
-            kit = new VesselKit(this, construct);
             Facility = construct.shipFacility;
+            StoreKit(new VesselKit(this, construct));
+        }
+
+        public void StoreKit(VesselKit kit)
+        {
+            this.kit = kit;
             update_part_info();
             update_texture();
             set_kit_size();
             update_constraint_controls();
-            construct.Unload();
             this.Log("mass {}, cost {}, name {}, kit {}",
                      kit.Mass, kit.Cost, kit.Name, kit);//debug
         }
@@ -404,7 +407,7 @@ namespace GroundConstruction
             return true;
         }
 
-        IEnumerator decouple_attached_parts()
+        IEnumerable decouple_attached_parts()
         {
             if(part.parent) part.decouple();
             yield return null;
@@ -447,11 +450,10 @@ namespace GroundConstruction
         {
             //decouple anything that is still attached to the Kit
             var decoupler = decouple_attached_parts();
-            while(decoupler.MoveNext())
-                yield return decoupler.Current;
+            foreach(var _ in decouple_attached_parts()) yield return null;
             //check if the kit has GroundContact and is not mooving
-            foreach(object w in wait_for_ground_contact(string.Format("Deploing {0} Kit in", kit.Name)))
-                yield return w;
+            foreach(var _ in wait_for_ground_contact(string.Format("Deploing {0} Kit in", kit.Name)))
+                yield return null;
             //get the spawn transform and compute the resizing path
             var spawnT = get_spawn_transform() ?? part.transform;
             yield return null;
@@ -476,8 +478,8 @@ namespace GroundConstruction
             //setup anchor, permanent ground contact and unfocused ranges
             update_unfocusedRange("Launch");
             setup_ground_contact();
-            foreach(object w in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
-                yield return w;
+            foreach(var _ in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
+                yield return null;
             attach_anchor();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
             state = ContainerDeplyomentState.DEPLOYED;
@@ -492,7 +494,7 @@ namespace GroundConstruction
         {
             if(!can_deploy()) return;
             Events["Deploy"].active = false;
-            DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / kit.ShipMetric.volume, 1 / GLB.MinDeploymentTime);
+            DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / kit.ShipMetric.size.MaxComponentF(), 1 / GLB.MinDeploymentTime);
             Utils.SaveGame(kit.Name + "-before_deployment");
             state = ContainerDeplyomentState.DEPLOYING;
         }
@@ -630,7 +632,7 @@ namespace GroundConstruction
             var construct = kit.LoadConstruct();
             if(construct == null)
             {
-                Utils.Log("PackedConstruct: unable to load ShipConstruct {}. " +
+                Utils.Log("Unable to load ShipConstruct {}. " +
                           "This usually means that some parts are missing " +
                           "or some modules failed to initialize.", kit.Name);
                 Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
@@ -739,7 +741,7 @@ namespace GroundConstruction
 #if DEBUG
         void OnRenderObject()
         {
-            if(vessel == null) return;
+            if(vessel == null || spawn_transforms == null) return;
             var T = get_spawn_transform();
             if(T != null)
             {

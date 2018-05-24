@@ -33,7 +33,7 @@ ComplexityFactor = 1E-04
 VesselKitDensity = 0.5
 VesselKitMinSize = 0.5
 
-DeployMaxSpeed   = 0.5
+DeployMaxSpeed   = 0.1
 DeployMaxAV      = 1E-03
 DeploymentSpeed  = 20
 MinDeploymentTime = 3
