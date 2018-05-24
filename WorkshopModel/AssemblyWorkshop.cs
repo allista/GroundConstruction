@@ -46,6 +46,7 @@ namespace GroundConstruction
                 if(space != null && space_module != null)
                 {
                     space.SetKit(task.Kit);
+					Kits.Remove(task.Kit);
                     task.Kit.Host = space_module;
                     return true;
                 }
