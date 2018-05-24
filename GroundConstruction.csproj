@@ -32,7 +32,7 @@
     <Optimize>true</Optimize>
     <OutputPath>GameData\GroundConstruction\Plugins</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <DefineConstants>NIGHTBUILD</DefineConstants>
+    <DefineConstants>NIGHTBUILD DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
@@ -87,6 +87,8 @@
     <Compile Include="SinglePartAssemblyWorkshop.cs" />
     <Compile Include="SingleVesselAssemblyWorkshop.cs" />
     <Compile Include="SingleVesselConstructionWorkshop.cs" />
+    <Compile Include="AssemblySpace.cs" />
+    <Compile Include="ModuleSpawnTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
