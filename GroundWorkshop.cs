@@ -195,7 +195,7 @@ namespace GroundConstruction
                                           "<color=silver>Workforce:</color> <b>{1:F1}</b>/{2:F1} SK",
                                           Efficiency, workforce, max_workforce),
                             Styles.boxed_label, GUILayout.ExpandWidth(true));
-            if(distance_mod < 1)
+            if(distance_mod >= 0 && distance_mod < 1)
                 GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), 
                                 Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
             GUILayout.EndVertical();
