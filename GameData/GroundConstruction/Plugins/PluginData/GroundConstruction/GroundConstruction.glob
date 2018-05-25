@@ -4,7 +4,7 @@ AssemblyResource
 {
 	name = SpecializedParts
 	WorkPerMass = 15
-	EnergyPerMass = 10
+	EnergyPerMass = 1000
 	ComplexityWork = 17
 }
 
@@ -13,7 +13,7 @@ ConstructionResource
 {
 	name = MaterialKits
 	WorkPerMass = 10
-	EnergyPerMass = 100
+	EnergyPerMass = 10000
 	ComplexityWork = 13
 }
 
