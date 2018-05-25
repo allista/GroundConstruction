@@ -15,7 +15,7 @@ namespace GroundConstruction
     {
         [KSPField] public string SpawnTransform = string.Empty;
         [KSPField] public Vector3 SpawnOffset = Vector3.zero;
-		
+
         Transform spawn_transform;
         VesselSpawner Spawner;
         ShipConstructLoader construct_loader;
@@ -33,35 +33,92 @@ namespace GroundConstruction
             Destroy(construct_loader);
         }
 
-		public override void OnStart(StartState state)
-		{
+        public override void OnStart(StartState state)
+        {
             base.OnStart(state);
             Spawner = new VesselSpawner(part);
             if(!string.IsNullOrEmpty(SpawnTransform))
                 spawn_transform = part.FindModelTransform(SpawnTransform);
-		}
+        }
 
         void process_construct(ShipConstruct construct)
         {
-            var offset = Vector3.Scale(SpawnOffset, construct.Bounds(construct.Parts[0].localRoot.transform).extents);
-            StartCoroutine(Spawner.SpawnShipConstruct(construct, spawn_transform, offset, Vector3.zero));
+            var bounds = construct.Bounds(construct.Parts[0].localRoot.transform);
+            var offset = Vector3.Scale(SpawnOffset, bounds.extents) - bounds.center;
+            StartCoroutine(Spawner.SpawnShipConstruct(construct, spawn_transform, offset, Vector3.up));
+        }
+
+        //called every frame while part collider is touching the trigger
+        bool active;
+        void OnTriggerStay(Collider col)
+        {
+            if(active && col != null && col.attachedRigidbody != null)
+            {
+                if(col.CompareTag("Untagged"))
+                {
+                    var p = col.attachedRigidbody.GetComponent<Part>();
+                    if(p != null && p.vessel != null && p.vessel != vessel)
+                        store_vessel(p.vessel);
+                }
+            }
+        }
+
+        Metric pv_metric;
+        ProtoVessel proto_vessel;
+        void store_vessel(Vessel vsl)
+        {
+            if(proto_vessel == null)
+            {
+                active = false;
+                pv_metric = new Metric(vsl);
+                proto_vessel = vsl.BackupVessel();
+                if(FlightGlobals.ActiveVessel == vsl)
+                {
+                    FlightCameraOverride.AnchorForSeconds(FlightCameraOverride.Mode.Hold, vessel.transform, 1);
+                    FlightGlobals.ForceSetActiveVessel(vessel);
+                    FlightInputHandler.SetNeutralControls();
+                }
+                Events["ActivateVesselCapture"].guiName = "Eat a vessel";
+                vsl.Die();
+            }
         }
 
         [KSPEvent(guiName = "Select Vessel", guiActive = true, active = true)]
         public void SelectVessel()
         {
-            construct_loader.SelectVessel();
+            if(!Spawner.LaunchInProgress)
+                construct_loader.SelectVessel();
         }
 
         [KSPEvent(guiName = "Select Subassembly", guiActive = true, active = true)]
         public void SelectSubassembly()
         {
-            construct_loader.SelectSubassembly();
+            if(!Spawner.LaunchInProgress)
+                construct_loader.SelectSubassembly();
+        }
+
+        [KSPEvent(guiName = "Eat a vessel", guiActive = true, active = true)]
+        public void ActivateVesselCapture()
+        {
+            active = true;
+            Events["ActivateVesselCapture"].guiName = "Eating a vessel...";
+        }
+
+        [KSPEvent(guiName = "Spawn ProtoVessel", guiActive = true, active = true)]
+        public void SpawnProtoVessel()
+        {
+            if(proto_vessel != null && !Spawner.LaunchInProgress)
+            {
+                var offset = Vector3.Scale(SpawnOffset, pv_metric.extents)-pv_metric.center;
+                StartCoroutine(Spawner
+                               .SpawnProtoVessel(proto_vessel, spawn_transform, offset, Vector3.up,
+                                                 on_vessel_launched: vsl => proto_vessel = null));
+            }
         }
 
         void OnGUI()
         {
-            if(Event.current.type != EventType.Layout && 
+            if(Event.current.type != EventType.Layout &&
                Event.current.type != EventType.Repaint) return;
             Styles.Init();
             construct_loader.Draw();
@@ -78,5 +135,5 @@ namespace GroundConstruction
                 Utils.GLVec(T.position, T.right, Color.red);
             }
         }
-	}
+    }
 }
