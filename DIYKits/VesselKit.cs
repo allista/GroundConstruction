@@ -197,14 +197,14 @@ namespace GroundConstruction
             return base.DoSomeWork(work);
         }
 
-		public override void NextStage()
-		{
+        public override void NextStage()
+        {
             base.NextStage();
             if(remainder != null)
                 remainder.Clear();
-		}
+        }
 
-		public void Draw()
+        public void Draw()
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;

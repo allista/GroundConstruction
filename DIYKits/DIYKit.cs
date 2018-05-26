@@ -161,8 +161,8 @@ namespace GroundConstruction
                 remainder.Clear();
         }
 
-		//deprecated config conversion
-		public override void Load(ConfigNode node)
+        //deprecated config conversion
+        public override void Load(ConfigNode node)
         {
             base.Load(node);
             if(node.HasValue("Completeness"))

@@ -92,7 +92,7 @@ namespace GroundConstruction
             kit_part.gameObject.SetActive(true);
             kit_part.partInfo = part_info;
             kit_part.name = part_info.name;
-			kit_part.flagURL = part.flagURL;
+            kit_part.flagURL = part.flagURL;
             kit_part.persistentId = FlightGlobals.GetUniquepersistentId();
             FlightGlobals.PersistentLoadedPartIds.Remove(kit_part.persistentId);
             kit_part.transform.position = Vector3.zero;
@@ -104,7 +104,7 @@ namespace GroundConstruction
             kit_part.orgPos = kit_part.transform.root.InverseTransformPoint(kit_part.transform.position);
             kit_part.orgRot = Quaternion.Inverse(kit_part.transform.root.rotation) * kit_part.transform.rotation;
             kit_part.packed = true;
-			kit_part.InitializeModules();
+            kit_part.InitializeModules();
             //load kit into ConstructionKit module
             var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
             if(kit_module == null)
@@ -121,7 +121,7 @@ namespace GroundConstruction
         {
             //create ship construct
             var ship = new ShipConstruct("DIY Kit: "+Kit.Name, "", kit_part);
-			ship.rotation = Quaternion.identity;
+            ship.rotation = Quaternion.identity;
             ship.missionFlag = kit_part.flagURL;
             //var ship_node = ship.SaveShip();
             //ship.Unload();
