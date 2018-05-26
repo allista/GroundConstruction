@@ -15,8 +15,6 @@ namespace GroundConstruction
     public abstract class VesselKitWorkshop<KitInfo> : WorkshopBase<KitInfo, ConstructionSkill>
         where KitInfo : VesselKitInfo, new()
     {
-        protected abstract int STAGE { get; }
-
         protected double serve_requirements(double work)
         {
             var req = CurrentTask.Kit.RequirementsForWork(work);
@@ -80,7 +78,7 @@ namespace GroundConstruction
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
-                if(CurrentTask.Kit.StageComplete(STAGE))
+                if(CurrentTask.Complete)
                 {
                     on_task_complete(CurrentTask);
                     CurrentTask.Kit.NextStage();

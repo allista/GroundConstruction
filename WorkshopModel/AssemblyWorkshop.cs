@@ -18,21 +18,24 @@ namespace GroundConstruction
 
         ShipConstructLoader construct_loader;
 
-        protected override int STAGE => DIYKit.ASSEMBLY;
         public bool Empty => Kits.Count == 0;
         public List<VesselKit> GetKits() => Kits;
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
+
         protected override bool check_task(AssemblyKitInfo task) => 
-        base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.ASSEMBLY;
+        base.check_task(task) && task.Kit.CurrentStageIndex <= DIYKit.CONSTRUCTION;
 
         protected virtual void process_construct(ShipConstruct construct)
         {
-            var kit = new VesselKit(this, construct);
+            var kit = new VesselKit(this, construct, false);
             if(find_assembly_space(kit, false) != null)
             {
                 Kits.Add(kit);
                 Queue.Enqueue(new AssemblyKitInfo(kit));
             }
+            else
+                Utils.Message("No suitable assembly space was found.");
+            construct.Unload();
         }
 
         protected override bool init_task(AssemblyKitInfo task)
@@ -46,7 +49,7 @@ namespace GroundConstruction
                 if(space != null && space_module != null)
                 {
                     space.SetKit(task.Kit);
-					Kits.Remove(task.Kit);
+                    Kits.Remove(task.Kit);
                     task.Kit.Host = space_module;
                     return true;
                 }

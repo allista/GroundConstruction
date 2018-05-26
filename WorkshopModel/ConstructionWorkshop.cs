@@ -12,8 +12,6 @@ namespace GroundConstruction
 {
     public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo> 
     {
-        protected override int STAGE { get { return DIYKit.CONSTRUCTION; } }
-
         #region Target Actions
         protected ConstructionKitInfo target_kit;
         protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
@@ -85,7 +83,7 @@ namespace GroundConstruction
         }
 
         protected override bool check_task(ConstructionKitInfo task) => 
-        base.check_task(task) && task.Kit.CurrentStageIndex == DIYKit.CONSTRUCTION;
+        base.check_task(task) && task.Kit.CurrentStageIndex >= DIYKit.CONSTRUCTION;
 
         protected override void draw()
         {

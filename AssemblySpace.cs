@@ -11,141 +11,133 @@ using UnityEngine;
 
 namespace GroundConstruction
 {
-    public class AssemblySpace : PartModule, IAssemblySpace
+    public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace
     {
         [KSPField] public string KitPart = "DIYKit";
-        [KSPField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
+        [KSPField] public string AnimatorID = string.Empty;
 
-        [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
+        [KSPField, SerializeField]
+        public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
+        VesselSpawner Spawner;
+        MultiAnimator Animator;
+
+        [KSPField(isPersistant = true)] public VesselKit Kit = new VesselKit();
+
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            Spawner = new VesselSpawner(part);
+            SpawnManager.Init(part);
+            if(!string.IsNullOrEmpty(AnimatorID))
+                Animator = part.GetAnimator(AnimatorID);
+        }
 
         #region IAssemblySpace
-        public bool Empty => !kit;
+        public bool Empty => !Kit;
 
-        public void EnableControls(bool enable = true) {}
+        public void EnableControls(bool enable = true) { }
 
-        public VesselKit GetKit(Guid id) => kit.id == id ? kit : null;
+        public VesselKit GetKit(Guid id) => Kit.id == id ? Kit : null;
 
-        public List<VesselKit> GetKits() => new List<VesselKit> { kit };
+        public List<VesselKit> GetKits() => new List<VesselKit> { Kit };
 
         public float KitToSpaceRatio(VesselKit kit)
         {
-            if(!kit || !SpawnManager.MetricFits(kit.ShipMetric)) return -1;
-            return 1-kit.ShipMetric.volume/SpawnManager.SpaceMetric.volume;
+            if(!kit) return -1;
+            var kit_part = create_kit_part(kit);
+            if(kit_part == null) return -1;
+            var kit_metric = new Metric(kit_part);
+            DestroyImmediate(kit_part.gameObject);
+            if(!SpawnManager.MetricFits(kit_metric)) return -1;
+            return 1 - kit_metric.volume / SpawnManager.SpaceMetric.volume;
         }
 
-        public void SetKit(VesselKit kit) => this.kit = kit;
+        public void SetKit(VesselKit kit)
+        {
+            this.Kit = kit;
+            if(Animator != null)
+                Animator.Close();
+        }
 
-        public void ShowUI(bool enable = true) {}
+        public void ShowUI(bool enable = true) { }
 
         public void SpawnKit()
         {
-            if(!kit) return;
-            if(spawning)
+            if(!Kit) return;
+            this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
+            if(Spawner.LaunchInProgress)
             {
                 Utils.Message("In progress...");
                 return;
             }
-            if(kit.StageComplete(DIYKit.ASSEMBLY)) 
+            if(!Kit.StageComplete(DIYKit.ASSEMBLY))
             {
-                Utils.Message("Kit is not assembled yet");
+                Utils.Message("The kit is not yet assembled");
                 return;
             }
+            var kit_part = create_kit_part(Kit);
+            if(kit_part != null)
+                StartCoroutine(spawn_kit_vessel(kit_part));
+        }
+
+        Part create_kit_part(VesselKit kit)
+        {
             var part_info = PartLoader.getPartInfoByName(KitPart);
             if(part_info == null)
             {
                 Utils.Message("No such part: {0}", KitPart);
-                return;
+                return null;
             }
-            StartCoroutine(spawn_kit_vessel(part_info));
-        }
-
-        bool spawning;
-        Vessel spawned_vessel;
-
-   //     IEnumerator<YieldInstruction> spawn_kit_vessel1(AvailablePart part_info)
-   //     {
-   //         spawning = true;
-   //         //create part
-   //         var kit_part = Instantiate(part_info.partPrefab);
-   //         kit_part.partInfo = part_info;
-   //         kit_part.persistentId = FlightGlobals.GetUniquepersistentId();
-			//kit_part.craftID = ShipConstruction.GetUniqueFlightID(HighLogic.CurrentGame.flightState);
-        //    //load kit into ConstructionKit module
-        //    var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
-        //    if(kit_module == null)
-        //    {
-        //        Utils.Message("{0} has no ConstructionKit MODULE", KitPart);
-        //        Destroy(kit_part);
-        //        spawning = false;
-        //        yield break;
-        //    }
-        //    kit_module.StoreKit(kit);
-        //    //create part node
-        //    var proto_part = new ProtoPartSnapshot(kit_part, null);
-        //    var part_node = new ConfigNode("PART");
-        //    proto_part.Save(part_node);
-        //    //create proto vessel
-        //    var vessel_node = ProtoVessel.CreateVesselNode(kit.Name, VesselType.Lander, 
-        //                                                   new Orbit(vessel.orbit), 0, 
-        //                                                   new[] {part_node});
-        //    var proto_vessel = new ProtoVessel(vessel_node, HighLogic.CurrentGame);
-        //    //spawn
-        //    foreach(var i in SpawnManager.SpawnProtoVessel(proto_vessel))
-        //        yield return i;
-        //    spawning = false;
-        //    kit = new VesselKit();
-        //}
-
-        IEnumerator<YieldInstruction> spawn_kit_vessel(AvailablePart part_info)
-        {
-            spawning = true;
-            //create part
             var kit_part = Instantiate(part_info.partPrefab);
-            kit_part.partInfo = part_info;
-            kit_part.persistentId = FlightGlobals.GetUniquepersistentId();
             kit_part.gameObject.SetActive(true);
+            kit_part.partInfo = part_info;
+            kit_part.name = part_info.name;
+			kit_part.flagURL = part.flagURL;
+            kit_part.persistentId = FlightGlobals.GetUniquepersistentId();
             FlightGlobals.PersistentLoadedPartIds.Remove(kit_part.persistentId);
+            kit_part.transform.position = Vector3.zero;
+            kit_part.attPos0 = Vector3.zero;
+            kit_part.transform.rotation = Quaternion.identity;
+            kit_part.attRotation = Quaternion.identity;
+            kit_part.attRotation0 = Quaternion.identity;
+            kit_part.partTransform = kit_part.transform;
+            kit_part.orgPos = kit_part.transform.root.InverseTransformPoint(kit_part.transform.position);
+            kit_part.orgRot = Quaternion.Inverse(kit_part.transform.root.rotation) * kit_part.transform.rotation;
+            kit_part.packed = true;
+			kit_part.InitializeModules();
             //load kit into ConstructionKit module
             var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
             if(kit_module == null)
             {
                 Utils.Message("{0} has no ConstructionKit MODULE", KitPart);
                 Destroy(kit_part);
-                spawning = false;
-                yield break;
+                return null;
             }
             kit_module.StoreKit(kit);
-            //create ship construct
-            var ship = new ShipConstruct(kit.Name, "", kit_part);
-            //position ship construct
-			var spawn_transform = SpawnManager.GetSpawnTransform(kit.ShipMetric);
-            FlightCameraOverride.AnchorForSeconds(FlightCameraOverride.Mode.Hold, 
-                                                  FlightGlobals.ActiveVessel.transform, 1);
-            if(FlightGlobals.ready)
-                FloatingOrigin.SetOffset(spawn_transform.position);
-            float angle;
-            Vector3 axis;
-            spawn_transform.rotation.ToAngleAxis(out angle, out axis);
-            var root = ship.parts[0].localRoot.transform;
-            var offset = (
-                spawn_transform.position - 
-                ship.Bounds().center + 
-                spawn_transform.TransformDirection(SpawnManager.GetSpawnOffset(kit.ShipMetric)));
-            root.Translate(offset, Space.World);
-            root.RotateAround(spawn_transform.position, axis, angle);
-            //initialize new vessel
-            ShipConstruction.AssembleForLaunch(ship, 
-                                               vessel.landedAt, vessel.displaylandedAt, 
-                                               part.flagURL, 
-                                               FlightDriver.FlightStateCache,
-                                               new VesselCrewManifest());
-            spawned_vessel = FlightGlobals.Vessels[FlightGlobals.Vessels.Count - 1];
-            spawned_vessel.situation = vessel.situation;
-            spawned_vessel.skipGroundPositioning = true;
+            return kit_part;
+        }
 
-			spawned_vessel = null;
-            spawning = false;
-            kit = new VesselKit();
+        IEnumerator<YieldInstruction> spawn_kit_vessel(Part kit_part)
+        {
+            //create ship construct
+            var ship = new ShipConstruct("DIY Kit: "+Kit.Name, "", kit_part);
+			ship.rotation = Quaternion.identity;
+            ship.missionFlag = kit_part.flagURL;
+            //var ship_node = ship.SaveShip();
+            //ship.Unload();
+            //ship.LoadShip(ship_node, ship.persistentId);
+            this.Log("Spawnin ShipConstruct: {}", ship.SaveShip());//debug
+            //spawn the ship construct
+            var bounds = ship.Bounds(ship.Parts[0].localRoot.transform);
+            yield return
+                StartCoroutine(Spawner
+                               .SpawnShipConstruct(ship,
+                                                   SpawnManager.GetSpawnTransform(bounds),
+                                                   SpawnManager.GetSpawnOffset(bounds) - bounds.center,
+                                                   Vector3.zero,
+                                                   on_vessel_launched: vsl => Kit = new VesselKit()));
+            if(Animator != null)
+                Animator.Open();
         }
         #endregion
     }

@@ -97,6 +97,11 @@
       <Name>AT_Utils</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\AT_Utils\MultiAnimators\MultiAnimators.csproj">
+      <Project>{42F1AC2D-21CA-42BC-8AC2-7CBE21775813}</Project>
+      <Name>MultiAnimators</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WorkModel\" />

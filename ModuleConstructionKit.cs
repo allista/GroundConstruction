@@ -201,17 +201,24 @@ namespace GroundConstruction
         public override void OnAwake()
         {
             base.OnAwake();
+            //get the original model, its size and localScale
+            model = part.transform.Find("model");
+            var metric = new Metric(part);
+            OrigSize = metric.size;
+            OrigScale = model.localScale;
+            //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
-            var obj = new GameObject("SpawnTransformFwdMesh", typeof(MeshFilter), typeof(MeshRenderer));
+            //add deploy hints
+            var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
             obj.transform.SetParent(part.transform);
             deploy_hint_mesh = obj.GetComponent<MeshFilter>();
             deploy_hint_mesh.mesh = new Mesh();
-            var fwd_renderer = obj.GetComponent<MeshRenderer>();
-            fwd_renderer.material = Utils.no_z_material;
-            fwd_renderer.material.color = deploy_hint_color;
-            fwd_renderer.enabled = true;
+            var renderer = obj.GetComponent<MeshRenderer>();
+            renderer.material = Utils.no_z_material;
+            renderer.material.color = deploy_hint_color;
+            renderer.enabled = true;
             obj.SetActive(false);
         }
 
@@ -296,10 +303,6 @@ namespace GroundConstruction
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            var metric = new Metric(part);
-            model = part.transform.Find("model");
-            OrigSize = metric.size;
-            OrigScale = model.localScale;
             kit.Host = this;
             if(kit.Valid)
             {
