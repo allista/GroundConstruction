@@ -149,7 +149,7 @@ namespace GroundConstruction
         protected Rect WindowPos = new Rect((Screen.width - width) / 2, Screen.height / 4, width, height * 4);
         protected string LockName = ""; //inited OnStart
 
-        [KSPEvent(guiName = "Open Workshop", guiActive = true, active = true)]
+        [KSPEvent(guiName = "Workshop Window", guiActive = true, active = true)]
         public void ToggleWindow()
         { show_window = !show_window; }
 
