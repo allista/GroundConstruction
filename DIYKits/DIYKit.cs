@@ -149,13 +149,20 @@ namespace GroundConstruction
 
         public override double DoSomeWork(double work)
         {
-            if(work > 0)
+            if(work > 0 && remainder != null)
                 remainder.Clear();
             return base.DoSomeWork(work);
         }
 
-        //deprecated config conversion
-        public override void Load(ConfigNode node)
+        public override void NextStage()
+        {
+            base.NextStage();
+            if(remainder != null)
+                remainder.Clear();
+        }
+
+		//deprecated config conversion
+		public override void Load(ConfigNode node)
         {
             base.Load(node);
             if(node.HasValue("Completeness"))
