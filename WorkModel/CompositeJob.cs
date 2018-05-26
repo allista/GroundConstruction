@@ -50,6 +50,7 @@ namespace GroundConstruction
             {
                 stage += 1;
                 Jobs.ForEach(j => j.CurrentIndex = stage);
+                CurrentIndex = 0;
             }
         }
 
