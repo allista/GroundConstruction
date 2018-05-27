@@ -31,6 +31,20 @@ namespace GroundConstruction
             SpawnManager.Init(part);
             if(!string.IsNullOrEmpty(AnimatorID))
                 Animator = part.GetAnimator(AnimatorID);
+            if(SpawnManager.Space != null)
+            {
+                var space_collider = SpawnManager.Space.GetComponent<Collider>();
+                if(space_collider == null || !space_collider.isTrigger)
+                {
+                    this.Log("Adding a Sensor collider to the SpawnSpaceMesh: {}", SpawnManager.Space);
+                    var collider = SpawnManager.Space.gameObject.AddComponent<MeshCollider>();
+                    collider.sharedMesh = SpawnManager.Space.sharedMesh;
+                    collider.convex = true;
+					collider.isTrigger = true;
+                    space_collider = collider;
+                }
+                space_collider.enabled = true;
+            }
         }
 
         #region IAssemblySpace

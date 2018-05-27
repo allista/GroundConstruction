@@ -2684,7 +2684,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 100024, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
       propertyPath: m_TagString
-      value: Sensor
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2300002, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
