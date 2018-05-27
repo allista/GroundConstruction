@@ -11,6 +11,7 @@ namespace GroundConstruction
 {
     public interface IKitContainer
     {
+        string Name { get; }
         bool Empty { get; }
         List<VesselKit> GetKits();
         VesselKit GetKit(Guid id);

@@ -6,6 +6,7 @@
 //  Copyright (c) 2017 Allis Tauri
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AT_Utils;
 using UnityEngine;
 
@@ -13,16 +14,19 @@ namespace GroundConstruction
 {
     public abstract class AssemblyWorkshop : VesselKitWorkshop<AssemblyKitInfo>, IKitContainer
     {
-        [KSPField(isPersistant=true)] 
+        [KSPField(isPersistant = true)]
         public PersistentList<VesselKit> Kits = new PersistentList<VesselKit>();
+
+        List<IAssemblySpace> available_spaces = new List<IAssemblySpace>();
 
         ShipConstructLoader construct_loader;
 
+        public string Name => part.Title();
         public bool Empty => Kits.Count == 0;
         public List<VesselKit> GetKits() => Kits;
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
 
-        protected override bool check_task(AssemblyKitInfo task) => 
+        protected override bool check_task(AssemblyKitInfo task) =>
         base.check_task(task) && task.Kit.CurrentStageIndex <= DIYKit.CONSTRUCTION;
 
         protected virtual void process_construct(ShipConstruct construct)
@@ -57,6 +61,14 @@ namespace GroundConstruction
             return false;
         }
 
+        protected override void update_ui_data()
+        {
+            base.update_ui_data();
+            available_spaces.Clear();
+            if(vessel != null && vessel.loaded)
+                available_spaces = get_assembly_spaces();//.Where(s => s.Empty));
+        }
+
         protected abstract List<IAssemblySpace> get_assembly_spaces();
         protected virtual IAssemblySpace find_assembly_space(VesselKit kit, bool best)
         {
@@ -68,6 +80,7 @@ namespace GroundConstruction
         {
             foreach(var space in spaces)
             {
+                if(!space.Empty) continue;
                 var ratio = space.KitToSpaceRatio(kit);
                 if(ratio > 0)
                     return space;
@@ -81,6 +94,7 @@ namespace GroundConstruction
             IAssemblySpace available_space = null;
             foreach(var space in spaces)
             {
+                if(!space.Empty) continue;
                 var ratio = space.KitToSpaceRatio(kit);
                 if(ratio > 0)
                 {
@@ -142,15 +156,17 @@ namespace GroundConstruction
             construct_loader.Draw();
         }
 
-        #region GUI
-        protected override void queue_pane()
+		#region GUI
+        public override string Stage_Display => "ASSEMBLY";
+
+		protected override void queue_pane()
         {
             GUILayout.BeginHorizontal();
-            if(GUILayout.Button(new GUIContent("Add Vessel", 
+            if(GUILayout.Button(new GUIContent("Add Vessel",
                                                "Add a vessel from VAB/SPH to construction queue"),
                                 Styles.active_button, GUILayout.ExpandWidth(true)))
                 construct_loader.SelectVessel();
-            if(GUILayout.Button(new GUIContent("Add Subassembly", 
+            if(GUILayout.Button(new GUIContent("Add Subassembly",
                                                "Add a subassembly to construction queue"),
                                 Styles.active_button, GUILayout.ExpandWidth(true)))
                 construct_loader.SelectSubassembly();
@@ -180,6 +196,42 @@ namespace GroundConstruction
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
+
+        Vector2 assembly_spaces_scroll;
+        protected virtual void assembly_spaces_pane()
+        {
+            if(available_spaces.Count == 0) return;
+            GUILayout.Label("Available assembly spaces:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+            BeginScroll(available_spaces.Count, ref assembly_spaces_scroll, 40);
+            foreach(var space in available_spaces)
+            {
+                GUILayout.BeginHorizontal(Styles.white);
+                var is_empty = space.Empty;
+                GUILayout.Label(string.Format("<color=yellow><b>{0}</b></color>",
+                                              available_spaces[0].Name), 
+                                Styles.rich_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(is_empty ? 
+                                "<color=lime>Empty</color>" : 
+                                "<color=yellow>Occupied</color>",
+                                Styles.rich_label, GUILayout.ExpandWidth(false));
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
+
+        protected override void info_pane()
+        {
+            base.info_pane();
+            assembly_spaces_pane();
+        }
+
+        //protected override void draw_panes()
+        //{
+        //    base.draw_panes();
+        //    assembly_spaces_pane();
+        //}
         #endregion
     }
 }

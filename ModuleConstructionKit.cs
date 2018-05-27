@@ -374,8 +374,6 @@ namespace GroundConstruction
             update_texture();
             set_kit_size();
             update_constraint_controls();
-            this.Log("mass {}, cost {}, name {}, kit {}",
-                     kit.Mass, kit.Cost, kit.Name, kit);//debug
         }
         #endregion
 
@@ -431,6 +429,7 @@ namespace GroundConstruction
         }
 
         public bool Empty => kit;
+        public string Name => kit.Valid? "Container: "+kit.Name : "Container";
 
         RealTimer settled_timer = new RealTimer(3);
         IEnumerable wait_for_ground_contact(string wait_message)

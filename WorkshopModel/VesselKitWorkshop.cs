@@ -296,14 +296,19 @@ namespace GroundConstruction
             }
         }
 
-        protected virtual void main_window(int WindowID)
+        protected virtual void draw_panes()
         {
-            GUILayout.BeginVertical();
             info_pane();
             unbuilt_kits_pane();
             queue_pane();
             construction_pane();
             built_kits_pane();
+        }
+
+        protected virtual void main_window(int WindowID)
+        {
+            GUILayout.BeginVertical();
+            draw_panes();
             if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
                 show_window = false;
             GUILayout.EndVertical();

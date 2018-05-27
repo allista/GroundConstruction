@@ -36,6 +36,8 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public double LastUpdateTime = -1;
         [KSPField(isPersistant = true)] public double EndUT = -1;
 
+        public abstract string Stage_Display { get; }
+
         public string ETA_Display { get; protected set; } = "Stalled...";
 
         public string Workforce_Display =>
@@ -156,10 +158,11 @@ namespace GroundConstruction
         protected abstract void draw();
         protected virtual void unlock() { }
 
-        protected void BeginScroll(int num_items, ref Vector2 scroll_pos)
+        protected void BeginScroll(int num_items, ref Vector2 scroll_pos, 
+                                   int row_height = 60, int max_rows = 2)
         {
             scroll_pos = GUILayout.BeginScrollView(scroll_pos,
-                                                   GUILayout.Height(height * Math.Min(num_items, 2)),
+                                                   GUILayout.Height(row_height * Math.Min(num_items, max_rows)),
                                                    GUILayout.Width(width));
         }
 

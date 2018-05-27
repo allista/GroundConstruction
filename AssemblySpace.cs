@@ -13,6 +13,7 @@ namespace GroundConstruction
 {
     public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace
     {
+        [KSPField] public string Title = "Assembly Space";
         [KSPField] public string KitPart = "DIYKit";
         [KSPField] public string AnimatorID = string.Empty;
 
@@ -33,7 +34,9 @@ namespace GroundConstruction
         }
 
         #region IAssemblySpace
-        public bool Empty => !Kit;
+        public string Name => Title;
+
+        public bool Empty => !Kit && SpawnSpaceReady;
 
         public void EnableControls(bool enable = true) { }
 
@@ -140,5 +143,28 @@ namespace GroundConstruction
                 Animator.Open();
         }
         #endregion
+
+        RealTimer spawn_space_check = new RealTimer();
+
+        protected bool SpawnSpaceReady => 
+        !spawn_space_check.Started || spawn_space_check.TimePassed;
+
+        void OnTriggerStay(Collider col)
+        {
+            if(col != null && col.attachedRigidbody != null &&
+               (!spawn_space_check.Started || 
+                spawn_space_check.Remaining < spawn_space_check.Period/2))
+            {
+                if(col.CompareTag("Untagged"))
+                {
+                    var p = col.attachedRigidbody.GetComponent<Part>();
+                    if(p != null && p.vessel != null && p.vessel != vessel)
+                    {
+                        spawn_space_check.Restart();
+                        this.Log("Something is inside a trigger: {}", p);//debug
+                    }
+                }
+            }
+        }
     }
 }

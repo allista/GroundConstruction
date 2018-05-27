@@ -19,6 +19,7 @@ namespace GroundConstruction
         [Persistent] public string VesselName;
         [Persistent] public string PartName;
         [Persistent] public string TaskName;
+        [Persistent] public string Stage;
         [Persistent] public Status State;
         [Persistent] public double EndUT;
         [Persistent] public string ETA;
@@ -32,6 +33,7 @@ namespace GroundConstruction
             id = workshop.part.flightID;
             PartName = workshop.part.partInfo.title;
             Workforce = workshop.Workforce_Display;
+            Stage = workshop.Stage_Display;
             State = Status.IDLE;
             EndUT = workshop.EndUT;
             var task = workshop.GetCurrentTask();
@@ -114,7 +116,7 @@ namespace GroundConstruction
                 if(IsActive)
                 {
                     tooltip = Workforce+tooltip;
-                    status = new GUIContent(PartName+": Idle", tooltip);
+                    status = new GUIContent(string.Format("[{0}] {1}: Idle", Stage, PartName), tooltip);
                 }
             }
             else
@@ -123,12 +125,12 @@ namespace GroundConstruction
                 if(State == Status.ACTIVE)
                 {
                     style = EndUT > 0? Styles.yellow : Styles.red;
-                    status = new GUIContent(TaskName+": "+ETA, tooltip);
+                    status = new GUIContent(string.Format("[{0}] {1}: {2}", Stage, TaskName, ETA), tooltip);
                 }
                 else
                 {
                     style = Styles.green;
-                    status = new GUIContent(TaskName+": Complete", tooltip);
+                    status = new GUIContent(string.Format("[{0}] {1}: Complete", Stage, TaskName), tooltip);
                 }
             }
             if(status != null)

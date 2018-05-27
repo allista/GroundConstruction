@@ -2674,6 +2674,18 @@ Prefab:
       propertyPath: m_LocalRotation.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 100024, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 100026, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 100024, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
+      propertyPath: m_TagString
+      value: Sensor
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2300002, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
     - {fileID: 2300004, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
@@ -3177,6 +3189,24 @@ MeshCollider:
   m_InflateMesh: 0
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300074, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
+--- !u!1 &1871415305 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 100024, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
+  m_PrefabInternal: {fileID: 1871415247}
+--- !u!64 &1871415306
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1871415305}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Convex: 1
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300012, guid: f7e4638cfc0694f46aaebf2fe9e64abe, type: 3}
 --- !u!1 &1993280061
 GameObject:
   m_ObjectHideFlags: 0
