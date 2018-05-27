@@ -64,49 +64,7 @@ namespace GroundConstruction
 
         public ContainerDeplyomentState State { get { return state; } }
 
-        #region Anchor
-        FixedJoint anchorJoint;
-        GameObject anchor;
-
-        void setup_ground_contact()
-        {
-            part.PermanentGroundContact = true;
-            if(vessel != null) vessel.permanentGroundContact = true;
-        }
-
-        void dump_velocity()
-        {
-            if(vessel == null || !vessel.loaded) return;
-            for(int i = 0, nparts = vessel.parts.Count; i < nparts; i++)
-            {
-                var r = vessel.parts[i].Rigidbody;
-                if(r == null) continue;
-                r.angularVelocity *= 0;
-                r.velocity *= 0;
-            }
-        }
-
-        void attach_anchor()
-        {
-            detach_anchor();
-            dump_velocity();
-            anchor = new GameObject("AnchorBody");
-            var rb = anchor.AddComponent<Rigidbody>();
-            rb.isKinematic = true;
-            anchor.transform.position = part.transform.position;
-            anchor.transform.rotation = part.transform.rotation;
-            anchorJoint = anchor.AddComponent<FixedJoint>();
-            anchorJoint.breakForce = float.PositiveInfinity;
-            anchorJoint.breakTorque = float.PositiveInfinity;
-            anchorJoint.connectedBody = part.Rigidbody;
-        }
-
-        void detach_anchor()
-        {
-            if(anchor) Destroy(anchor);
-            if(anchorJoint) Destroy(anchorJoint);
-        }
-        #endregion
+        ATGroundAnchor anchor;
 
         void update_texture()
         {
@@ -224,7 +182,6 @@ namespace GroundConstruction
 
         void OnDestroy()
         {
-            detach_anchor();
             Destroy(deploy_hint_mesh.gameObject);
             Destroy(kitname_editor);
             Destroy(construct_loader);
@@ -269,7 +226,7 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            if(State == ContainerDeplyomentState.DEPLOYED) setup_ground_contact();
+            anchor = part.FindModuleImplementing<ATGroundAnchor>();
             Events["Deploy"].active = kit.Valid && State == ContainerDeplyomentState.IDLE;
             Events["Launch"].active = kit.Valid && State == ContainerDeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
@@ -288,16 +245,6 @@ namespace GroundConstruction
             if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
                 texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
-        }
-
-        void OnPartPack() { detach_anchor(); }
-        void OnPartUnpack()
-        {
-            if(state == ContainerDeplyomentState.DEPLOYED)
-            {
-                attach_anchor();
-                setup_ground_contact();
-            }
         }
 
         public override void OnLoad(ConfigNode node)
@@ -334,14 +281,7 @@ namespace GroundConstruction
                 update_model(true);
             if(HighLogic.LoadedSceneIsFlight)
                 update_deploy_hint();
-            if(state == ContainerDeplyomentState.DEPLOYED)
-            {
-                setup_ground_contact();
-                if(!anchor || !anchorJoint || !anchor.GetComponent<FixedJoint>())
-                    attach_anchor();
-                else dump_velocity();
-            }
-            else if(state == ContainerDeplyomentState.DEPLOYING)
+            if(state == ContainerDeplyomentState.DEPLOYING)
             {
                 if(deployment == null) deployment = deploy();
                 if(!deployment.MoveNext()) deployment = null;
@@ -479,10 +419,10 @@ namespace GroundConstruction
             Size = end;
             //setup anchor, permanent ground contact and unfocused ranges
             update_unfocusedRange("Launch");
-            setup_ground_contact();
             foreach(var _ in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
                 yield return null;
-            attach_anchor();
+            if(anchor != null)
+                anchor.ForceAttach();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
             state = ContainerDeplyomentState.DEPLOYED;
         }
