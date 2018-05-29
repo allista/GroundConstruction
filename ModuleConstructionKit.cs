@@ -14,7 +14,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public partial class ModuleConstructionKit : PartModule, IPartCostModifier, IPartMassModifier, IDeployableContainer
+    public partial class ModuleConstructionKit : PartModule, IDeployableContainer
     {
         static Globals GLB { get { return Globals.Instance; } }
 

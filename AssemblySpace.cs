@@ -29,28 +29,15 @@ namespace GroundConstruction
             base.OnStart(state);
             Spawner = new VesselSpawner(part);
             SpawnManager.Init(part);
+            SpawnManager.SetupSensor();
             if(!string.IsNullOrEmpty(AnimatorID))
                 Animator = part.GetAnimator(AnimatorID);
-            if(SpawnManager.Space != null)
-            {
-                var space_collider = SpawnManager.Space.GetComponent<Collider>();
-                if(space_collider == null || !space_collider.isTrigger)
-                {
-                    this.Log("Adding a Sensor collider to the SpawnSpaceMesh: {}", SpawnManager.Space);
-                    var collider = SpawnManager.Space.gameObject.AddComponent<MeshCollider>();
-                    collider.sharedMesh = SpawnManager.Space.sharedMesh;
-                    collider.convex = true;
-					collider.isTrigger = true;
-                    space_collider = collider;
-                }
-                space_collider.enabled = true;
-            }
         }
 
         #region IAssemblySpace
         public string Name => Title;
 
-        public bool Empty => !Kit && SpawnSpaceReady;
+        public bool Empty => !Kit && SpawnManager.SpawnSpaceEmpty;
 
         public void EnableControls(bool enable = true) { }
 
@@ -61,7 +48,7 @@ namespace GroundConstruction
         public float KitToSpaceRatio(VesselKit kit)
         {
             if(!kit) return -1;
-            var kit_part = create_kit_part(kit);
+            var kit_part = create_kit_part(kit, false);
             if(kit_part == null) return -1;
             var kit_metric = new Metric(kit_part);
             DestroyImmediate(kit_part.gameObject);
@@ -92,12 +79,12 @@ namespace GroundConstruction
                 Utils.Message("The kit is not yet assembled");
                 return;
             }
-            var kit_part = create_kit_part(Kit);
+            var kit_part = create_kit_part(Kit, true);
             if(kit_part != null)
                 StartCoroutine(spawn_kit_vessel(kit_part));
         }
 
-        Part create_kit_part(VesselKit kit)
+        Part create_kit_part(VesselKit kit, bool set_host)
         {
             var part_info = PartLoader.getPartInfoByName(KitPart);
             if(part_info == null)
@@ -131,6 +118,8 @@ namespace GroundConstruction
                 return null;
             }
             kit_module.StoreKit(kit);
+            if(set_host)
+                kit.Host = kit_module;
             return kit_part;
         }
 
@@ -151,34 +140,21 @@ namespace GroundConstruction
                                .SpawnShipConstruct(ship,
                                                    SpawnManager.GetSpawnTransform(bounds),
                                                    SpawnManager.GetSpawnOffset(bounds) - bounds.center,
-                                                   Vector3.zero,
-                                                   on_vessel_launched: vsl => Kit = new VesselKit()));
+                                                   Vector3.zero));
+            Kit = new VesselKit();
             if(Animator != null)
                 Animator.Open();
         }
+
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
+        Kit.Valid ? Kit.Cost : 0;
+
+        public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
+        Kit.Valid ? Kit.Mass : 0;
+
+        public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
-
-        RealTimer spawn_space_check = new RealTimer();
-
-        protected bool SpawnSpaceReady => 
-        !spawn_space_check.Started || spawn_space_check.TimePassed;
-
-        void OnTriggerStay(Collider col)
-        {
-            if(col != null && col.attachedRigidbody != null &&
-               (!spawn_space_check.Started || 
-                spawn_space_check.Remaining < spawn_space_check.Period/2))
-            {
-                if(col.CompareTag("Untagged"))
-                {
-                    var p = col.attachedRigidbody.GetComponent<Part>();
-                    if(p != null && p.vessel != null && p.vessel != vessel)
-                    {
-                        spawn_space_check.Restart();
-                        this.Log("Something is inside a trigger: {}", p);//debug
-                    }
-                }
-            }
-        }
     }
 }

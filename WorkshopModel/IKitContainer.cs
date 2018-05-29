@@ -23,14 +23,14 @@ namespace GroundConstruction
         void EnableControls(bool enable = true);        
     }
 
-    public interface IAssemblySpace : IControllableContainer
+    public interface IAssemblySpace : IControllableContainer, IPartCostModifier, IPartMassModifier
     {
         float KitToSpaceRatio(VesselKit kit);
         void SetKit(VesselKit kit);
         void SpawnKit();
     }
 
-    public interface IConstructionSpace : IControllableContainer
+    public interface IConstructionSpace : IControllableContainer, IPartCostModifier, IPartMassModifier
     {
         void Launch();
     }
