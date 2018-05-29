@@ -16,7 +16,7 @@ namespace GroundConstruction
     {
         public new const string NODE_NAME = "VESSEL_KIT";
 
-        [Persistent] public Guid id;
+        [Persistent] public Guid id = Guid.Empty;
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
 
@@ -26,7 +26,7 @@ namespace GroundConstruction
         public PartModule Host;
         public Vessel CrewSource;
         public List<ProtoCrewMember> KitCrew;
-        Dictionary<uint,float> workers = new Dictionary<uint, float>();
+        Dictionary<uint, float> workers = new Dictionary<uint, float>();
 
         DIYKit.Requirements remainder;
 
@@ -47,14 +47,10 @@ namespace GroundConstruction
                                    p.Resources.ForEach(r => r.amount = 0));
         }
 
-        public VesselKit()
+        public VesselKit() { }
+        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
         {
             id = Guid.NewGuid();
-        }
-
-        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
-            : this()
-        {
             Host = host;
             Name = ship.shipName;
             strip_resources(ship, assembled);
@@ -88,7 +84,7 @@ namespace GroundConstruction
         }
 
         public double CurrentTaskETA
-        { 
+        {
             get
             {
                 if(!Valid)
@@ -98,13 +94,13 @@ namespace GroundConstruction
             }
         }
 
-        public VesselResources ConstructResources => 
+        public VesselResources ConstructResources =>
         Complete ? new VesselResources(Blueprint) : null;
 
-        public void CheckinWorker(WorkshopBase module) => 
+        public void CheckinWorker(WorkshopBase module) =>
         workers[module.part.flightID] = module.Workforce;
 
-        public void CheckoutWorker(WorkshopBase module) => 
+        public void CheckoutWorker(WorkshopBase module) =>
         workers.Remove(module.part.flightID);
 
         public ShipConstruct LoadConstruct()
@@ -166,7 +162,7 @@ namespace GroundConstruction
                 {
                     for(int i = CurrentIndex; i < njobs; i++)
                     {
-                        req.Update(Jobs[i].RequirementsForWork(work-req.work));
+                        req.Update(Jobs[i].RequirementsForWork(work - req.work));
                         if(work <= req.work) break;
                     }
                 }
@@ -214,10 +210,10 @@ namespace GroundConstruction
 
         public override void Load(ConfigNode node)
         {
+            Utils.Log("VesselKit.Load: {}\n{}", this, node);//debug
             base.Load(node);
             if(node.HasValue("Completeness"))
-            {   
-                Utils.Log("VesselKit.Load: {}", node);//debug
+            {
                 //deprecated config conversion
                 CurrentIndex = 0;
                 var list = new PersistentList<PartKit>();
@@ -243,11 +239,11 @@ namespace GroundConstruction
                     Jobs.AddRange(list);
                     list.Clear();
                 }
-                Utils.Log("VesselKit.Loaded: {}", this);//debug
             }
+            Utils.Log("VesselKit.Loaded: {}", this);//debug
         }
 
-        public bool Equals(VesselKit other) => id == other.id;
+        public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
     }
 }
 
