@@ -201,7 +201,7 @@ namespace GroundConstruction
                 Styles.Init();
                 Utils.LockIfMouseOver(LockName, WindowPos);
                 WindowPos = GUILayout.Window(GetInstanceID(),
-                                             WindowPos, main_window, "Ground Workshops",
+                                             WindowPos, main_window, "Workshops",
                                              GUILayout.Width(width),
                                              GUILayout.Height(height)).clampToScreen();
             }
