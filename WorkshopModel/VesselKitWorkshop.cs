@@ -74,14 +74,14 @@ namespace GroundConstruction
         protected override double do_some_work(double available_work)
         {
             var work = serve_requirements(available_work);
-            //this.Log("can do work: {}", work);//debug
+            //this.Log("can do work: {}, eta {}", work, CurrentTask.Kit.CurrentTaskETA);//debug
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
                 if(CurrentTask.Complete)
                 {
-                    on_task_complete(CurrentTask);
                     CurrentTask.Kit.NextStage();
+                    on_task_complete(CurrentTask);
                     start_next_item();
                 }
             }
@@ -90,7 +90,7 @@ namespace GroundConstruction
 
         protected override void on_stop(bool reset)
         {
-            if(check_task(CurrentTask))
+            if(CurrentTask.Recheck())
                 CurrentTask.Kit.CheckoutWorker(this);
             if(reset)
                 reset_current_task();
@@ -111,6 +111,7 @@ namespace GroundConstruction
         {
             if(check_task(task))
             {
+                //this.Log("Task complete {}, {}", task.Complete, task);//debug
                 if(!task.Complete)
                     unbuilt_kits.Add(task);
                 else built_kits.Add(task);

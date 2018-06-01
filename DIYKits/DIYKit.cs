@@ -88,10 +88,12 @@ namespace GroundConstruction
             if(stage == null)
                 return req;
             work = Math.Min(work, stage.WorkLeft);
-            var frac = (float)get_fraction();
-            req.resource = stage.Resource;
-            req.resource_mass = Math.Max(Mass.Curve.Evaluate(frac + (float)(work / TotalWork)) -
-                                Mass.Curve.Evaluate(frac), 0);
+            var frac = get_fraction();
+            //Utils.Log("frac {} +delta {}, dM {}", frac, (frac + (work / TotalWork)), 
+                      //Mass.Curve.Evaluate((float)(frac + (work / TotalWork))) -
+                      //Mass.Curve.Evaluate((float)frac));//debug
+            req.resource_mass = Math.Max(Mass.Curve.Evaluate((float)(frac + (work / TotalWork))) -
+                                         Mass.Curve.Evaluate((float)frac), 0);
             req.resource_amount = req.resource_mass / stage.Resource.def.density;
             req.resource = stage.Resource;
             req.energy = req.resource_mass * stage.Resource.EnergyPerMass;

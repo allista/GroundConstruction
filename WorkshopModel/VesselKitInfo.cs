@@ -75,7 +75,7 @@ namespace GroundConstruction
         public ConstructionKitInfo() {}
         public ConstructionKitInfo(VesselKit kit) : base(kit) {}
 
-        public override bool Complete => Recheck() && Kit.Complete;
+        public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
 
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
