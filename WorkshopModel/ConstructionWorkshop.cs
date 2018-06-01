@@ -106,12 +106,12 @@ namespace GroundConstruction
             resources_window.UnlockControls();
             crew_window.UnlockControls();
         }
-		#endregion
+        #endregion
 
-		#region GUI
+        #region GUI
         public override string Stage_Display => "CONSTRUCTION";
 
-		protected override void built_kits_pane()
+        protected override void built_kits_pane()
         {
             if(built_kits.Count == 0) return;
             GUILayout.Label("Built DIY kits:", Styles.label, GUILayout.ExpandWidth(true));

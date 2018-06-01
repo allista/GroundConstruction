@@ -156,10 +156,10 @@ namespace GroundConstruction
             construct_loader.Draw();
         }
 
-		#region GUI
+        #region GUI
         public override string Stage_Display => "ASSEMBLY";
 
-		protected override void queue_pane()
+        protected override void queue_pane()
         {
             GUILayout.BeginHorizontal();
             if(GUILayout.Button(new GUIContent("Add Vessel",
