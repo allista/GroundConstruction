@@ -68,7 +68,7 @@ namespace GroundConstruction
         public void SpawnKit()
         {
             if(!Kit) return;
-            this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
+            //this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
             if(Spawner.LaunchInProgress)
             {
                 Utils.Message("In progress...");
@@ -129,10 +129,7 @@ namespace GroundConstruction
             var ship = new ShipConstruct("DIY Kit: "+Kit.Name, "", kit_part);
             ship.rotation = Quaternion.identity;
             ship.missionFlag = kit_part.flagURL;
-            //var ship_node = ship.SaveShip();
-            //ship.Unload();
-            //ship.LoadShip(ship_node, ship.persistentId);
-            this.Log("Spawnin ShipConstruct: {}", ship.SaveShip());//debug
+            //this.Log("Spawning ShipConstruct: {}", ship.SaveShip());//debug
             //spawn the ship construct
             var bounds = ship.Bounds(ship.Parts[0].localRoot.transform);
             yield return

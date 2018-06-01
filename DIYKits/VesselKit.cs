@@ -214,7 +214,7 @@ namespace GroundConstruction
             base.Load(node);
             if(node.HasValue("Completeness"))
             {
-                Utils.Log("VesselKit.Load: {}\n{}", this, node);//debug
+                //Utils.Log("VesselKit.Load: {}\n{}", this, node);//debug
                 //deprecated config conversion
                 CurrentIndex = 0;
                 var list = new PersistentList<PartKit>();
@@ -240,7 +240,7 @@ namespace GroundConstruction
                     Jobs.AddRange(list);
                     list.Clear();
                 }
-                Utils.Log("VesselKit.Loaded: {}", this);//debug
+                //Utils.Log("VesselKit.Loaded: {}", this);//debug
             }
         }
 

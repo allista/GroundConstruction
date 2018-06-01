@@ -56,7 +56,7 @@ namespace GroundConstruction
                 Assembly.TotalWork = total_work(Assembly, kit_mass);
                 update_total_work();
                 var frac = (float)(Assembly.TotalWork/TotalWork);
-                Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
+                //Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
                 Mass.Add(frac, kit_mass);
                 Cost.Add(frac, kit_cost);
                 SetStageComplete(ASSEMBLY, true);
