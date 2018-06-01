@@ -315,7 +315,7 @@ namespace GroundConstruction
                     else
                         stop(true);
                 }
-                if(show_window)
+				if(show_window && GUIWindowBase.HUD_enabled && vessel.isActiveVessel)
                     update_ui_data();
             }
             on_update();
