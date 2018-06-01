@@ -22,8 +22,9 @@ namespace GroundConstruction
 
         public override string GetInfo()
         {
-            if(AutoEfficiency) compute_part_efficiency();
-            if(isEnabled && Efficiency > 0)
+            if(AutoEfficiency)
+                compute_part_efficiency();
+            if(isEnabled)
             {
                 update_max_workforce();
                 return string.Format("Efficiency: {0:P}\n" +
@@ -62,9 +63,13 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            if(!isEnabled) { enabled = false; return; }
-            if(AutoEfficiency) compute_part_efficiency();
-            if(Efficiency.Equals(0)) this.EnableModule(false);
+            if(!isEnabled)
+            {
+                enabled = false; 
+                return;
+            }
+            if(AutoEfficiency)
+                compute_part_efficiency();
             else if(HighLogic.LoadedSceneIsFlight)
                 loadedUT = -1;
         }
@@ -78,6 +83,8 @@ namespace GroundConstruction
             Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency,
                                     Mathf.Min(usefull_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
+            if(Efficiency.Equals(0))
+                this.EnableModule(false);
         }
 
         protected override void update_kits()
@@ -91,6 +98,9 @@ namespace GroundConstruction
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
+                    //this.Log("Checking kit: {}\nvalid: {}\ncurrent kit {}\ndist: {}", 
+                             //vsl_kit, (bool)vsl_kit, CurrentTask.Kit,
+                             //(vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude);//debug
                     if(vsl_kit != null && vsl_kit.Valid &&
                        vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id) &&
                        (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
@@ -196,7 +206,7 @@ namespace GroundConstruction
                                           Efficiency, workforce, max_workforce),
                             Styles.boxed_label, GUILayout.ExpandWidth(true));
             if(distance_mod >= 0 && distance_mod < 1)
-                GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod), 
+                GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod),
                                 Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
             GUILayout.EndVertical();
         }
