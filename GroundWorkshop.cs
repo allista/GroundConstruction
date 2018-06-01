@@ -191,7 +191,7 @@ namespace GroundConstruction
             case ContainerDeplyomentState.IDLE:
                 return "Idle";
             case ContainerDeplyomentState.DEPLOYING:
-                return "Deploying...";
+                return "Deploying";
             case ContainerDeplyomentState.DEPLOYED:
                 return "Deployed";
             }
@@ -230,20 +230,24 @@ namespace GroundConstruction
                     if(depl.State == ContainerDeplyomentState.DEPLOYED)
                     {
                         if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                            Styles.enabled_button, GUILayout.ExpandWidth(false)))
+						                    Styles.enabled_button, GUILayout.ExpandWidth(false), 
+						                    GUILayout.ExpandHeight(true)))
                             add = info;
                     }
                     else if(depl.State != ContainerDeplyomentState.DEPLOYING)
                     {
                         if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-                                            Styles.active_button, GUILayout.ExpandWidth(false)))
+						                    Styles.active_button, GUILayout.ExpandWidth(false), 
+						                    GUILayout.ExpandHeight(true)))
                             deploy = depl;
                     }
                     else
-                        GUILayout.Label(ContainerStatus(depl), Styles.boxed_label, GUILayout.ExpandWidth(true));
+                        GUILayout.Label(ContainerStatus(depl), Styles.boxed_label, 
+						                GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                 }
                 else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                         Styles.enabled_button, GUILayout.ExpandWidth(false)))
+				                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
+				                         GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();
             }
