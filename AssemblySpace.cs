@@ -94,7 +94,10 @@ namespace GroundConstruction
             }
             var kit_part = create_kit_part(Kit, true);
             if(kit_part != null)
+            {
+                Utils.SaveGame(Kit.Name+"-before_spawn");
                 StartCoroutine(spawn_kit_vessel(kit_part));
+            }
         }
 
         Part create_kit_part(VesselKit kit, bool set_host)
