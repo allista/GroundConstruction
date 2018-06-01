@@ -28,6 +28,9 @@ namespace GroundConstruction
         float KitToSpaceRatio(VesselKit kit);
         void SetKit(VesselKit kit);
         void SpawnKit();
+        void Open();
+        void Close();
+		bool Opened { get; }
     }
 
     public interface IConstructionSpace : IControllableContainer, IPartCostModifier, IPartMassModifier

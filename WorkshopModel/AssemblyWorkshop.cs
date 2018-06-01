@@ -187,7 +187,8 @@ namespace GroundConstruction
                 info.Draw();
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Release", "Release complete kit from the dock"),
-                                    Styles.danger_button, GUILayout.ExpandWidth(false)))
+                                    Styles.danger_button, GUILayout.ExpandWidth(false),
+				                    GUILayout.ExpandHeight(true)))
                     spawn = info;
                 GUILayout.EndHorizontal();
             }
@@ -207,14 +208,22 @@ namespace GroundConstruction
             foreach(var space in available_spaces)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                var is_empty = space.Empty;
                 GUILayout.Label(string.Format("<color=yellow><b>{0}</b></color>",
                                               available_spaces[0].Name), 
                                 Styles.rich_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label(is_empty ? 
-                                "<color=lime>Empty</color>" : 
-                                "<color=yellow>Occupied</color>",
-                                Styles.rich_label, GUILayout.ExpandWidth(false));
+				if(space.Empty)
+                {
+                    var opened = space.Opened;
+					if(Utils.ButtonSwitch("Close", "Open", opened, "", 
+					                      GUILayout.ExpandWidth(false)))
+                    {
+                        if(opened) space.Close();
+                        else space.Open();
+                    }
+                }
+				else
+    				GUILayout.Label("<color=yellow>Occupied</color>",
+                                    Styles.rich_label, GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();

@@ -58,12 +58,25 @@ namespace GroundConstruction
 
         public void SetKit(VesselKit kit)
         {
-            this.Kit = kit;
-            if(Animator != null)
-                Animator.Close();
+            Kit = kit;
+			Close();
         }
 
         public void ShowUI(bool enable = true) { }
+
+		public void Open() 
+		{
+			if(Animator != null)
+                Animator.Open();
+		}
+
+        public void Close()
+		{
+			if(Animator != null)
+                Animator.Close();
+		}
+
+		public bool Opened => Animator == null || Animator.State == AnimatorState.Opened;
 
         public void SpawnKit()
         {
@@ -139,8 +152,7 @@ namespace GroundConstruction
                                                    SpawnManager.GetSpawnOffset(bounds) - bounds.center,
                                                    Vector3.zero));
             Kit = new VesselKit();
-            if(Animator != null)
-                Animator.Open();
+            Open();
         }
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
