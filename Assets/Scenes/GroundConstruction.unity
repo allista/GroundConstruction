@@ -1756,6 +1756,10 @@ Prefab:
       propertyPath: m_Name
       value: launch-position
       objectReference: {fileID: 0}
+    - target: {fileID: 2300008, guid: d1dfed71b4ab345239b6b5416f002ea7, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: be2302cecdab249fabec87fc1e50f65b, type: 2}
     m_RemovedComponents:
     - {fileID: 2300000, guid: d1dfed71b4ab345239b6b5416f002ea7, type: 3}
     - {fileID: 9500000, guid: d1dfed71b4ab345239b6b5416f002ea7, type: 3}

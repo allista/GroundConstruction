@@ -187,7 +187,7 @@ namespace GroundConstruction
             Destroy(construct_loader);
         }
 
-        void create_fwd_mesh()
+        void create_deploy_hint_mesh()
         {
             var size = kit.ShipMetric.extents;
             var mesh = deploy_hint_mesh.mesh;
@@ -231,7 +231,7 @@ namespace GroundConstruction
             Events["Launch"].active = kit.Valid && State == ContainerDeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
-            create_fwd_mesh();
+            create_deploy_hint_mesh();
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
