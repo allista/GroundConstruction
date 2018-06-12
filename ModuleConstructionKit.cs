@@ -245,6 +245,8 @@ namespace GroundConstruction
             if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
                 texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
+            if(State == ContainerDeplyomentState.DEPLOYING)
+                StartCoroutine(deploy());
         }
 
         public override void OnLoad(ConfigNode node)
@@ -281,11 +283,6 @@ namespace GroundConstruction
                 update_model(true);
             if(HighLogic.LoadedSceneIsFlight)
                 update_deploy_hint();
-            if(state == ContainerDeplyomentState.DEPLOYING)
-            {
-                if(deployment == null) deployment = deploy();
-                if(!deployment.MoveNext()) deployment = null;
-            }
         }
 
         #region Select Ship Construct
@@ -305,6 +302,7 @@ namespace GroundConstruction
         {
             Facility = construct.shipFacility;
             StoreKit(new VesselKit(this, construct));
+            construct.Unload();
         }
 
         public void StoreKit(VesselKit kit)
@@ -387,8 +385,7 @@ namespace GroundConstruction
         }
 
         ActionDamper message_damper = new ActionDamper(1);
-        IEnumerator deployment;
-        IEnumerator deploy()
+        IEnumerator<YieldInstruction> deploy()
         {
             //decouple anything that is still attached to the Kit
             var decoupler = decouple_attached_parts();
@@ -406,15 +403,21 @@ namespace GroundConstruction
             if(Facility == EditorFacility.SPH) end = new Vector3(end.x, end.z, end.y);
             end = model.InverseTransformDirection(spawnT.TransformDirection(end)).AbsComponents();
             //resize the kit gradually
+            var rot = vessel.vesselTransform.rotation;
             while(DeploymentTime < 1)
             {
-                DeploymentTime += DeployingSpeed * TimeWarp.deltaTime;
+                DeploymentTime += DeployingSpeed * TimeWarp.fixedDeltaTime;
+                var old_size = Size;
                 Size = Vector3.Lerp(start, end, DeploymentTime - start_time);
                 model.localScale = Vector3.Scale(Size, start_local_size);
                 model.hasChanged = true;
-                part.transform.hasChanged = true;
-                yield return null;
+                FlightGlobals.overrideOrbit = true;
+                vessel.SetRotation(rot);
+                vessel.SetPosition(vessel.vesselTransform.position+spawnT.up*(Size-old_size).y);
+                vessel.IgnoreGForces(10);
+                yield return new WaitForFixedUpdate();
             }
+            FlightGlobals.overrideOrbit = false;
             DeploymentTime = 1;
             Size = end;
             //setup anchor, permanent ground contact and unfocused ranges
@@ -439,6 +442,7 @@ namespace GroundConstruction
             DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / kit.ShipMetric.size.MaxComponentF(), 1 / GLB.MinDeploymentTime);
             Utils.SaveGame(kit.Name + "-before_deployment");
             state = ContainerDeplyomentState.DEPLOYING;
+            StartCoroutine(deploy());
         }
         #endregion
 
