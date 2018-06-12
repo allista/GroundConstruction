@@ -30,7 +30,7 @@ namespace GroundConstruction
         void SpawnKit();
         void Open();
         void Close();
-		bool Opened { get; }
+        bool Opened { get; }
     }
 
     public interface IConstructionSpace : IControllableContainer, IPartCostModifier, IPartMassModifier

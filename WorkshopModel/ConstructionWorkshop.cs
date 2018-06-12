@@ -25,7 +25,7 @@ namespace GroundConstruction
         protected void setup_resource_transfer(ConstructionKitInfo target)
         {
             target_kit = null;
-			//this.Log("res: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
+            //this.Log("res: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
             if(check_target_kit(target))
                 target_kit = target;
             else return;
@@ -59,10 +59,10 @@ namespace GroundConstruction
 
         protected void setup_crew_transfer(ConstructionKitInfo target)
         {
-			target_kit = null;
-			//this.Log("crew: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
-			if(check_target_kit(target))
-				target_kit = target;
+            target_kit = null;
+            //this.Log("crew: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
+            if(check_target_kit(target))
+                target_kit = target;
             if(target_kit == null) return;
             target_kit.Kit.CrewSource = vessel;
             target_kit.Kit.KitCrew = new List<ProtoCrewMember>();

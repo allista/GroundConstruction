@@ -230,24 +230,24 @@ namespace GroundConstruction
                     if(depl.State == ContainerDeplyomentState.DEPLOYED)
                     {
                         if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-						                    Styles.enabled_button, GUILayout.ExpandWidth(false), 
-						                    GUILayout.ExpandHeight(true)))
+                                            Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                            GUILayout.ExpandHeight(true)))
                             add = info;
                     }
                     else if(depl.State != ContainerDeplyomentState.DEPLOYING)
                     {
                         if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-						                    Styles.active_button, GUILayout.ExpandWidth(false), 
-						                    GUILayout.ExpandHeight(true)))
+                                            Styles.active_button, GUILayout.ExpandWidth(false), 
+                                            GUILayout.ExpandHeight(true)))
                             deploy = depl;
                     }
                     else
                         GUILayout.Label(ContainerStatus(depl), Styles.boxed_label, 
-						                GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                                        GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                 }
                 else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-				                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
-				                         GUILayout.ExpandHeight(true)))
+                                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                         GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();
             }

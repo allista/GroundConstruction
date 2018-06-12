@@ -59,24 +59,24 @@ namespace GroundConstruction
         public void SetKit(VesselKit kit)
         {
             Kit = kit;
-			Close();
+            Close();
         }
 
         public void ShowUI(bool enable = true) { }
 
-		public void Open() 
-		{
-			if(Animator != null)
+        public void Open() 
+        {
+            if(Animator != null)
                 Animator.Open();
-		}
+        }
 
         public void Close()
-		{
-			if(Animator != null)
+        {
+            if(Animator != null)
                 Animator.Close();
-		}
+        }
 
-		public bool Opened => Animator == null || Animator.State == AnimatorState.Opened;
+        public bool Opened => Animator == null || Animator.State == AnimatorState.Opened;
 
         public void SpawnKit()
         {
