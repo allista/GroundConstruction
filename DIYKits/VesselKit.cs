@@ -47,10 +47,10 @@ namespace GroundConstruction
                                    p.Resources.ForEach(r => r.amount = 0));
         }
 
-        public VesselKit() { }
+        public VesselKit() { id = Guid.NewGuid(); }
         public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
+            : this()
         {
-            id = Guid.NewGuid();
             Host = host;
             Name = ship.shipName;
             strip_resources(ship, assembled);
@@ -222,7 +222,7 @@ namespace GroundConstruction
                 if(n != null)
                 {
                     list.Load(n);
-                    Jobs.AddRange(list);
+                    Jobs.AddRange(list.Where(j => j.Valid));
                     list.Clear();
                     CurrentIndex = Jobs.Count;
                 }
@@ -231,13 +231,14 @@ namespace GroundConstruction
                 {
                     var p = new PartKit();
                     p.Load(n);
-                    Jobs.Add(p);
+                    if(p.Valid)
+                        Jobs.Add(p);
                 }
                 n = node.GetNode("UnbuiltParts");
                 if(n != null)
                 {
                     list.Load(n);
-                    Jobs.AddRange(list);
+                    Jobs.AddRange(list.Where(j => j.Valid));
                     list.Clear();
                 }
                 //Utils.Log("VesselKit.Loaded: {}", this);//debug

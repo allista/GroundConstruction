@@ -70,7 +70,9 @@ namespace GroundConstruction
         public override void Load(ConfigNode node)
         {
             base.Load(node);
-            if(node.HasValue("Completeness"))
+            if(!Construction.Valid)
+                CurrentIndex = -1;
+            else if(node.HasValue("Completeness"))
             {
                 CurrentIndex = CONSTRUCTION;
                 Assembly.TotalWork = Assembly.WorkDone = Construction.TotalWork;

@@ -12,6 +12,8 @@ namespace GroundConstruction
     {
         public abstract bool Complete { get; }
 
+        public abstract bool Valid { get; }
+
         public abstract void SetComplete(bool complete);
 
         public abstract double DoSomeWork(double work);

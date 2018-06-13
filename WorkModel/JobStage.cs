@@ -10,13 +10,13 @@ namespace GroundConstruction
 {
     public class JobStage : WorkBase, IComparable<JobStage>
     {
-        [Persistent] public double TotalWork;
+        [Persistent] public double TotalWork = -1;
         [Persistent] public double WorkDone;
 
         public readonly ResourceUsageInfo Resource;
 
+        public override bool Valid => TotalWork >= 0;
         public override double WorkLeft => TotalWork - WorkDone;
-
         public override bool Complete => WorkDone >= TotalWork;
 
         public readonly int Index;
