@@ -9,3 +9,5 @@ obj
 Assets/**/*.png
 /Assets/src/stk59gms-02.jpg
 /Releases
+/GameData/GroundConstruction/Plugins/GroundConstruction.dll
+*.pdb
