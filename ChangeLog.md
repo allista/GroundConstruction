@@ -1,6 +1,21 @@
 #Ground Construction ChangeLog
 
-* **v1.3.0**
+* **v2.0.0 - Independence Day**
+    * **!!! BACK UP YOUR SAVES !!!**
+    * ***
+    * **DIY Kits can now be created on other planets.**
+        * To build a new kit you'll need the _**Ground Assembly Line**_ (a new part that you'll have to build from a DIY Kit brought from Kerbin) and a supply of _Material Kits_.
+        * The _Assembly Line_ will first (painfully slow) convert _Material Kits_ to _**Specialized Parts**_.
+        * Then you can select either a vessel from VAB/SPH, or a subassembly, and build a new DIY Kit using _Specialized Parts_, _Electric Charge_ and kerbal _engineers with Construction Skill_.
+        * The new kit is then spawned inside the _Assembly Line_ and pushed out. At the top it has a place (marked by a small metal plate at the center) where any stock docking port can couple, so you can use it to grab the kit and transport it elsewhere.
+        * Unlike kits produced on Kerbin (in Editor), off-world kits have NO recourses included. None at all. So, for example, if you build a nuclear reactor kit, on Kerbit it will include the radioactive fuel; but anywhere else you will have to find and transfer the fuel yourself.
+    * **REMOVED workshop functionality from generic crewable parts.**
+        * This means that all _non-GC/non-MKS_ parts will stop work as workshops. If a base relies on them, you need to build the Mobile Workshop there before installing GC2. Or you can copy MM patch from GC1 after the installation.
+        * On the bright side, there's a new _**Inline Ground Workshop**_ part that has better efficiency than most of the generic workshops.
+    * Fixed the **deployment of a kit in a time warp**; the kit doesn't jump into the air afterwards anymore.
+    * Fixed the issue with determining the proper size of the stock RadialDrill.
+
+* v1.3.0
     * Added on-demand rendering of spawn transform's forward direction
     * Fix for EL 6.0 by @LatiMacciato
     * Added DIY kit size constraints. Code greatly improved by **llinard**
@@ -15,7 +30,7 @@
     * Fixed PartCost calculation.
 
 * v1.2.0
-	* **Removed OneTimeResourceConverter.** No need for it anymore.
+    * **Removed OneTimeResourceConverter.** No need for it anymore.
     * Added **planet tabs** that group workshops located on the same celectial body to unclutter the workshop list.
     * Added ability to **synchronize construction target** among workshops belonging to the same vessel.
     * Added **Warp to end of construction** button.
@@ -26,13 +41,13 @@
     * Fixed kit tremor after long time warp.
     * Changed symbol for Switch to workshop button.
 
-* **v1.1.2.2**
-	* Compatible with KSP-1.3
-	* Engineers with lvl 0 are now also capable of kit construction.
-	* Main GC Window now shows only landed workshops.
-	* Hopefully fixed the issue with inability to launch some finished constructs.
-	* Moved engineer patch to separate top-level config.
-	* Fixed the coroutine bug.
+* v1.1.2.2
+    * Compatible with KSP-1.3
+    * Engineers with lvl 0 are now also capable of kit construction.
+    * Main GC Window now shows only landed workshops.
+    * Hopefully fixed the issue with inability to launch some finished constructs.
+    * Moved engineer patch to separate top-level config.
+    * Fixed the coroutine bug.
 
 * v1.1.2.1
     * Fixed double cost bug.
@@ -49,11 +64,11 @@
 * v1.1.1
     * **DIY Kit renaming** in editor and in flight.
     * **Improved User Interface**
-    	* DIY Kits are higlighted when mouse is hovered over their respective infos in Construction Window.
-    	* Efficiency and available Workforce are displayed at the top of the Construction Window and in the tooltips of the workshop fields in the Workshop List.
-    	* Workshop List now groups workshops by vessel and sorts them by planet and alphabetically.
-    	* Planet and Vessel fields in the Workshop List when pressed focus the camera on the corresponding planet/vessel in Map View or Tracking Station.
-    	* Workshop fileds of the active vessel when pressed toggle respective Construction Windows.
+        * DIY Kits are higlighted when mouse is hovered over their respective infos in Construction Window.
+        * Efficiency and available Workforce are displayed at the top of the Construction Window and in the tooltips of the workshop fields in the Workshop List.
+        * Workshop List now groups workshops by vessel and sorts them by planet and alphabetically.
+        * Planet and Vessel fields in the Workshop List when pressed focus the camera on the corresponding planet/vessel in Map View or Tracking Station.
+        * Workshop fileds of the active vessel when pressed toggle respective Construction Windows.
     * Added another 3s delay before fixing Kit to the ground.
     * **For modders**: added check for non-existing MODULE[NotGroundWorkshop] to blacklist parts to which GroundWorkshop module should not be added by MM.
 
