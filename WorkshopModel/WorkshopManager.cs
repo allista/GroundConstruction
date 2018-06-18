@@ -27,6 +27,25 @@ namespace GroundConstruction
         public bool IsLanded => vessel.Landed;
         public string DisplayID => vessel.vesselName + vessel.id;
 
+        public WorkshopType workshopTypes 
+        { 
+            get
+            {
+                WorkshopType types = WorkshopType.NONE;
+                ProtoWorkshops.Values.ForEach(pw => types = types | pw.workshopType);
+                return types;
+            }
+        }
+
+        public bool isOperable
+        {
+            get
+            {
+                var status = string.Empty;
+                return WorkshopBase.IsOperable(Vessel, workshopTypes, ref status);
+            }
+        }
+
         void add_protoworkshop(ProtoWorkshop info)
         {
             ProtoWorkshops[info.id] = info;
@@ -238,8 +257,10 @@ namespace GroundConstruction
             IWorkshopTask sync_task = null;
             foreach(var item in DisplayOrder)
             {
+                var pw = ProtoWorkshops[item.Value];
+                if(!pw.isOperable) continue;
                 GUILayout.BeginHorizontal();
-                ProtoWorkshops[item.Value].Draw();
+                pw.Draw();
                 if(IsActive && ProtoWorkshops.Count > 1)
                 {
                     var task = Workshops[item.Value].GetCurrentTask();

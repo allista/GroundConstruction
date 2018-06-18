@@ -23,18 +23,37 @@ namespace GroundConstruction
         void Draw();
     }
 
+    [Flags] public enum WorkshopType 
+    { 
+        NONE = 0,
+        GROUND = 1, 
+        ORBITAL = 1 << 1, 
+        OMNI = GROUND | ORBITAL 
+    }
+
     public abstract class WorkshopBase : PartModule
     {
         protected static Globals GLB { get { return Globals.Instance; } }
 
         protected float workforce = 0;
         protected float max_workforce = 0;
+        protected double loadedUT = -1;
 
         public WorkshopManager Manager;
 
+        [KSPField] public WorkshopType workshopType;
         [KSPField(isPersistant = true)] public bool Working;
         [KSPField(isPersistant = true)] public double LastUpdateTime = -1;
         [KSPField(isPersistant = true)] public double EndUT = -1;
+
+        public bool isOperable
+        {
+            get
+            {
+                var status = string.Empty;
+                return IsOperable(vessel, workshopType, ref status);
+            }
+        }
 
         public abstract string Stage_Display { get; }
 
@@ -46,14 +65,47 @@ namespace GroundConstruction
         public float Workforce => workforce;
         public virtual float EffectiveWorkforce => workforce;
 
+        public static bool IsOperable(Vessel vsl, WorkshopType workshopType, ref string status)
+        {
+            status = string.Empty;
+            switch(workshopType)
+            {
+            case WorkshopType.OMNI:
+                return true;
+            case WorkshopType.GROUND:
+                if(vsl.Landed) return true;
+                status = "The workshop can only operate when the vessel is landed";
+                return false;
+            case WorkshopType.ORBITAL:
+                if(vsl.InOrbit()) return true;
+                status = "The workshop can only operate when the vessel is in orbit";
+                return false;
+            }
+            return false;
+        }
+
         public abstract IWorkshopTask GetCurrentTask();
 
         public abstract void StartTask(IWorkshopTask task);
+
+        protected virtual void onVesselPacked(Vessel vsl)
+        {
+            if(vsl != vessel) return;
+            loadedUT = -1;
+        }
+
+        protected virtual void onVesselUpacked(Vessel vsl)
+        {
+            if(vsl != vessel) return;
+            loadedUT = Planetarium.GetUniversalTime();
+        }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
             LockName = GetType().Name + GetInstanceID();
+            if(HighLogic.LoadedSceneIsFlight)
+                loadedUT = -1;
         }
 
         protected virtual void update_max_workforce() =>
@@ -108,6 +160,14 @@ namespace GroundConstruction
             if(workforce.Equals(0))
             {
                 Utils.Message("No workers in the workshop.");
+                return false;
+            }
+            if(loadedUT < 0 || Planetarium.GetUniversalTime() - loadedUT < 3)
+                return true;
+            var status = string.Empty;
+            if(!IsOperable(vessel, workshopType, ref status))
+            {
+                Utils.Message("{0}: {1}", part.Title(), status);
                 return false;
             }
             return true;

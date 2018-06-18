@@ -57,7 +57,7 @@ namespace GroundConstruction
             if(!string.IsNullOrEmpty(del.Key)) DisplayOrder.Remove(del.Key);
         }
 
-        static bool reckeck_workshops()
+        static bool recheck_workshops()
         {
             if(FlightGlobals.Vessels != null && FlightGlobals.Vessels.Count > 0)
             {
@@ -71,7 +71,7 @@ namespace GroundConstruction
                        workshop.Value.VesselID == workshop.Key &&
                        !workshop.Value.Empty)
                     {
-                        if(workshop.Value.IsLanded)
+                        if(workshop.Value.isOperable)
                         {
                             var cb = workshop.Value.CB;
                             bodies.Add(cb);
@@ -96,7 +96,7 @@ namespace GroundConstruction
         {
             while(true)
             {
-                reckeck_workshops();
+                recheck_workshops();
                 var finished = false;
                 now = Planetarium.GetUniversalTime();
                 foreach(var workshop in Workshops.Values)
@@ -164,7 +164,7 @@ namespace GroundConstruction
                 foreach(var item in DisplayOrder.Values)
                 {
                     var info = Workshops[item];
-                    if(!info.IsLanded || info.CB != CelestialBodyTab) continue;
+                    if(info.CB != CelestialBodyTab) continue;
                     GUILayout.BeginHorizontal();
                     info.Draw();
                     if(info.IsActive)
@@ -178,7 +178,7 @@ namespace GroundConstruction
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
             }
-            else GUILayout.Label("No Ground Workshops", Styles.white, GUILayout.ExpandWidth(true));
+            else GUILayout.Label("No Operational Workshops", Styles.white, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             Utils.ButtonSwitch("Show Deploy Hints", ref ShowDeployHint,

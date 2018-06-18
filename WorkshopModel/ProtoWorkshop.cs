@@ -24,12 +24,16 @@ namespace GroundConstruction
         [Persistent] public double EndUT;
         [Persistent] public string ETA;
         [Persistent] public string Workforce;
+        [Persistent] public WorkshopType workshopType;
+        [Persistent] public bool isOperable;
 
         public ProtoWorkshop() {}
         public ProtoWorkshop(WorkshopBase workshop)
         {
             VesselName = workshop.vessel.name;
             vesselID = workshop.vessel.id;
+            workshopType = workshop.workshopType;
+            isOperable = workshop.isOperable;
             id = workshop.part.flightID;
             PartName = workshop.part.partInfo.title;
             Workforce = workshop.Workforce_Display;
@@ -157,6 +161,8 @@ namespace GroundConstruction
         //deprecated config coversion
         public override void Load(ConfigNode node)
         {
+            workshopType = WorkshopType.GROUND;
+            isOperable = true;
             base.Load(node);
             var kit_name = node.GetValue("KitName");
             if(kit_name != null)

@@ -16,7 +16,6 @@ namespace GroundConstruction
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Workshop Efficiency", guiFormat = "P1")]
         public float Efficiency = 1;
         float distance_mod = -1;
-        double loadedUT = -1;
 
         public override float EffectiveWorkforce { get { return workforce * distance_mod; } }
 
@@ -48,21 +47,10 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        void onVesselPacked(Vessel vsl)
-        {
-            if(vsl != vessel) return;
-            loadedUT = -1;
-        }
-
-        void onVesselUpacked(Vessel vsl)
-        {
-            if(vsl != vessel) return;
-            loadedUT = Planetarium.GetUniversalTime();
-        }
-
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            workshopType = WorkshopType.GROUND;
             if(!isEnabled)
             {
                 enabled = false; 
@@ -70,8 +58,6 @@ namespace GroundConstruction
             }
             if(AutoEfficiency)
                 compute_part_efficiency();
-            else if(HighLogic.LoadedSceneIsFlight)
-                loadedUT = -1;
         }
 
         void compute_part_efficiency()
@@ -128,16 +114,9 @@ namespace GroundConstruction
         {
             if(!base.can_construct())
                 return false;
-            if(loadedUT < 0 || Planetarium.GetUniversalTime() - loadedUT < 3)
-                return true;
-            if(!vessel.Landed)
-            {
-                Utils.Message("Cannot construct unless landed.");
-                return false;
-            }
             if(vessel.horizontalSrfSpeed > GLB.DeployMaxSpeed)
             {
-                Utils.Message("Cannot construct while mooving.");
+                Utils.Message("Cannot construct while moving.");
                 return false;
             }
             return true;
