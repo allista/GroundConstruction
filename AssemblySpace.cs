@@ -34,6 +34,12 @@ namespace GroundConstruction
                 Animator = part.GetAnimator(AnimatorID);
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            Kit.Host = this;
+        }
+
         #region IAssemblySpace
         public string Name => Title;
 
@@ -124,12 +130,25 @@ namespace GroundConstruction
             kit_part.orgPos = kit_part.transform.root.InverseTransformPoint(kit_part.transform.position);
             kit_part.orgRot = Quaternion.Inverse(kit_part.transform.root.rotation) * kit_part.transform.rotation;
             kit_part.packed = true;
+            //initialize modules
             kit_part.InitializeModules();
-            //load kit into ConstructionKit module
+            foreach(var node in part_info.partConfig.GetNodes("MODULE"))
+            {
+                var module_name = node.GetValue("name");
+                if(!string.IsNullOrEmpty(module_name))
+                {
+                    var module = kit_part.Modules[module_name];
+                    if(module != null)
+                        module.Load(node);
+                }
+            }
+            foreach(var module in kit_part.Modules)
+                module.OnStart(StartState.PreLaunch);
+            //add the kit to construction kit module
             var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
             if(kit_module == null)
             {
-                Utils.Message("{0} has no ConstructionKit MODULE", KitPart);
+                Utils.Message("{0} has no ModuleConstructionKit MODULE", KitPart);
                 Destroy(kit_part);
                 return null;
             }
