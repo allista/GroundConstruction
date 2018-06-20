@@ -89,6 +89,7 @@
     <Compile Include="SingleVesselConstructionWorkshop.cs" />
     <Compile Include="AssemblySpace.cs" />
     <Compile Include="ModuleSpawnTest.cs" />
+    <Compile Include="DockedContainer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
