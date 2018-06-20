@@ -25,9 +25,6 @@ namespace GroundConstruction
         MeshFilter deploy_hint_mesh;
         static readonly Color deploy_hint_color = new Color(0, 1, 0, 0.25f);
 
-        TextureSwitcherServer texture_switcher;
-        [KSPField] public string TextureVAB;
-        [KSPField] public string TextureSPH;
         [KSPField(isPersistant = true)] public EditorFacility Facility;
 
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
@@ -65,14 +62,6 @@ namespace GroundConstruction
         public ContainerDeplyomentState State { get { return state; } }
 
         ATGroundAnchor anchor;
-
-        void update_texture()
-        {
-            if(texture_switcher == null ||
-               Facility == EditorFacility.None) return;
-            texture_switcher.SetTexture(Facility == EditorFacility.VAB ?
-                                        TextureVAB : TextureSPH);
-        }
 
         void update_part_info()
         {
@@ -242,8 +231,6 @@ namespace GroundConstruction
                     spawn_transforms.AddRange(transforms);
                 }
             }
-            if(!string.IsNullOrEmpty(TextureVAB) && !string.IsNullOrEmpty(TextureSPH))
-                texture_switcher = part.Modules.GetModule<TextureSwitcherServer>();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
             if(State == ContainerDeplyomentState.DEPLOYING)
                 StartCoroutine(deploy());
@@ -309,7 +296,6 @@ namespace GroundConstruction
         {
             this.kit = kit;
             update_part_info();
-            update_texture();
             set_kit_size();
             update_constraint_controls();
         }
