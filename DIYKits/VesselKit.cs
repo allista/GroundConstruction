@@ -249,10 +249,10 @@ namespace GroundConstruction
             foreach(var module in kit_part.Modules)
                 module.OnStart(PartModule.StartState.PreLaunch);
             //add the kit to construction kit module
-            var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
+            var kit_module = kit_part.FindModuleImplementing<DeployableKitContainer>();
             if(kit_module == null)
             {
-                Utils.Message("{0} has no ModuleConstructionKit MODULE", part_name);
+                Utils.Message("{0} has no DeployableKitContainer-dervied MODULE", part_name);
                 UnityEngine.Object.Destroy(kit_part);
                 return null;
             }
