@@ -115,6 +115,54 @@ namespace GroundConstruction
         #region GUI
         public override string Stage_Display => "CONSTRUCTION";
 
+        protected override void unbuilt_kits_pane()
+        {
+            if(unbuilt_kits.Count == 0) return;
+            GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+            BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
+            ConstructionKitInfo add = null;
+            IDeployable deploy = null;
+            foreach(var info in unbuilt_kits)
+            {
+                GUILayout.BeginHorizontal();
+                info.Draw();
+                set_highlighted_task(info);
+                var depl = info.ConstructionSpace as IDeployable;
+                if(depl != null)
+                {
+                    if(depl.State == DeplyomentState.DEPLOYED)
+                    {
+                        if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                            Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                            GUILayout.ExpandHeight(true)))
+                            add = info;
+                    }
+                    else if(depl.State != DeplyomentState.DEPLOYING)
+                    {
+                        if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
+                                            Styles.active_button, GUILayout.ExpandWidth(false), 
+                                            GUILayout.ExpandHeight(true)))
+                            deploy = depl;
+                    }
+                    else
+                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label, 
+                                        GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                }
+                else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                         GUILayout.ExpandHeight(true)))
+                    add = info;
+                GUILayout.EndHorizontal();
+            }
+            if(add != null)
+                Queue.Enqueue(add);
+            else if(deploy != null)
+                deploy.Deploy();
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
+
         protected override void built_kits_pane()
         {
             if(built_kits.Count == 0) return;
