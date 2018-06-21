@@ -133,6 +133,8 @@ namespace GroundConstruction
         #endregion
 
         #region Deployment
+		protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+
         protected override bool can_deploy()
         {
             if(!kit.Valid)

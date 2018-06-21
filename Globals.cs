@@ -55,8 +55,6 @@ namespace GroundConstruction
         [Persistent] public float MaxDistanceToWorkshop     = 300f;
         [Persistent] public float MinDistanceToWorkshop     = 50f;
         [Persistent] public float MaxDistanceEfficiency     = 0.2f;
-//        [Persistent] public float MaxMetalworkPerHour       = 0.01f;
-
 
         [Persistent] public float VolumePerKerbal           = 3;
         [Persistent] public float PartVolumeFactor          = 0.3f;
@@ -69,7 +67,6 @@ namespace GroundConstruction
         [Persistent] public float MetalworkWeight  = 100;
 
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
-        [Persistent] public float VesselKitMinSize = 0.5f; //m
 
         [Persistent] public float DeployMaxSpeed   = 0.5f;  //m/s
         [Persistent] public float DeployMaxAV      = 5e-6f; //(rad/s)2

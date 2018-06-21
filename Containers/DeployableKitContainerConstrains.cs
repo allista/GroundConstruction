@@ -166,7 +166,7 @@ namespace GroundConstruction
                     Size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
                     break;
                 }
-                Size = Size.ClampComponentsL(GLB.VesselKitMinSize);
+                Size = Size.ClampComponentsL(MinSize);
                 update_model(false);
             }
         }

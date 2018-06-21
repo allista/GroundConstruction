@@ -5,7 +5,6 @@
 //
 //  Copyright (c) 2018 Allis Tauri
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +21,9 @@ namespace GroundConstruction
         protected MeshFilter deploy_hint_mesh;
         protected static readonly Color deploy_hint_color = new Color(0, 1, 0, 0.25f);
         
+        [KSPField] public string MetricMesh = string.Empty;
+        [KSPField] public Vector3 MinSize = new Vector3(0.5f, 0.5f, 0.5f);
+
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
         [KSPField(isPersistant = true)] public Vector3 OrigSize;
         [KSPField(isPersistant = true)] public Vector3 Size;
@@ -87,7 +89,19 @@ namespace GroundConstruction
             base.OnAwake();
             //get the original model, its size and localScale
             model = part.transform.Find("model");
-            var metric = new Metric(part);
+            Metric metric = default(Metric);
+            if(!string.IsNullOrEmpty(MetricMesh))
+            {
+                var metric_transform = model.Find(MetricMesh);
+                if(metric_transform != null)
+                {
+                    var metric_mesh = metric_transform.gameObject.GetComponent<MeshFilter>();
+                    if(metric_mesh != null)
+                        metric = new Metric(metric_mesh, metric_transform);
+                }
+            }
+            if(metric.Empty)
+                metric = new Metric(part);
             OrigSize = metric.size;
             OrigScale = model.localScale;
             //add deploy hints
