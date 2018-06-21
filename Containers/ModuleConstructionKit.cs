@@ -12,14 +12,14 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-	public class ModuleConstructionKit : DeployableKitContainer
+    public class ModuleConstructionKit : DeployableKitContainer
     {
         List<Transform> spawn_transforms;
         [KSPField] public string SpawnTransforms;
 
         ATGroundAnchor anchor;
 
-        protected override Transform get_spawn_transform()
+        Transform get_spawn_transform()
         {
             Transform minT = null;
             var alt = double.MaxValue;
@@ -48,16 +48,16 @@ namespace GroundConstruction
             }
         }
 
-		#region Deployment
-		protected override Transform get_deploy_transform() =>
-		get_spawn_transform() ?? part.transform;
+        #region Deployment
+        protected override Transform get_deploy_transform() =>
+        get_spawn_transform() ?? part.transform;
 
-		protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+        protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
 
-		protected override bool can_deploy()
+        protected override bool can_deploy()
         {
-			if(!base.can_deploy())
-				return false;
+            if(!base.can_deploy())
+                return false;
             if(!vessel.Landed)
             {
                 Utils.Message("Cannot deploy construction kit unless landed.");
@@ -86,7 +86,7 @@ namespace GroundConstruction
         }
 
         RealTimer settled_timer = new RealTimer(3);
-		ActionDamper message_damper = new ActionDamper(1);
+        ActionDamper message_damper = new ActionDamper(1);
         IEnumerable wait_for_ground_contact(string wait_message)
         {
             settled_timer.Reset();
@@ -101,7 +101,7 @@ namespace GroundConstruction
             }
         }
 
-		protected override IEnumerable prepare_deployment()
+        protected override IEnumerable prepare_deployment()
         {
             if(part.parent) part.decouple();
             yield return null;
@@ -114,23 +114,23 @@ namespace GroundConstruction
                 yield return null;
         }
 
-		protected override IEnumerable finalize_deployment()
-		{
-			foreach(var _ in base.finalize_deployment())
-				yield return null;
-			foreach(var _ in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
+        protected override IEnumerable finalize_deployment()
+        {
+            foreach(var _ in base.finalize_deployment())
+                yield return null;
+            foreach(var _ in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
                 yield return null;
             if(anchor != null)
                 anchor.ForceAttach();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
-		}
+        }
         #endregion
         
         #region Launching
         protected override bool can_launch()
         {
-			if(!base.can_launch())
-				return false;
+            if(!base.can_launch())
+                return false;
             if(!vessel.Landed)
             {
                 Utils.Message("Cannot launch constructed ship unless landed.");
@@ -148,6 +148,33 @@ namespace GroundConstruction
             }
             return true;
         }
+
+        protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
+        {
+            var launch_transform = get_spawn_transform();
+            yield return 
+                StartCoroutine(vessel_spawner
+                               .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
+                                                           null, 
+                                                           on_vessel_loaded,
+                                                           null,
+                                                           on_vessel_launched,
+                                                           GLB.EasingFrames));
+        }
         #endregion
+
+        #if DEBUG
+        void OnRenderObject()
+        {
+            if(vessel == null || spawn_transforms == null) return;
+            var T = get_spawn_transform();
+            if(T != null)
+            {
+                Utils.GLVec(T.position, T.up, Color.green);
+                Utils.GLVec(T.position, T.forward, Color.blue);
+                Utils.GLVec(T.position, T.right, Color.red);
+            }
+        }
+        #endif
     }
 }

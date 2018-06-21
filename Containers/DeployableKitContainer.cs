@@ -19,9 +19,9 @@ namespace GroundConstruction
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
-        SimpleTextEntry kitname_editor;
-        ShipConstructLoader construct_loader;
-        VesselSpawner vessel_spawner;
+        protected SimpleTextEntry kitname_editor;
+        protected ShipConstructLoader construct_loader;
+        protected VesselSpawner vessel_spawner;
 
         [KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
         public float KitMass;
@@ -148,13 +148,13 @@ namespace GroundConstruction
             return true;
         }
 
-		protected override IEnumerable finalize_deployment()
-		{
-			update_unfocusedRange("Launch");
-			yield return null;
-		}
+        protected override IEnumerable finalize_deployment()
+        {
+            update_unfocusedRange("Launch");
+            yield return null;
+        }
 
-		public bool Empty => kit;
+        public bool Empty => kit;
         public override string Name => kit.Valid? "Container: "+kit.Name : "Container";
 
         [KSPEvent(guiName = "Deploy",
@@ -171,8 +171,6 @@ namespace GroundConstruction
         #endregion
 
         #region Launching
-        protected abstract Transform get_spawn_transform();
-
         [KSPEvent(guiName = "Launch",
                   #if DEBUG
                   guiActive = true,
@@ -219,6 +217,17 @@ namespace GroundConstruction
             return true;
         }
 
+        protected virtual void on_vessel_loaded(Vessel vsl) =>
+        FXMonger.Explode(part, part.partTransform.position, 0);
+
+        protected virtual void on_vessel_launched(Vessel vsl)
+        {
+            if(kit.CrewSource != null && kit.KitCrew != null && kit.KitCrew.Count > 0)
+                CrewTransferBatch.moveCrew(kit.CrewSource, vsl, kit.KitCrew);
+        }
+
+        protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
+
         IEnumerator<YieldInstruction> launch_complete_construct()
         {
             if(!HighLogic.LoadedSceneIsFlight) yield break;
@@ -250,19 +259,7 @@ namespace GroundConstruction
                 yield break;
             }
             model.gameObject.SetActive(false);
-            var launch_transform = get_spawn_transform();
-            yield return 
-                StartCoroutine(vessel_spawner
-                               .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
-                                                           null, 
-                                                           vsl => FXMonger.Explode(part, part.partTransform.position, 0),
-                                                           null,
-                                                           vsl => 
-            {
-                if(kit.CrewSource != null && kit.KitCrew != null && kit.KitCrew.Count > 0)
-                    CrewTransferBatch.moveCrew(kit.CrewSource, vsl, kit.KitCrew); 
-            },
-                                                           GLB.EasingFrames));
+            yield return StartCoroutine(launch(construct));
             GameEvents.onShowUI.Fire();
             vessel.Die();
         }
@@ -301,20 +298,6 @@ namespace GroundConstruction
         kit.Valid ? kit.Mass : 0;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
-		#endregion
-
-		#if DEBUG
-        void OnRenderObject()
-        {
-            if(vessel == null || spawn_transforms == null) return;
-            var T = get_spawn_transform();
-            if(T != null)
-            {
-                Utils.GLVec(T.position, T.up, Color.green);
-                Utils.GLVec(T.position, T.forward, Color.blue);
-                Utils.GLVec(T.position, T.right, Color.red);
-            }
-        }
-        #endif
+        #endregion
     }
 }
