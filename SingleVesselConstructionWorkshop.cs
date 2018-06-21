@@ -19,9 +19,7 @@ namespace GroundConstruction
                 var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vessel);
                 if(containers != null)
                 {
-                    foreach(var vsl_kit in containers
-                            .Where(c => (c as IDeployableContainer) == null)
-                            .SelectMany(c => c.GetKits()))
+                    foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                     {
                         if(vsl_kit != null && vsl_kit.Valid &&
                            vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id))
