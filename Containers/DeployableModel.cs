@@ -170,7 +170,7 @@ namespace GroundConstruction
 
         protected virtual void create_deploy_hint_mesh()
         {
-            var size = get_deployed_size();
+            var size = get_deployed_size()/2;
             var mesh = deploy_hint_mesh.mesh;
             mesh.vertices = new[]{
                 // bottom
