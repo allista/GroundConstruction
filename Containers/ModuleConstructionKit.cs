@@ -48,8 +48,13 @@ namespace GroundConstruction
             }
         }
 
-        #region Deployment
-        protected override bool can_deploy()
+		#region Deployment
+		protected override Transform get_deploy_transform() =>
+		get_spawn_transform() ?? part.transform;
+
+		protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+
+		protected override bool can_deploy()
         {
 			if(!base.can_deploy())
 				return false;
@@ -119,6 +124,7 @@ namespace GroundConstruction
                 anchor.ForceAttach();
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
 		}
+        #endregion
         
         #region Launching
         protected override bool can_launch()
