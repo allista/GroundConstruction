@@ -163,20 +163,6 @@ namespace GroundConstruction
         #endregion
 
         #region GUI
-        public string ContainerStatus(IDeployableContainer container)
-        {
-            switch(container.State)
-            {
-            case ContainerDeplyomentState.IDLE:
-                return "Idle";
-            case ContainerDeplyomentState.DEPLOYING:
-                return "Deploying";
-            case ContainerDeplyomentState.DEPLOYED:
-                return "Deployed";
-            }
-            return "";
-        }
-
         protected override void info_pane()
         {
             GUILayout.BeginVertical();
@@ -197,23 +183,23 @@ namespace GroundConstruction
             GUILayout.BeginVertical(Styles.white);
             BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
             ConstructionKitInfo add = null;
-            IDeployableContainer deploy = null;
+            IDeployable deploy = null;
             foreach(var info in unbuilt_kits)
             {
                 GUILayout.BeginHorizontal();
                 info.Draw();
                 set_highlighted_task(info);
-                var depl = info.ConstructionSpace as IDeployableContainer;
+                var depl = info.ConstructionSpace as IDeployable;
                 if(depl != null)
                 {
-                    if(depl.State == ContainerDeplyomentState.DEPLOYED)
+                    if(depl.State == DeplyomentState.DEPLOYED)
                     {
                         if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
                                             Styles.enabled_button, GUILayout.ExpandWidth(false), 
                                             GUILayout.ExpandHeight(true)))
                             add = info;
                     }
-                    else if(depl.State != ContainerDeplyomentState.DEPLOYING)
+                    else if(depl.State != DeplyomentState.DEPLOYING)
                     {
                         if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
                                             Styles.active_button, GUILayout.ExpandWidth(false), 
@@ -221,7 +207,7 @@ namespace GroundConstruction
                             deploy = depl;
                     }
                     else
-                        GUILayout.Label(ContainerStatus(depl), Styles.boxed_label, 
+                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label, 
                                         GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                 }
                 else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),

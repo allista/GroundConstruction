@@ -8,6 +8,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -207,6 +208,71 @@ namespace GroundConstruction
             var stage = CurrentStageIndex;
             var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
             DIYKit.Draw(Name, stage, total_work, rem);
+        }
+
+        public Part CreatePart(string part_name, string flag_url, bool set_host)
+        {
+            var part_info = PartLoader.getPartInfoByName(part_name);
+            if(part_info == null)
+            {
+                Utils.Message("No such part: {0}", part_name);
+                return null;
+            }
+            var kit_part = UnityEngine.Object.Instantiate(part_info.partPrefab);
+            kit_part.gameObject.SetActive(true);
+            kit_part.partInfo = part_info;
+            kit_part.name = part_info.name;
+            kit_part.flagURL = flag_url;
+            kit_part.persistentId = FlightGlobals.GetUniquepersistentId();
+            FlightGlobals.PersistentLoadedPartIds.Remove(kit_part.persistentId);
+            kit_part.transform.position = Vector3.zero;
+            kit_part.attPos0 = Vector3.zero;
+            kit_part.transform.rotation = Quaternion.identity;
+            kit_part.attRotation = Quaternion.identity;
+            kit_part.attRotation0 = Quaternion.identity;
+            kit_part.partTransform = kit_part.transform;
+            kit_part.orgPos = kit_part.transform.root.InverseTransformPoint(kit_part.transform.position);
+            kit_part.orgRot = Quaternion.Inverse(kit_part.transform.root.rotation) * kit_part.transform.rotation;
+            kit_part.packed = true;
+            //initialize modules
+            kit_part.InitializeModules();
+            foreach(var node in part_info.partConfig.GetNodes("MODULE"))
+            {
+                var module_name = node.GetValue("name");
+                if(!string.IsNullOrEmpty(module_name))
+                {
+                    var module = kit_part.Modules[module_name];
+                    if(module != null)
+                        module.Load(node);
+                }
+            }
+            foreach(var module in kit_part.Modules)
+                module.OnStart(PartModule.StartState.PreLaunch);
+            //add the kit to construction kit module
+            var kit_module = kit_part.FindModuleImplementing<ModuleConstructionKit>();
+            if(kit_module == null)
+            {
+                Utils.Message("{0} has no ModuleConstructionKit MODULE", part_name);
+                UnityEngine.Object.Destroy(kit_part);
+                return null;
+            }
+            kit_module.StoreKit(this);
+            if(set_host)
+                Host = kit_module;
+            return kit_part;
+        }
+
+        public ShipConstruct CreateShipConstruct(string part_name, string flag_url)
+        {
+            var kit_part = CreatePart(part_name, flag_url, true);
+            if(kit_part)
+            {
+                var ship = new ShipConstruct("DIY Kit: "+Name, "", kit_part);
+                ship.rotation = Quaternion.identity;
+                ship.missionFlag = kit_part.flagURL;
+                return ship;
+            }
+            return null;
         }
 
         public override void Load(ConfigNode node)

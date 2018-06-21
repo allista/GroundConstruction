@@ -4,9 +4,9 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AT_Utils;
 using UnityEngine;
 
@@ -213,12 +213,16 @@ namespace GroundConstruction
                                 Styles.rich_label, GUILayout.ExpandWidth(true));
                 if(space.Empty)
                 {
-                    var opened = space.Opened;
-                    if(Utils.ButtonSwitch("Close", "Open", opened, "", 
-                                          GUILayout.ExpandWidth(false)))
+                    var animated = space as IAnimatedSpace;
+                    if(animated != null)
                     {
-                        if(opened) space.Close();
-                        else space.Open();
+                        var opened = animated.Opened;
+                        if(Utils.ButtonSwitch("Close", "Open", opened, "", 
+                                              GUILayout.ExpandWidth(false)))
+                        {
+                            if(opened) animated.Close();
+                            else animated.Open();
+                        }
                     }
                 }
                 else
@@ -235,12 +239,6 @@ namespace GroundConstruction
             base.info_pane();
             assembly_spaces_pane();
         }
-
-        //protected override void draw_panes()
-        //{
-        //    base.draw_panes();
-        //    assembly_spaces_pane();
-        //}
         #endregion
     }
 }

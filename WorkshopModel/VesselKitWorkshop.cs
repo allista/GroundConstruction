@@ -66,7 +66,7 @@ namespace GroundConstruction
 
         protected virtual void on_task_complete(KitInfo task)
         {
-            var space = task.ControllableContainer;
+            var space = task.Controllable;
             if(space != null)
                 space.EnableControls();
         }

@@ -241,6 +241,20 @@ namespace GroundConstruction
                 unlock();
             }
         }
+
+        public string DeployableStatus(IDeployable deployable)
+        {
+            switch(deployable.State)
+            {
+            case DeplyomentState.IDLE:
+                return "Idle";
+            case DeplyomentState.DEPLOYING:
+                return "Deploying";
+            case DeplyomentState.DEPLOYED:
+                return "Deployed";
+            }
+            return "";
+        }
         #endregion
     }
 

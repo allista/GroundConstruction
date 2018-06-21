@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GroundConstruction
 {
-    public partial class ModuleConstructionKit
+    public abstract partial class DeployableKitContainer
     {
         public const string CONST_NONE = "None";
         public const string CONST_BULKHEAD = "Bulkhead";

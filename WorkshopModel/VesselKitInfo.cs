@@ -24,7 +24,7 @@ namespace GroundConstruction
         public abstract bool Complete { get; }
 
         public IKitContainer Container => Kit.Host as IKitContainer;
-        public IControllableContainer ControllableContainer => Kit.Host as IControllableContainer;
+        public IControllable Controllable => Kit.Host as IControllable;
 
         public bool Recheck()
         {

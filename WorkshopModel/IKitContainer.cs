@@ -17,37 +17,41 @@ namespace GroundConstruction
         VesselKit GetKit(Guid id);
     }
 
-    public interface IControllableContainer : IKitContainer
-    {
-        void ShowUI(bool enable = true);
-        void EnableControls(bool enable = true);        
-    }
-
-    public interface IAssemblySpace : IControllableContainer, IPartCostModifier, IPartMassModifier
+    public interface IAssemblySpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
         float KitToSpaceRatio(VesselKit kit);
         void SetKit(VesselKit kit);
         void SpawnKit();
-        void Open();
-        void Close();
-        bool Opened { get; }
     }
 
-    public interface IConstructionSpace : IControllableContainer, IPartCostModifier, IPartMassModifier
+    public interface IConstructionSpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
         void Launch();
     }
 
-    public enum ContainerDeplyomentState {
+    public enum DeplyomentState {
         IDLE,
         DEPLOYING,
         DEPLOYED,
     }
 
-    public interface IDeployableContainer : IConstructionSpace
+    public interface IDeployable
     {
-        ContainerDeplyomentState State { get; }
+        DeplyomentState State { get; }
         void Deploy();
+    }
+
+    public interface IControllable
+    {
+        void ShowUI(bool enable = true);
+        void EnableControls(bool enable = true);        
+    }
+
+    public interface IAnimatedSpace
+    {
+        void Open();
+        void Close();
+        bool Opened { get; }
     }
 }
 
