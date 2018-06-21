@@ -149,15 +149,6 @@ namespace GroundConstruction
             GUILayout.EndHorizontal();
         }
 
-        public override string ToString()
-        {
-            if(State == Status.COMPLETE)
-                return Utils.Format("\"{}:{}\" completed \"{}\".", VesselName, PartName, TaskName);
-            if(State == Status.ACTIVE)
-                return Utils.Format("\"{}:{}\" is working on \"{}\". {}", VesselName, PartName, TaskName, ETA);
-            return Utils.Format("\"{}:{}\" is idle.", VesselName, PartName);
-        }
-
         //deprecated config coversion
         public override void Load(ConfigNode node)
         {
