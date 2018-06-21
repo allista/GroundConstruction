@@ -83,8 +83,8 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             vessel_spawner = new VesselSpawner(part);
-            Events["Deploy"].active = kit.Valid && State == DeplyomentState.IDLE;
-            Events["Launch"].active = kit.Valid && State == DeplyomentState.DEPLOYED && kit.Complete;
+			Events["DeployEvent"].active = kit.Valid && State == DeplyomentState.IDLE;
+			Events["LaunchEvent"].active = kit.Valid && State == DeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
             create_deploy_hint_mesh();
@@ -171,16 +171,18 @@ namespace GroundConstruction
         #endregion
 
         #region Launching
+		public virtual void Launch()
+		{
+			if(!can_launch()) return;
+            StartCoroutine(launch_complete_construct());
+		}
+
         [KSPEvent(guiName = "Launch",
                   #if DEBUG
                   guiActive = true,
                   #endif
                   guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
-        public void Launch()
-        {
-            if(!can_launch()) return;
-            StartCoroutine(launch_complete_construct());
-        }
+        public void LaunchEvent() => Launch();
 
         [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true,
                   guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
@@ -192,7 +194,7 @@ namespace GroundConstruction
 
         public void EnableControls(bool enable = true)
         {
-            Events["Launch"].active = enable;
+            Events["LaunchEvent"].active = enable;
         }
 
         protected virtual bool can_launch()
