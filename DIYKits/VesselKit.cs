@@ -84,6 +84,20 @@ namespace GroundConstruction
             }
         }
 
+        public float MassAtStage(int stage)
+        {
+            var parts = 0f;
+            Jobs.ForEach(p => parts += p.MassAtStage(stage));
+            return parts;
+        }
+
+        public float CostAtStage(int stage)
+        {
+            var parts = 0f;
+            Jobs.ForEach(p => parts += p.CostAtStage(stage));
+            return parts;
+        }
+
         public double CurrentTaskETA
         {
             get

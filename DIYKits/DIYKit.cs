@@ -79,6 +79,12 @@ namespace GroundConstruction
             CurrentIndex = 0;
         }
 
+        public float MassAtStage(int stage) =>
+        Mass.Curve.Evaluate((float)(this[stage].TotalWork/TotalWork));
+
+        public float CostAtStage(int stage) =>
+        Cost.Curve.Evaluate((float)(this[stage].TotalWork/TotalWork));
+
         public Requirements RequirementsForWork(double work)
         {
             var req = new Requirements();
