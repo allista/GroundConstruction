@@ -26,7 +26,7 @@ namespace GroundConstruction
         {
             Name = part.partInfo.title;
             craftID = part.craftID;
-            var is_DIY_Kit = part.Modules.Contains<ModuleConstructionKit>();
+            var is_DIY_Kit = part.Modules.Contains<DeployableKitContainer>();
             var res_mass = part.GetResourceMass();
             var dry_cost = Mathf.Max(part.DryCost(), 0);
             var part_mass = part.mass + res_mass;
