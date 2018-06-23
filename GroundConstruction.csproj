@@ -81,7 +81,6 @@
     <Compile Include="WorkModel\CompositeJob.cs" />
     <Compile Include="WorkModel\JobBase.cs" />
     <Compile Include="WorkModel\WorkBase.cs" />
-    <Compile Include="AssemblySpace.cs" />
     <Compile Include="Containers\DeployableModel.cs" />
     <Compile Include="Containers\DeployableKitContainer.cs" />
     <Compile Include="Containers\DeployableKitContainerConstrains.cs" />
@@ -91,6 +90,9 @@
     <Compile Include="Workshops\SinglePartAssemblyWorkshop.cs" />
     <Compile Include="Workshops\SingleVesselAssemblyWorkshop.cs" />
     <Compile Include="Workshops\SingleVesselConstructionWorkshop.cs" />
+    <Compile Include="Workshops\GroundAssemblyWorkshop.cs" />
+    <Compile Include="Containers\AssemblySpace.cs" />
+    <Compile Include="Containers\InSituAssemblySpace.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
