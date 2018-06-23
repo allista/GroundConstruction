@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AT_Utils;
 using UnityEngine;
 
@@ -18,7 +17,10 @@ namespace GroundConstruction
         [KSPField]
         public string KitParts = "DIYKit";
         SortedList<string, string> kit_parts = new SortedList<string, string>();
-        string kit_part = "DIYKit";
+
+        [KSPField(isPersistant = true)]
+        public string SelectedPart = string.Empty;
+        string kit_part => kit_parts[SelectedPart];
 
         [KSPField(isPersistant = true)]
         public PersistentList<VesselKit> Kits = new PersistentList<VesselKit>();
@@ -40,10 +42,12 @@ namespace GroundConstruction
                         this.Log("[WARNING] no such part: {}", part_name);
                         continue;
                     }
-                    kit_parts.Add(part_name, part_info.title);
+                    kit_parts.Add(part_info.title, part_name);
                 }
-                if(kit_parts.Count > 0)
-                    kit_part = kit_parts.Keys[0];
+                if(kit_parts.Count > 0
+                   && (string.IsNullOrEmpty(SelectedPart)
+                       || !kit_parts.ContainsKey(SelectedPart)))
+                    SelectedPart = kit_parts.Keys[0];
             }
         }
 
@@ -59,8 +63,19 @@ namespace GroundConstruction
         protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct, false);
-            if(find_assembly_space(kit, false) != null)
+            var selected_space_module = selected_space as PartModule;
+            if(selected_space_module != null)
             {
+                if(!selected_space.Empty)
+                    Utils.Message("Selected assembly space is occupied");
+                else if(selected_space.KitToSpaceRatio(kit, kit_part) <= 0)
+                    Utils.Message("Selected assembly space is too small");
+                else
+                    selected_space.SetKit(kit, kit_part);
+            }
+            else if(find_assembly_space(kit, false) != null)
+            {
+                kit.Host = this;
                 Kits.Add(kit);
                 Queue.Enqueue(new AssemblyKitInfo(kit));
             }
@@ -198,7 +213,7 @@ namespace GroundConstruction
             if(kit_parts.Count > 1)
             {
                 GUILayout.BeginHorizontal();
-                kit_part = Utils.LeftRightChooser(kit_part, kit_parts, "Select container type");
+                SelectedPart = Utils.LeftRightChooser(SelectedPart, kit_parts, "Select container type to use");
                 GUILayout.EndHorizontal();
             }
             GUILayout.BeginHorizontal();
@@ -239,6 +254,7 @@ namespace GroundConstruction
         }
 
         Vector2 assembly_spaces_scroll;
+        IAssemblySpace selected_space;
         protected virtual void assembly_spaces_pane()
         {
             if(available_spaces.Count == 0) return;
@@ -248,8 +264,20 @@ namespace GroundConstruction
             foreach(var space in available_spaces)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                GUILayout.Label(string.Format("<color=yellow><b>{0}</b></color>", space.Name), 
-                                Styles.rich_label, GUILayout.ExpandWidth(true));
+                if(GUILayout.Button(new GUIContent(string.Format("<color=yellow><b>{0}</b></color>", space.Name), 
+                                                   "Press to select to assign assembly task to this space. " +
+                                                   "Press again to deselect."),
+                                    selected_space == space? Styles.boxed_label : Styles.rich_label, 
+                                    GUILayout.ExpandWidth(true)))
+                {
+                    if(selected_space != space)
+                        selected_space = space;
+                    else
+                        selected_space = null;
+                }
+                var module = space as PartModule;
+                if(module != null)
+                    set_highlighted_part(module.part);
                 if(space.Empty)
                 {
                     var animated = space as IAnimatedSpace;

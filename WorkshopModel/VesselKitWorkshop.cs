@@ -134,39 +134,17 @@ namespace GroundConstruction
             unbuilt_kits.Clear();
             built_kits.Clear();
         }
-
-        protected void disable_highlights()
-        {
-            if(highlighted_tasks.Count > 0)
-            {
-                foreach(var kit in highlighted_tasks)
-                {
-                    if(kit.Kit &&
-                       (highlight_task == null ||
-                        kit.Kit != highlight_task.Kit))
-                    {
-                        kit.Kit.Host.part.SetHighlightDefault();
-                    }
-                }
-                highlighted_tasks.Clear();
-            }
-        }
-
-        protected override void on_update()
-        {
-            base.on_update();
-            //highlight kit under the mouse
-            disable_highlights();
-            if(highlight_task != null)
-            {
-                highlight_task.Kit.Host.part.HighlightAlways(Color.yellow);
-                highlighted_tasks.Add(highlight_task);
-            }
-            highlight_task = null;
-        }
         #endregion
 
         #region implemented abstract members of WorkshopBase
+        protected override void set_highlighted_task(KitInfo task)
+        {
+            if(task == null)
+                set_highlighted_part(null);
+            else if(task.Valid)
+                set_highlighted_part(task.Kit.Host.part);
+        }
+
         protected override void update_ui_data()
         {
             base.update_ui_data();

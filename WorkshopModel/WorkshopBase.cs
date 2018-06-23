@@ -351,7 +351,17 @@ namespace GroundConstruction
             return false;
         }
 
-        protected virtual void on_update() {}
+        protected virtual void on_update() 
+        {
+            //highlight kit under the mouse
+            disable_highlights();
+            if(highlight_part != null)
+            {
+                highlight_part.HighlightAlways(Color.yellow);
+                highlighted_parts.Add(highlight_part);
+            }
+            highlight_part = null;    
+        }
 
         protected virtual void update_ui_data()
         {
@@ -433,13 +443,32 @@ namespace GroundConstruction
         }
 
         #region GUI
-        protected HashSet<T> highlighted_tasks = new HashSet<T>();
-        protected T highlight_task;
+        protected HashSet<Part> highlighted_parts = new HashSet<Part>();
+        protected Part highlight_part;
 
-        protected void set_highlighted_task(T task)
+        protected abstract void set_highlighted_task(T task);
+
+        protected void set_highlighted_part(Part p)
         {
             if(Event.current.type == EventType.Repaint && Utils.MouseInLastElement())
-                highlight_task = task;
+                highlight_part = p;
+        }
+
+        protected void disable_highlights()
+        {
+            if(highlighted_parts.Count > 0)
+            {
+                foreach(var p in highlighted_parts)
+                {
+                    if(p != null &&
+                       (highlight_part == null ||
+                        p != highlight_part))
+                    {
+                        p.SetHighlightDefault();
+                    }
+                }
+                highlighted_parts.Clear();
+            }
         }
 
         Vector2 queue_scroll = Vector2.zero;
