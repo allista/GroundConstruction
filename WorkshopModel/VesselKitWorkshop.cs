@@ -107,6 +107,17 @@ namespace GroundConstruction
 
         protected HashSet<Guid>get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
 
+        protected float dist2kit(VesselKitInfo kit) =>
+        (kit.Kit.Host.vessel.transform.position - vessel.transform.position).magnitude;
+
+        protected float current_task_distance_mod()
+        {
+            var dist = dist2kit(CurrentTask);
+            if(dist > GLB.MaxDistanceToWorkshop) return 0;
+            return Mathf.Lerp(1, GLB.MaxDistanceEfficiency,
+                              Mathf.Max((dist - GLB.MinDistanceToWorkshop) / GLB.MaxDistanceToWorkshop, 0));
+        }
+
         protected virtual void sort_task(KitInfo task)
         {
             if(check_task(task))

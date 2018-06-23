@@ -13,15 +13,17 @@ namespace GroundConstruction
     {
         string Name { get; }
         bool Empty { get; }
+        bool Valid { get; }
         List<VesselKit> GetKits();
         VesselKit GetKit(Guid id);
     }
 
     public interface IAssemblySpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
-        float KitToSpaceRatio(VesselKit kit);
-        void SetKit(VesselKit kit);
+        float KitToSpaceRatio(VesselKit kit, string part_name);
+        void SetKit(VesselKit kit, string part_name);
         void SpawnKit();
+        bool SpawnAutomatically { get; }
     }
 
     public interface IConstructionSpace : IKitContainer, IPartCostModifier, IPartMassModifier
@@ -52,6 +54,11 @@ namespace GroundConstruction
         void Open();
         void Close();
         bool Opened { get; }
+    }
+
+    public interface IContainerProducer
+    {
+        void SpawnEmptyContainer(string part_name);
     }
 }
 

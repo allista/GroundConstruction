@@ -43,7 +43,15 @@ namespace GroundConstruction
 
         void update_part_info()
         {
-            if(kit.Valid)
+            if(Empty)
+            {
+                KitName = "None";
+                KitMass = 0;
+                KitCost = 0;
+                KitWork = 0;
+                KitRes  = 0;
+            }
+            else
             {
                 KitName = kit.Name;
                 KitMass = kit.Mass;
@@ -51,14 +59,6 @@ namespace GroundConstruction
                 var rem = kit.RemainingRequirements();
                 KitWork = (float)rem.work/3600;
                 KitRes  = (float)rem.resource_amount;
-            }
-            else
-            {
-                KitName = "None";
-                KitMass = 0;
-                KitCost = 0;
-                KitWork = 0;
-                KitRes  = 0;
             }
         }
 
@@ -83,8 +83,8 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             vessel_spawner = new VesselSpawner(part);
-			Events["DeployEvent"].active = kit.Valid && State == DeplyomentState.IDLE;
-			Events["LaunchEvent"].active = kit.Valid && State == DeplyomentState.DEPLOYED && kit.Complete;
+            Events["DeployEvent"].active = !Empty && State == DeplyomentState.IDLE;
+            Events["LaunchEvent"].active = !Empty && State == DeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
             create_deploy_hint_mesh();
@@ -95,12 +95,10 @@ namespace GroundConstruction
         {
             base.OnLoad(node);
             kit.Host = this;
-            if(kit.Valid)
-            {
-                update_part_info();
-                if(KitName == "None")
-                    KitName = kit.Name;
-            }
+            update_part_info();
+            if(KitName == "None")
+                KitName = kit.Name;
+            update_size();
         }
 
         #region Select Ship Construct
@@ -123,21 +121,21 @@ namespace GroundConstruction
             construct.Unload();
         }
 
-        public void StoreKit(VesselKit kit)
+        public void StoreKit(VesselKit kit, bool slow = false)
         {
             this.kit = kit;
             update_part_info();
-            set_kit_size();
             update_constraint_controls();
+            update_size(slow);
         }
         #endregion
 
         #region Deployment
-		protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+        protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
 
         protected override bool can_deploy()
         {
-            if(!kit.Valid)
+            if(Empty)
             {
                 Utils.Message("Cannot deploy: nothing is stored inside the container.");
                 return false;
@@ -156,8 +154,9 @@ namespace GroundConstruction
             yield return null;
         }
 
-        public bool Empty => kit;
-        public override string Name => kit.Valid? "Container: "+kit.Name : "Container";
+        public bool Empty => !kit;
+        public bool Valid => isEnabled;
+        public override string Name => Empty? "Container" : "Container: "+kit.Name;
 
         [KSPEvent(guiName = "Deploy",
                   #if DEBUG
@@ -173,11 +172,11 @@ namespace GroundConstruction
         #endregion
 
         #region Launching
-		public virtual void Launch()
-		{
-			if(!can_launch()) return;
+        public virtual void Launch()
+        {
+            if(!can_launch()) return;
             StartCoroutine(launch_complete_construct());
-		}
+        }
 
         [KSPEvent(guiName = "Launch",
                   #if DEBUG
@@ -203,7 +202,7 @@ namespace GroundConstruction
         {
             if(vessel_spawner.LaunchInProgress) 
                 return false;
-            if(!kit.Valid)
+            if(Empty)
             {
                 Utils.Message("Nothing to launch: container is empty.");
                 return false;
@@ -292,14 +291,14 @@ namespace GroundConstruction
 
         #region IPartCostModifier implementation
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) => 
-        kit.Valid ? kit.Cost : 0;
+        Empty ? 0 : kit.Cost;
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 
         #region IPartMassModifier implementation
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) => 
-        kit.Valid ? kit.Mass : 0;
+        Empty ? 0 : kit.Mass;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion

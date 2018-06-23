@@ -26,12 +26,10 @@ namespace GroundConstruction
 
         [KSPField(isPersistant = true)] public Vector3 OrigScale;
         [KSPField(isPersistant = true)] public Vector3 OrigSize;
+        [KSPField(isPersistant = true)] public Vector3 TargetSize;
         [KSPField(isPersistant = true)] public Vector3 Size;
-
-        [KSPField(isPersistant = true)] public float DeploymentTime;
-        [KSPField(isPersistant = true)] public float DeployingSpeed;
-
         [KSPField(isPersistant = true)] public DeplyomentState state;
+        bool just_started;
 
         public DeplyomentState State { get { return state; } }
 
@@ -84,6 +82,43 @@ namespace GroundConstruction
             }
         }
 
+        protected YieldInstruction slow_resize()
+        {
+            if(resize_coro != null)
+                StopCoroutine(resize_coro);
+            resize_coro = _resize();
+            return StartCoroutine(resize_coro);
+        }
+
+        IEnumerator<YieldInstruction> resize_coro;
+        IEnumerator<YieldInstruction> _resize()
+        {
+            if(Size == TargetSize)
+                yield break;
+            var start = Size;
+            var time = 0f;
+            var speed = Mathf.Min(GLB.DeploymentSpeed / Mathf.Abs((TargetSize-Size).MaxComponentF()),
+                                  1 / GLB.MinDeploymentTime);
+            var rot = vessel.vesselTransform.rotation;
+            while(time <= 1)
+            {
+                var old_size = Size;
+                time += speed * TimeWarp.fixedDeltaTime;
+                Size = Vector3.Lerp(start, TargetSize, time);
+                update_model(false);
+                if(vessel.LandedOrSplashed)
+                {
+                    FlightGlobals.overrideOrbit = true;
+                    vessel.SetRotation(rot);
+                    vessel.SetPosition(vessel.vesselTransform.position+vessel.up*(Size-old_size).y);
+                    vessel.IgnoreGForces(10);
+                }
+                yield return new WaitForFixedUpdate();
+            }
+            FlightGlobals.overrideOrbit = false;
+            Size = TargetSize;
+        }
+
         public override void OnAwake()
         {
             base.OnAwake();
@@ -102,6 +137,7 @@ namespace GroundConstruction
             }
             if(metric.Empty)
                 metric = new Metric(part);
+            Size = MinSize;
             OrigSize = metric.size;
             OrigScale = model.localScale;
             //add deploy hints
@@ -124,6 +160,7 @@ namespace GroundConstruction
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+            just_started = true;
             create_deploy_hint_mesh();
             if(State == DeplyomentState.DEPLOYING)
                 StartCoroutine(deploy());
@@ -132,8 +169,7 @@ namespace GroundConstruction
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            if(!Size.IsZero())
-                update_model(true);
+            update_model(true);
             //deprecated config conversion
             if(node.HasValue("Deploying"))
             {
@@ -154,8 +190,11 @@ namespace GroundConstruction
         {
             if(HighLogic.LoadedSceneIsEditor)
             {
-                if(!Size.IsZero() && model.localScale == OrigScale)
+                if(just_started)
+                {
                     update_model(true);
+                    just_started = false;
+                }
             }
             if(HighLogic.LoadedSceneIsFlight)
             {
@@ -232,33 +271,13 @@ namespace GroundConstruction
 
         protected abstract IEnumerable finalize_deployment();
 
-        ActionDamper message_damper = new ActionDamper(1);
         IEnumerator<YieldInstruction> deploy()
         {
             foreach(var _ in prepare_deployment()) yield return null;
             var deployT = get_deploy_transform();
-            var start = Size;
-            var start_time = DeploymentTime;
-            var time_span = 1-start_time;
-            var end = get_deployed_size();
-            end = model.InverseTransformDirection(deployT.TransformDirection(end)).AbsComponents();
-            //resize the kit gradually
-            var rot = vessel.vesselTransform.rotation;
-            while(DeploymentTime <= 1)
-            {
-                DeploymentTime += DeployingSpeed * TimeWarp.fixedDeltaTime;
-                var old_size = Size;
-                Size = Vector3.Lerp(start, end, (DeploymentTime - start_time)/time_span);
-                update_model(false);
-                FlightGlobals.overrideOrbit = true;
-                vessel.SetRotation(rot);
-                vessel.SetPosition(vessel.vesselTransform.position+deployT.up*(Size-old_size).y);
-                vessel.IgnoreGForces(10);
-                yield return new WaitForFixedUpdate();
-            }
-            FlightGlobals.overrideOrbit = false;
-            DeploymentTime = 1;
-            Size = end;
+            TargetSize = get_deployed_size();
+            TargetSize = model.InverseTransformDirection(deployT.TransformDirection(TargetSize)).AbsComponents();
+            yield return slow_resize();
             foreach(var _ in finalize_deployment()) yield return null;
             state = DeplyomentState.DEPLOYED;
         }
@@ -266,7 +285,6 @@ namespace GroundConstruction
         public virtual void Deploy()
         {
             if(!can_deploy()) return;
-            DeployingSpeed = Mathf.Min(GLB.DeploymentSpeed / get_deployed_size().MaxComponentF(), 1 / GLB.MinDeploymentTime);
             Utils.SaveGame(Name + "-before_deployment");
             state = DeplyomentState.DEPLOYING;
             StartCoroutine(deploy());

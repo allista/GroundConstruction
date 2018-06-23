@@ -33,20 +33,6 @@ namespace GroundConstruction
             return "";
         }
 
-        public override void OnAwake()
-        {
-            base.OnAwake();
-            GameEvents.onVesselGoOnRails.Add(onVesselPacked);
-            GameEvents.onVesselGoOffRails.Add(onVesselUpacked);
-        }
-
-        protected override void OnDestroy()
-        {
-            GameEvents.onVesselGoOnRails.Remove(onVesselPacked);
-            GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
-            base.OnDestroy();
-        }
-
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
@@ -80,13 +66,10 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl);
+                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl).Where(s => s.Valid);
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
-                    //this.Log("Checking kit: {}\nvalid: {}\ncurrent kit {}\ndist: {}", 
-                             //vsl_kit, (bool)vsl_kit, CurrentTask.Kit,
-                             //(vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude);//debug
                     if(vsl_kit != null && vsl_kit.Valid &&
                        vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id) &&
                        (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
@@ -116,27 +99,16 @@ namespace GroundConstruction
                 return false;
             if(vessel.horizontalSrfSpeed > GLB.DeployMaxSpeed)
             {
-                Utils.Message("Cannot construct while moving.");
+                Utils.Message("Engineers cannot work while the workshop is moving.");
                 return false;
             }
             return true;
         }
 
-        float dist2target(VesselKitInfo kit)
-        { return (kit.Kit.Host.vessel.transform.position - vessel.transform.position).magnitude; }
-
-        void update_distance_mod()
-        {
-            var dist = dist2target(CurrentTask);
-            if(dist > GLB.MaxDistanceToWorkshop) distance_mod = 0;
-            else distance_mod = Mathf.Lerp(1, GLB.MaxDistanceEfficiency,
-                                           Mathf.Max((dist - GLB.MinDistanceToWorkshop) / GLB.MaxDistanceToWorkshop, 0));
-        }
-
         protected override double do_some_work(double available_work)
         {
             if(distance_mod < 0)
-                update_distance_mod();
+                distance_mod = current_task_distance_mod();
             if(distance_mod.Equals(0))
             {
                 Utils.Message("{0} is too far away.", CurrentTask.Name);
@@ -152,7 +124,7 @@ namespace GroundConstruction
         {
             if(!base.check_target_kit(target))
                 return false;
-            if(dist2target(target) > GLB.MaxDistanceToWorkshop)
+            if(dist2kit(target) > GLB.MaxDistanceToWorkshop)
             {
                 Utils.Message("{0} is too far away. Needs to be closer that {1}m",
                               target.Name, GLB.MaxDistanceToWorkshop);

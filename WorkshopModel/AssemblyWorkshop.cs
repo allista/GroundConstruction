@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AT_Utils;
 using UnityEngine;
 
@@ -14,6 +15,11 @@ namespace GroundConstruction
 {
     public abstract class AssemblyWorkshop : VesselKitWorkshop<AssemblyKitInfo>, IKitContainer
     {
+        [KSPField]
+        public string KitParts = "DIYKit";
+        SortedList<string, string> kit_parts = new SortedList<string, string>();
+        string kit_part = "DIYKit";
+
         [KSPField(isPersistant = true)]
         public PersistentList<VesselKit> Kits = new PersistentList<VesselKit>();
 
@@ -21,8 +27,29 @@ namespace GroundConstruction
 
         ShipConstructLoader construct_loader;
 
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            if(!string.IsNullOrEmpty(KitParts))
+            {
+                foreach(var part_name in Utils.ParseLine(KitParts, Utils.Comma))
+                {
+                    var part_info = PartLoader.getPartInfoByName(part_name);
+                    if(part_info == null)
+                    {
+                        this.Log("[WARNING] no such part: {}", part_name);
+                        continue;
+                    }
+                    kit_parts.Add(part_name, part_info.title);
+                }
+                if(kit_parts.Count > 0)
+                    kit_part = kit_parts.Keys[0];
+            }
+        }
+
         public string Name => part.Title();
         public bool Empty => Kits.Count == 0;
+        public bool Valid => isEnabled;
         public List<VesselKit> GetKits() => Kits;
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
 
@@ -49,16 +76,22 @@ namespace GroundConstruction
                 var space = task.AssemblySpace;
                 if(space != null) return true;
                 space = find_assembly_space(task.Kit, true);
-                var space_module = space as PartModule;
-                if(space != null && space_module != null)
+                if(space != null)
                 {
-                    space.SetKit(task.Kit);
+                    space.SetKit(task.Kit, kit_part);
                     Kits.Remove(task.Kit);
-                    task.Kit.Host = space_module;
                     return true;
                 }
             }
             return false;
+        }
+
+        protected override void on_task_complete(AssemblyKitInfo task)
+        {
+            base.on_task_complete(task);
+            var space = task.AssemblySpace;
+            if(space.SpawnAutomatically)
+                space.SpawnKit();
         }
 
         protected override void update_ui_data()
@@ -66,7 +99,7 @@ namespace GroundConstruction
             base.update_ui_data();
             available_spaces.Clear();
             if(vessel != null && vessel.loaded)
-                available_spaces = get_assembly_spaces();//.Where(s => s.Empty));
+                available_spaces = get_assembly_spaces();
         }
 
         protected abstract List<IAssemblySpace> get_assembly_spaces();
@@ -80,8 +113,8 @@ namespace GroundConstruction
         {
             foreach(var space in spaces)
             {
-                if(!space.Empty) continue;
-                var ratio = space.KitToSpaceRatio(kit);
+                if(!space.Valid || !space.Empty) continue;
+                var ratio = space.KitToSpaceRatio(kit, kit_part);
                 if(ratio > 0)
                     return space;
             }
@@ -94,11 +127,11 @@ namespace GroundConstruction
             IAssemblySpace available_space = null;
             foreach(var space in spaces)
             {
-                if(!space.Empty) continue;
-                var ratio = space.KitToSpaceRatio(kit);
+                if(!space.Valid || !space.Empty) continue;
+                var ratio = space.KitToSpaceRatio(kit, kit_part);
                 if(ratio > 0)
                 {
-                    if(best_ratio < 0 || ratio < best_ratio)
+                    if(ratio > best_ratio)
                     {
                         best_ratio = ratio;
                         available_space = space;
@@ -120,12 +153,13 @@ namespace GroundConstruction
         protected IAssemblySpace find_best_assembly_space(VesselKit kit, Vessel vsl) =>
         find_best_assembly_space(kit, VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl));
 
-        protected void update_kits(List<IKitContainer> containers)
+        protected void update_kits(IEnumerable<IKitContainer> containers)
         {
             if(containers == null) return;
             var queued = get_queued_ids();
             foreach(var container in containers)
             {
+                if(!container.Valid) continue;
                 if(container as AssemblyWorkshop == this) continue;
                 foreach(var vsl_kit in container.GetKits())
                 {
@@ -161,6 +195,12 @@ namespace GroundConstruction
 
         protected override void queue_pane()
         {
+            if(kit_parts.Count > 1)
+            {
+                GUILayout.BeginHorizontal();
+                kit_part = Utils.LeftRightChooser(kit_part, kit_parts, "Select container type");
+                GUILayout.EndHorizontal();
+            }
             GUILayout.BeginHorizontal();
             if(GUILayout.Button(new GUIContent("Add Vessel",
                                                "Add a vessel from VAB/SPH to construction queue"),
@@ -186,7 +226,7 @@ namespace GroundConstruction
                 GUILayout.BeginHorizontal();
                 info.Draw();
                 set_highlighted_task(info);
-                if(GUILayout.Button(new GUIContent("Release", "Release complete kit from the dock"),
+                if(GUILayout.Button(new GUIContent("Finalize", "Finalize assembly and seal the container"),
                                     Styles.danger_button, GUILayout.ExpandWidth(false),
                                     GUILayout.ExpandHeight(true)))
                     spawn = info;
@@ -208,12 +248,19 @@ namespace GroundConstruction
             foreach(var space in available_spaces)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                GUILayout.Label(string.Format("<color=yellow><b>{0}</b></color>",
-                                              available_spaces[0].Name), 
+                GUILayout.Label(string.Format("<color=yellow><b>{0}</b></color>", space.Name), 
                                 Styles.rich_label, GUILayout.ExpandWidth(true));
                 if(space.Empty)
                 {
                     var animated = space as IAnimatedSpace;
+                    var producer = space as IContainerProducer;
+                    if(producer != null)
+                    {
+                        if(GUILayout.Button(new GUIContent("Create Empty Container",
+                                                           "Create a new empty container of the selected type"),
+                                            Styles.active_button, GUILayout.ExpandWidth(false)))
+                            producer.SpawnEmptyContainer(kit_part);
+                    }
                     if(animated != null)
                     {
                         var opened = animated.Opened;

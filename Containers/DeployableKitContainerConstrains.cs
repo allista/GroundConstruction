@@ -57,11 +57,11 @@ namespace GroundConstruction
 
         void setup_constraint_fields()
         {
-            Fields["ConstrainLength"].OnValueModified += (obj) => set_kit_size();
-            Fields["ConstrainWidth"].OnValueModified += (obj) => set_kit_size();
-            Fields["ConstrainHeight"].OnValueModified += (obj) => set_kit_size();
-            Fields["ConstrainBulkhead"].OnValueModified += (obj) => set_kit_size();
-            Fields["ConstraintType"].OnValueModified += (obj) => { on_constraint_type_change(); set_kit_size(); };
+            Fields["ConstrainLength"].OnValueModified += (obj) => update_size();
+            Fields["ConstrainWidth"].OnValueModified += (obj) => update_size();
+            Fields["ConstrainHeight"].OnValueModified += (obj) => update_size();
+            Fields["ConstrainBulkhead"].OnValueModified += (obj) => update_size();
+            Fields["ConstraintType"].OnValueModified += (obj) => { on_constraint_type_change(); update_size(); };
             update_constraint_controls();
         }
 
@@ -115,58 +115,70 @@ namespace GroundConstruction
             }
         }
 
-        void set_kit_size()
+        void update_size(bool slow = false)
         {
+            var size = Size;
             if(kit.Valid)
             {
-                var kitV = kit.Mass / GLB.VesselKitDensity;
+                var kitV = kit.MassAtStage(DIYKit.ASSEMBLY) / GLB.VesselKitDensity;
                 var Area = 0f;
                 var SideLength = 0f;
                 switch(ConstraintType)
                 {
                 case CONST_BULKHEAD:
                     SideLength = kitV / (ConstrainBulkhead * ConstrainBulkhead);
-                    Size = new Vector3(ConstrainBulkhead, SideLength, ConstrainBulkhead);
+                    size = new Vector3(ConstrainBulkhead, SideLength, ConstrainBulkhead);
                     break;
 
                 case CONST_LENGTH:
                     Area = kitV / ConstrainLength;
                     SideLength = Mathf.Sqrt(Area);
-                    Size = new Vector3(SideLength, ConstrainLength, SideLength);
+                    size = new Vector3(SideLength, ConstrainLength, SideLength);
                     break;
 
                 case CONST_WIDTH:
                     Area = kitV / ConstrainWidth;
                     SideLength = Mathf.Sqrt(Area);
-                    Size = new Vector3(ConstrainWidth, SideLength, SideLength);
+                    size = new Vector3(ConstrainWidth, SideLength, SideLength);
                     break;
 
                 case CONST_HEIGHT:
                     Area = kitV / ConstrainHeight;
                     SideLength = Mathf.Sqrt(Area);
-                    Size = new Vector3(SideLength, SideLength, ConstrainHeight);
+                    size = new Vector3(SideLength, SideLength, ConstrainHeight);
                     break;
 
                 case CONST_WL:
                     SideLength = kitV / (ConstrainWidth * ConstrainLength);
-                    Size = new Vector3(ConstrainWidth, ConstrainLength, SideLength);
+                    size = new Vector3(ConstrainWidth, ConstrainLength, SideLength);
                     break;
 
                 case CONST_HL:
                     SideLength = kitV / (ConstrainHeight * ConstrainLength);
-                    Size = new Vector3(SideLength, ConstrainLength, ConstrainHeight);
+                    size = new Vector3(SideLength, ConstrainLength, ConstrainHeight);
                     break;
 
                 case CONST_WH:
                     SideLength = kitV / (ConstrainWidth * ConstrainHeight);
-                    Size = new Vector3(ConstrainWidth, SideLength, ConstrainHeight);
+                    size = new Vector3(ConstrainWidth, SideLength, ConstrainHeight);
                     break;
 
                 default:
-                    Size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
+                    size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
                     break;
                 }
-                Size = Size.ClampComponentsL(MinSize);
+                size = size.ClampComponentsL(MinSize);
+            }
+            else
+                size = MinSize;
+            if(slow)
+            {
+                TargetSize = size;
+                slow_resize();
+            }
+            else
+            {
+                Size = size;
                 update_model(false);
             }
         }

@@ -183,6 +183,19 @@ namespace GroundConstruction
                 Manager.CheckinWorkshop(this);
         }
 
+        public override void OnAwake()
+        {
+            base.OnAwake();
+            GameEvents.onVesselGoOnRails.Add(onVesselPacked);
+            GameEvents.onVesselGoOffRails.Add(onVesselUpacked);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            GameEvents.onVesselGoOnRails.Remove(onVesselPacked);
+            GameEvents.onVesselGoOffRails.Remove(onVesselUpacked);
+        }
+
         public override void OnSave(ConfigNode node)
         {
             base.OnSave(node);
@@ -352,10 +365,11 @@ namespace GroundConstruction
             GameEvents.onVesselCrewWasModified.Add(update_and_checkin);
         }
 
-        protected virtual void OnDestroy()
+        protected override void OnDestroy()
         {
             Utils.LockIfMouseOver(LockName, WindowPos, false);
             GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
+            base.OnDestroy();
         }
 
         public override void OnStart(StartState state)
