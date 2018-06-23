@@ -250,16 +250,19 @@ namespace GroundConstruction
             kit_part.packed = true;
             //initialize modules
             kit_part.InitializeModules();
-            foreach(var node in part_info.partConfig.GetNodes("MODULE"))
+            var module_nodes = part_info.partConfig.GetNodes("MODULE");
+            for(int i = 0, maxLength = module_nodes.Length; i < maxLength; i++)
             {
+                var node = module_nodes[i];
                 var module_name = node.GetValue("name");
                 if(!string.IsNullOrEmpty(module_name))
                 {
-                    var module = kit_part.Modules[module_name];
-                    if(module != null)
+                    var module = kit_part.Modules[i];
+                    if(module != null && module.ClassName == module_name)
                         module.Load(node);
                 }
             }
+
             foreach(var module in kit_part.Modules)
                 module.OnStart(PartModule.StartState.PreLaunch);
             //add the kit to construction kit module
