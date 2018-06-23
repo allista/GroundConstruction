@@ -20,7 +20,7 @@ namespace GroundConstruction
         public PartModule Module => Kit.Host;
         public string Name => Kit ? Kit.Name : "";
         public Guid ID => kitID;
-        public bool Valid => Kit;
+        public virtual bool Valid => Kit;
         public abstract bool Complete { get; }
 
         public IKitContainer Container => Kit.Host as IKitContainer;
@@ -75,6 +75,7 @@ namespace GroundConstruction
         public ConstructionKitInfo() {}
         public ConstructionKitInfo(VesselKit kit) : base(kit) {}
 
+        public override bool Valid => base.Valid && ConstructionSpace != null;
         public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
 
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
