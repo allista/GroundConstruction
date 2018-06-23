@@ -5,6 +5,7 @@
 //
 //  Copyright (c) 2018 Allis Tauri
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GroundConstruction
 {
@@ -20,7 +21,8 @@ namespace GroundConstruction
         {
             base.update_kits();
             if(vessel.loaded)
-                update_kits(VesselKitInfo.GetKitContainers<IKitContainer>(vessel));
+                update_kits(VesselKitInfo
+                            .GetKitContainers<IAssemblySpace>(vessel).Cast<IKitContainer>());
         }
     }
 }
