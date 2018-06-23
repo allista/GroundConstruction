@@ -70,8 +70,8 @@ namespace GroundConstruction
 
         [Persistent] public float DeployMaxSpeed   = 0.5f;  //m/s
         [Persistent] public float DeployMaxAV      = 5e-6f; //(rad/s)2
-        [Persistent] public float DeploymentSpeed  = 1;     //m3/s
-        [Persistent] public float MinDeploymentTime = 3;     //s
+        [Persistent] public float DeploymentSpeed  = 1;     //m/s
+        [Persistent] public float MinDeploymentTime = 3;    //s
 
         [Persistent] public int EasingFrames = 120;
     }
