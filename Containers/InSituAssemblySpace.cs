@@ -20,9 +20,10 @@ namespace GroundConstruction
             base.OnStart(state);
             container = part.FindModuleImplementing<DeployableKitContainer>();
             if(container == null || 
-               !container.Empty && container.kit.StageComplete(DIYKit.ASSEMBLY))
+               !container.kit.Empty && container.kit.StageComplete(DIYKit.ASSEMBLY))
                 this.EnableModule(false);
-            container.kit.Host = this;
+            else
+                container.kit.Host = this;
         }
 
         #region IAssemblySpace
