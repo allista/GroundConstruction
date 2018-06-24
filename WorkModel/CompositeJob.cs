@@ -15,6 +15,7 @@ namespace GroundConstruction
         [Persistent] public PersistentList<T> Jobs = new PersistentList<T>();
 
         public override bool Valid => base.Valid && Jobs.Count > 0;
+        public virtual bool Empty => Jobs.Count == 0;
 
         public override double WorkLeft
         {
