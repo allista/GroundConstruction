@@ -212,7 +212,8 @@ namespace GroundConstruction
                 info.Draw();
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                    Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                                    Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                    GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();
             }
