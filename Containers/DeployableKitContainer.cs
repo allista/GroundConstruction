@@ -87,7 +87,6 @@ namespace GroundConstruction
             Events["LaunchEvent"].active = !Empty && State == DeplyomentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
-            create_deploy_hint_mesh();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
         }
 
@@ -126,6 +125,8 @@ namespace GroundConstruction
             this.kit = kit;
             update_part_info();
             update_constraint_controls();
+            create_deploy_hint_mesh();
+            update_deploy_hint();
             update_size(slow);
         }
         #endregion
@@ -148,6 +149,12 @@ namespace GroundConstruction
             return true;
         }
 
+        protected override IEnumerable prepare_deployment()
+        {
+            Events["DeployEvent"].active = false;
+            return base.prepare_deployment();
+        }
+
         protected override IEnumerable finalize_deployment()
         {
             update_unfocusedRange("Launch");
@@ -166,8 +173,6 @@ namespace GroundConstruction
         public void DeployEvent()
         {
             Deploy();
-            if(state == DeplyomentState.DEPLOYING)
-                Events["Deploy"].active = false;
         }
         #endregion
 
@@ -264,7 +269,7 @@ namespace GroundConstruction
             model.gameObject.SetActive(false);
             yield return StartCoroutine(launch(construct));
             GameEvents.onShowUI.Fire();
-            vessel.Die();
+            part.Die();
         }
 
         public void ShowUI(bool enable = true) {}

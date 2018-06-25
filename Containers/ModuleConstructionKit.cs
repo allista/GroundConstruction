@@ -51,6 +51,8 @@ namespace GroundConstruction
         protected override Transform get_deploy_transform() =>
         get_spawn_transform() ?? part.transform;
 
+        protected override Vector3 get_deployed_offset() => Vector3.zero;
+
         protected override Vector3 get_deployed_size()
         {
             var size = kit.ShipMetric.size;
@@ -108,11 +110,11 @@ namespace GroundConstruction
 
         protected override IEnumerable prepare_deployment()
         {
-            if(part.parent) part.decouple();
+            if(part.parent) part.decouple(2);
             yield return null;
             while(part.children.Count > 0)
             {
-                part.children[0].decouple();
+                part.children[0].decouple(2);
                 yield return null;
             }
             foreach(var _ in wait_for_ground_contact(string.Format("Deploing {0} Kit in", kit.Name)))

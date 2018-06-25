@@ -179,7 +179,7 @@ namespace GroundConstruction
             else
             {
                 Size = size;
-                update_model(false);
+                update_model(true);
             }
         }
     }
