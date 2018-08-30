@@ -145,6 +145,7 @@ namespace GroundConstruction
             var restore_joints = new List<Part>();
             if(part.parent != null && part.attachJoint != null)
             {
+                part.Log("attachJoint: hostA {}, targetA {}", part.attachJoint.HostAnchor, part.attachJoint.TgtAnchor);
                 part.attachJoint.DestroyJoint();
                 part.ResetJoints();
                 restore_joints.Add(part);
@@ -158,6 +159,7 @@ namespace GroundConstruction
                     restore_joints.Add(child);
                 }
             }
+            GameEvents.onActiveJointNeedUpdate.Fire(vessel);
             while(time <= 1)
             {
                 var old_size = Size;
@@ -167,13 +169,16 @@ namespace GroundConstruction
                 update_model(true);
                 if(vessel.LandedOrSplashed && part.GroundContact)
                     vessel.SetPosition(vessel.vesselTransform.position+up*(Size-old_size).y);
-                this.Log("deployment time: {}, size {}", time, Size);//debug
+                //this.Log("deployment time: {}, size {}", time, Size);//debug
                 yield return new WaitForFixedUpdate();
                 if(restore_joints.Count > 0)
                     yield return new WaitForFixedUpdate();
             }
             restore_joints.ForEach(p => { p.CreateAttachJoint(p.attachMode); p.ResetJoints(); });
+            if(part.attachJoint != null)
+                part.Log("attachJoint hostA {}, targetA {}", part.attachJoint.HostAnchor, part.attachJoint.TgtAnchor);
             GameEvents.onActiveJointNeedUpdate.Fire(vessel);
+            yield return new WaitForFixedUpdate();
             FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
         }
