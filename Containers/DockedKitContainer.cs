@@ -157,10 +157,6 @@ namespace GroundConstruction
                 Utils.GLVec(pos, T.forward, Color.blue);
                 Utils.GLVec(pos, T.right, Color.red);
             }
-            foreach(var node in part.attachNodes)
-            {
-                Utils.GLDrawPoint(node.nodeTransform.TransformPoint(node.position), Color.green);
-            }
         }
         #endif
     }
