@@ -28,7 +28,7 @@ using AT_Utils;
 #if NIGHTBUILD
 [assembly: AssemblyVersion("1.3.*")]
 #else
-[assembly: AssemblyVersion("2.0.0")]
+[assembly: AssemblyVersion("2.0.1.1")]
 #endif
 [assembly: KSPAssembly("GroundConstruction", 2, 0)]
 
@@ -44,8 +44,8 @@ namespace GroundConstruction
     {
         public ModInfo()
         {
-            MinKSPVersion = new Version(1,4,3);
-            MaxKSPVersion = new Version(1,4,3);
+            MinKSPVersion = new Version(1,4,5);
+            MaxKSPVersion = new Version(1,4,5);
 
             VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
             UpgradeURL   = "https://spacedock.info/mod/1123/Ground%20Construction";

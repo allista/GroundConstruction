@@ -1,6 +1,10 @@
 #Ground Construction ChangeLog
 
-* **v2.0.0 - Independence Day**
+* **v2.0.1**
+    * New ISRU patches by Critter79606
+    * Several bugfixes
+
+* v2.0.0 - **Independence Day**
     * **!!! BACK UP YOUR SAVES !!!**
     * ***
     * **DIY Kits can now be created on other planets.**
