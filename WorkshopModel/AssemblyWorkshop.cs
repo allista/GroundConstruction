@@ -66,10 +66,16 @@ namespace GroundConstruction
             var selected_space_module = selected_space as PartModule;
             if(selected_space_module != null)
             {
+                float ratio;
                 if(!selected_space.Empty)
                     Utils.Message("Selected assembly space is occupied");
-                else if(selected_space.KitToSpaceRatio(kit, kit_part) <= 0)
-                    Utils.Message("Selected assembly space is too small");
+                else if(!selected_space.CheckKit(kit, kit_part, out ratio))
+                {
+                    if(ratio > 0)
+                        Utils.Message("Selected assembly space is too small");
+                    else
+                        Utils.Message("Selected container is not suitable for construction of this kit");
+                }
                 else
                     selected_space.SetKit(kit, kit_part);
             }
@@ -129,8 +135,8 @@ namespace GroundConstruction
             foreach(var space in spaces)
             {
                 if(!space.Valid || !space.Empty) continue;
-                var ratio = space.KitToSpaceRatio(kit, kit_part);
-                if(ratio > 0)
+                float ratio;
+                if(space.CheckKit(kit, kit_part, out ratio))
                     return space;
             }
             return null;
@@ -143,8 +149,8 @@ namespace GroundConstruction
             foreach(var space in spaces)
             {
                 if(!space.Valid || !space.Empty) continue;
-                var ratio = space.KitToSpaceRatio(kit, kit_part);
-                if(ratio > 0)
+                float ratio;
+                if(space.CheckKit(kit, kit_part, out ratio))
                 {
                     if(ratio > best_ratio)
                     {

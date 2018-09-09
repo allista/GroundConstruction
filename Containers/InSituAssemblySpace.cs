@@ -32,7 +32,18 @@ namespace GroundConstruction
         public bool Valid => isEnabled;
         public VesselKit GetKit(Guid id) => container.GetKit(id);
         public List<VesselKit> GetKits() => new List<VesselKit> { container.kit };
-        public float KitToSpaceRatio(VesselKit kit, string part_name) => kit ? 1 : -1;
+
+        public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
+        {
+            kit2space_ratio = -1;
+            if(kit && container.CanConstruct(kit))
+            {
+                kit2space_ratio = 1;
+                return true;
+            }
+            return false;
+        }
+
         public void SetKit(VesselKit kit, string part_name) 
         {
             container.StoreKit(kit, true);

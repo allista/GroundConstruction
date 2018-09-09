@@ -20,7 +20,7 @@ namespace GroundConstruction
 
     public interface IAssemblySpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
-        float KitToSpaceRatio(VesselKit kit, string part_name);
+        bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio);
         void SetKit(VesselKit kit, string part_name);
         void SpawnKit();
         bool SpawnAutomatically { get; }
@@ -28,6 +28,7 @@ namespace GroundConstruction
 
     public interface IConstructionSpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
+        bool CanConstruct(VesselKit kit);
         void Launch();
     }
 

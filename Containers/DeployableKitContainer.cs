@@ -101,6 +101,8 @@ namespace GroundConstruction
         }
 
         #region Select Ship Construct
+        public virtual bool CanConstruct(VesselKit kit) => true;
+
         [KSPEvent(guiName = "Select Vessel", guiActive = false, guiActiveEditor = true, active = true)]
         public void SelectVessel()
         {

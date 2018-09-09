@@ -58,15 +58,19 @@ namespace GroundConstruction
         public VesselKit GetKit(Guid id) => Kit.id == id ? Kit : null;
         public List<VesselKit> GetKits() => new List<VesselKit> { Kit };
 
-        public float KitToSpaceRatio(VesselKit kit, string part_name)
+        public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
         {
-            if(!kit) return -1;
+            kit2space_ratio = -1;
+            if(!kit) return false;
             var kit_part = kit.CreatePart(part_name, part.flagURL, false);
-            if(kit_part == null) return -1;
+            if(kit_part == null) return false;
             var kit_metric = new Metric(kit_part);
+            var kit_module = kit_part.FindModuleImplementing<DeployableKitContainer>();
+            var can_construct = kit_module != null && kit_module.CanConstruct(kit);
             DestroyImmediate(kit_part.gameObject);
-            if(!SpawnManager.MetricFits(kit_metric)) return -1;
-            return kit_metric.volume / SpawnManager.SpaceMetric.volume;
+            if(!can_construct) return false;
+            kit2space_ratio = kit_metric.volume / SpawnManager.SpaceMetric.volume;
+            return SpawnManager.MetricFits(kit_metric);
         }
 
         public void SetKit(VesselKit kit, string part_name)

@@ -28,6 +28,8 @@ namespace GroundConstruction
         }
 
         #region Deployment
+        public override bool CanConstruct(VesselKit kit) => !kit.HasLaunchClamps;
+
         protected override bool can_deploy()
         {
             if(!base.can_deploy())
