@@ -23,6 +23,7 @@ namespace GroundConstruction
 
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
+        [Persistent] public bool HasLaunchClamps;
 
         public PartModule Host;
         public Vessel CrewSource;
@@ -59,6 +60,7 @@ namespace GroundConstruction
             ShipMetric = new Metric(ship, true, true);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
+            HasLaunchClamps = ship.HasLaunchClamp();
             CurrentIndex = 0;
         }
 
@@ -262,7 +264,6 @@ namespace GroundConstruction
                         module.Load(node);
                 }
             }
-
             foreach(var module in kit_part.Modules)
                 module.OnStart(PartModule.StartState.PreLaunch);
             //add the kit to construction kit module
