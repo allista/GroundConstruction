@@ -23,14 +23,14 @@ namespace GroundConstruction
         {
             Transform minT = null;
             if(vessel != null)
-			{
+            {
                 var alt = double.MaxValue;
                 foreach(var T in spawn_transforms)
                 {
                     var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
                     if(t_alt < alt) { alt = t_alt; minT = T; }
                 }
-			}
+            }
             return minT;
         }
 
