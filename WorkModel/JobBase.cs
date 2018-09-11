@@ -11,7 +11,7 @@ namespace GroundConstruction
     {
         protected static Globals GLB { get { return Globals.Instance; } }
 
-        [Persistent] public string Name;
+        [Persistent] public string Name = "";
         [Persistent] public int CurrentIndex = -1;
 
         public override bool Valid => CurrentIndex >= 0;
