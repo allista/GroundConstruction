@@ -36,14 +36,11 @@ namespace GroundConstruction
             if(is_DIY_Kit)
             {
                 Complexity = 1;
+                Assembly.TotalWork = total_work(Assembly, part_mass);
+                Construction.TotalWork = 0;
+                update_total_work();
                 if(assembled)
                     SetComplete(assembled);
-                else
-                {
-                    Assembly.TotalWork = total_work(Assembly, part_mass);
-                    Construction.TotalWork = 0;
-                    update_total_work();
-                }
             }
             else
             {
