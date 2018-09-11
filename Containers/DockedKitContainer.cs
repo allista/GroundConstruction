@@ -88,12 +88,14 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var bounds = construct.Bounds(construct.Parts[0].localRoot.transform);
+            var bounds = new Metric(construct, world_space:true).bounds;
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
                                                    SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds) - bounds.center,
+                                                   SpawnManager.GetSpawnOffset(bounds) 
+                                                   - bounds.center 
+                                                   + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
                                                    null, 
                                                    on_vessel_loaded,
