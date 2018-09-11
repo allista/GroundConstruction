@@ -67,6 +67,7 @@ namespace GroundConstruction
         [Persistent] public float MetalworkWeight  = 100;
 
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
+        [Persistent] public float MinKitVolume = 0.02f; //m3
 
         [Persistent] public float DeployMaxSpeed   = 0.5f;  //m/s
         [Persistent] public float DeployMaxAV      = 5e-6f; //(rad/s)2

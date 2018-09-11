@@ -97,7 +97,6 @@ namespace GroundConstruction
             update_part_info();
             if(KitName == "None")
                 KitName = kit.Name;
-            update_size();
         }
 
         #region Select Ship Construct
@@ -124,12 +123,20 @@ namespace GroundConstruction
 
         public void StoreKit(VesselKit kit, bool slow = false)
         {
-            this.kit = kit;
-            update_part_info();
-            update_constraint_controls();
-            create_deploy_hint_mesh();
-            update_deploy_hint();
-            update_size(slow);
+            if(CanConstruct(kit))
+            {
+                this.kit = kit;
+                update_part_info();
+                update_constraint_controls();
+                update_size(slow);
+                create_deploy_hint_mesh();
+                update_deploy_hint();
+                if(HighLogic.LoadedSceneIsEditor ||
+                   !GroundConstructionScenario.ShowDeployHint)
+                    deploy_hint_mesh.gameObject.SetActive(false);
+            }
+            else
+                Utils.Message("This kit cannot be constructed inside this container");
         }
         #endregion
 

@@ -120,57 +120,61 @@ namespace GroundConstruction
             var size = Size;
             if(kit.Valid)
             {
-                var kitV = kit.MassAtStage(DIYKit.ASSEMBLY) / GLB.VesselKitDensity;
+                var kitV = Mathf.Max(kit.MassAtStage(DIYKit.ASSEMBLY) / GLB.VesselKitDensity, GLB.MinKitVolume);
                 var Area = 0f;
                 var SideLength = 0f;
+                ConstrainWidth = Mathf.Max(ConstrainWidth, MinSize.x);
+                ConstrainLength = Mathf.Max(ConstrainLength, MinSize.y);
+                ConstrainHeight = Mathf.Max(ConstrainHeight, MinSize.z);
+                ConstrainBulkhead = Mathf.Max(ConstrainBulkhead, MinSize.x, MinSize.z);
                 switch(ConstraintType)
                 {
                 case CONST_BULKHEAD:
-                    SideLength = kitV / (ConstrainBulkhead * ConstrainBulkhead);
+                    SideLength = Mathf.Max(kitV / (ConstrainBulkhead * ConstrainBulkhead), MinSize.y);
                     size = new Vector3(ConstrainBulkhead, SideLength, ConstrainBulkhead);
                     break;
 
                 case CONST_LENGTH:
                     Area = kitV / ConstrainLength;
-                    SideLength = Mathf.Sqrt(Area);
+                    SideLength = Mathf.Max(Mathf.Sqrt(Area), MinSize.x, MinSize.z);
                     size = new Vector3(SideLength, ConstrainLength, SideLength);
                     break;
 
                 case CONST_WIDTH:
                     Area = kitV / ConstrainWidth;
-                    SideLength = Mathf.Sqrt(Area);
+                    SideLength = Mathf.Max(Mathf.Sqrt(Area), MinSize.y, MinSize.z);
                     size = new Vector3(ConstrainWidth, SideLength, SideLength);
                     break;
 
                 case CONST_HEIGHT:
                     Area = kitV / ConstrainHeight;
-                    SideLength = Mathf.Sqrt(Area);
+                    SideLength = Mathf.Max(Mathf.Sqrt(Area), MinSize.x, MinSize.y);
                     size = new Vector3(SideLength, SideLength, ConstrainHeight);
                     break;
 
                 case CONST_WL:
-                    SideLength = kitV / (ConstrainWidth * ConstrainLength);
+                    SideLength = Mathf.Max(kitV / (ConstrainWidth * ConstrainLength), MinSize.z);
                     size = new Vector3(ConstrainWidth, ConstrainLength, SideLength);
                     break;
 
                 case CONST_HL:
-                    SideLength = kitV / (ConstrainHeight * ConstrainLength);
+                    SideLength = Mathf.Max(kitV / (ConstrainHeight * ConstrainLength), MinSize.x);
                     size = new Vector3(SideLength, ConstrainLength, ConstrainHeight);
                     break;
 
                 case CONST_WH:
-                    SideLength = kitV / (ConstrainWidth * ConstrainHeight);
+                    SideLength = Mathf.Max(kitV / (ConstrainWidth * ConstrainHeight), MinSize.y);
                     size = new Vector3(ConstrainWidth, SideLength, ConstrainHeight);
                     break;
 
                 default:
                     size = OrigSize * Mathf.Pow(kitV / (OrigSize.x * OrigSize.y * OrigSize.z), 1 / 3f);
+                    size = size.ClampComponentsL(MinSize);
                     break;
                 }
-                size = size.ClampComponentsL(MinSize);
             }
             else
-                size = MinSize;
+                size = OrigSize;
             if(slow)
             {
                 TargetSize = size;

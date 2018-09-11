@@ -242,8 +242,6 @@ namespace GroundConstruction
         public override void OnLoad(ConfigNode node)
         {
             base.OnLoad(node);
-            if(Size.IsZero())
-                Size = MinSize;
             if(OrigSize.IsZero() || OrigScale.IsZero() || OrigPartSize.IsZero())
             {
                 var part_metric = new Metric(part);
@@ -262,6 +260,8 @@ namespace GroundConstruction
                 OrigScale = model.localScale;
                 OrigPartSize = part_metric.size;
             }
+            if(Size.IsZero())
+                Size = OrigSize;
             update_model(false);
             //deprecated config conversion
             if(node.HasValue("Deploying"))
@@ -288,6 +288,7 @@ namespace GroundConstruction
                     update_model(false);
                     just_started = false;
                 }
+                deploy_hint_mesh.gameObject.SetActive(false);
             }
             if(HighLogic.LoadedSceneIsFlight)
             {

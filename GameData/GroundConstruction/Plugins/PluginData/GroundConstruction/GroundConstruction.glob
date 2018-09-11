@@ -31,7 +31,7 @@ MaxGenericEfficiency      = 0.5
 ComplexityFactor = 1E-04
 
 VesselKitDensity = 0.5
-VesselKitMinSize = 0.5
+MinKitVolume = 0.02
 
 DeployMaxSpeed   = 0.1
 DeployMaxAV      = 1E-03
