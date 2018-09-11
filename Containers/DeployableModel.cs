@@ -256,7 +256,6 @@ namespace GroundConstruction
                     else
                         this.Log("[WARNING] MeshMetric: no such MeshFilter: {}", MetricMesh);
                 }
-                this.Log("metric {}\npart metric {}", metric, part_metric);//debug
                 if(metric.Empty)
                     metric = part_metric;
                 OrigSize = metric.size;
@@ -278,8 +277,6 @@ namespace GroundConstruction
                         state = DeplyomentState.DEPLOYED;
                 }
             }
-            this.Log("OnLoad: Size {}, OrigSize {}, PartSize {}, OrigModelScale {}", 
-                     Size, OrigSize, OrigPartSize, OrigScale);//debug
         }
 
         protected virtual void Update()
