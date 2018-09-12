@@ -1,8 +1,9 @@
 {
     "spec_version" : "v1.4",
     "identifier"   : "GroundConstruction",
+    "name"         : "Global Construction",
     "$kref"        : "#/ckan/spacedock/1123",
-    "abstract"     : "Build vessels directly on another planet using light-weight kits of high-tech components, with energy and raw materials produced on-site from Ore.",
+    "abstract"     : "Build vessels directly on other planets and in orbit using light-weight kits of high-tech components, with energy and raw materials produced on-site from Ore.",
     "author"       : [ "allista" ],
     "license"      : "MIT",
 
