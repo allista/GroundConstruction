@@ -1,9 +1,9 @@
 {
     "spec_version" : "v1.4",
     "identifier"   : "GroundConstruction-Core",
-    "name"         : "Ground Construction Core",
+    "name"         : "Global Construction Core",
     "$kref"        : "#/ckan/spacedock/1123",
-    "abstract"     : "This is the core component of the Ground Construction mod. It should only be installed as a dependency by other mods.",
+    "abstract"     : "This is the core component of the Global Construction mod. It should only be installed as a dependency by other mods.",
     "author"       : [ "allista" ],
     "license"      : "MIT",
 
