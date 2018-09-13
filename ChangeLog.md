@@ -1,10 +1,27 @@
 #Ground Construction ChangeLog
 
-* **v2.0.1**
+* **v2.1 -- Global Construction**
+    * **Empty kit containers can be used as assembly spaces**
+        * They can be created in Editor as well as inside some assembly spaces.
+        * This completely lifts the limitation on the final mass and size of the vessel you construct.
+    * **New DIY Kits can be created in orbit**
+        * For that you need the new **Orbital Assembly Line**,
+        * And the separate **Orbital Assembly Space**.
+    * **Vessels can be constructed from DIY Kits in orbit**
+        * For that you have to use a new type of kit container -- the **Orbital Kit Container**,
+        * And the new **Orbital Workshop** part.
+        * _Orbital Kit Container_ is limited in that it cannot store kits with launch clamps (for obvious reasons).
+        * In an assembly line interface you can chose what type of the kit container to spawn or use for the kit you assemble.
+    * Deploy hint is drawn as a 3D box rather than 2D "shadow" to accomodate orbital construction.
+
+* v2.0.1.1
+    * Added Machinery to kit resources whitelist
+
+* v2.0.1
     * New ISRU patches by Critter79606
     * Several bugfixes
 
-* v2.0.0 - **Independence Day**
+* v2.0.0 -- **Independence Day**
     * **!!! BACK UP YOUR SAVES !!!**
     * ***
     * **DIY Kits can now be created on other planets.**
