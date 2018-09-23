@@ -366,7 +366,7 @@ namespace GroundConstruction
         protected virtual void update_ui_data()
         {
             if(Queue.Count == 0) return;
-            Queue = new PersistentQueue<T>(Queue.Where(task => task.Recheck() && !task.Complete));
+            Queue = new PersistentQueue<T>(Queue.Where(task => check_task(task) && !task.Complete));
         }
 
         public override void OnAwake()
