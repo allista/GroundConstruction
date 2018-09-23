@@ -6,7 +6,6 @@
 //  Copyright (c) 2018 Allis Tauri
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -28,7 +27,7 @@ namespace GroundConstruction
 
         #region IAssemblySpace
         public string Name => part.Title();
-        public bool Empty => container.Empty;
+        public bool Empty => container == null || container.Empty;
         public bool Valid => isEnabled;
         public VesselKit GetKit(Guid id) => container.GetKit(id);
         public List<VesselKit> GetKits() => new List<VesselKit> { container.kit };
