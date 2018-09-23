@@ -60,7 +60,7 @@ namespace GroundConstruction
         public VesselKit FindKit<T>() where T : class, IKitContainer
         {
             var containers = GetKitContainers<T>(FlightGlobals.FindVessel(vesselID));
-            if(containers != null) 
+            if(containers != null)
             {
                 var container = containers.Find(c => c.GetKit(kitID) != null);
                 if(container != null)
@@ -72,8 +72,8 @@ namespace GroundConstruction
 
     public class ConstructionKitInfo : VesselKitInfo
     {
-        public ConstructionKitInfo() {}
-        public ConstructionKitInfo(VesselKit kit) : base(kit) {}
+        public ConstructionKitInfo() { }
+        public ConstructionKitInfo(VesselKit kit) : base(kit) { }
 
         public override bool Valid => base.Valid && ConstructionSpace != null;
         public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
@@ -84,8 +84,8 @@ namespace GroundConstruction
 
     public class AssemblyKitInfo : VesselKitInfo
     {
-        public AssemblyKitInfo() {}
-        public AssemblyKitInfo(VesselKit kit) : base(kit) {}
+        public AssemblyKitInfo() { }
+        public AssemblyKitInfo(VesselKit kit) : base(kit) { }
 
         public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.ASSEMBLY);
 
