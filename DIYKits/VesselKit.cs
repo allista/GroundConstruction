@@ -285,12 +285,18 @@ namespace GroundConstruction
             var kit_part = CreatePart(part_name, flag_url, true);
             if(kit_part)
             {
-                var ship = new ShipConstruct("DIY Kit: "+Name, "", kit_part);
+                var ship = new ShipConstruct("DIY Kit: " + Name, "", kit_part);
                 ship.rotation = Quaternion.identity;
                 ship.missionFlag = kit_part.flagURL;
                 return ship;
             }
             return null;
+        }
+
+        public void TransferCrewToKit(Vessel vsl)
+        {
+            if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
+                CrewTransferBatch.moveCrew(CrewSource, vsl, KitCrew);
         }
 
         public override void Load(ConfigNode node)
