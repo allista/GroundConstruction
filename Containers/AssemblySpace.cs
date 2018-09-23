@@ -11,31 +11,31 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace, IAnimatedSpace, IContainerProducer
+    public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace, IAnimatedSpace, IContainerProducer, IConstructionSpace
     {
         [KSPField] public string Title = "Assembly Space";
         [KSPField] public string AnimatorID = string.Empty;
 
-        [KSPField(isPersistant = true)] 
+        [KSPField(isPersistant = true)]
         public string KitPart = "DIYKit";
 
-        [KSPField(isPersistant = true)] 
+        [KSPField(isPersistant = true)]
         public VesselKit Kit = new VesselKit();
 
         [KSPField, SerializeField]
         public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
-        VesselSpawner Spawner;
-        MultiAnimator Animator;
+        protected VesselSpawner vessel_spawner;
+        protected MultiAnimator animator;
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            Spawner = new VesselSpawner(part);
+            vessel_spawner = new VesselSpawner(part);
             SpawnManager.Init(part);
             SpawnManager.SetupSensor();
             if(!string.IsNullOrEmpty(AnimatorID))
-                Animator = part.GetAnimator(AnimatorID);
-            if(Animator != null)
+                animator = part.GetAnimator(AnimatorID);
+            if(animator != null)
                 StartCoroutine(Utils.SlowUpdate(spawn_space_keeper));
         }
 
@@ -47,8 +47,8 @@ namespace GroundConstruction
 
         void spawn_space_keeper()
         {
-            if(Animator != null && !SpawnManager.SpawnSpaceEmpty)
-                Animator.Open();
+            if(animator != null && !SpawnManager.SpawnSpaceEmpty)
+                animator.Open();
         }
 
         #region IAssemblySpace
@@ -81,19 +81,19 @@ namespace GroundConstruction
             Close();
         }
 
-        public void Open() 
+        public void Open()
         {
-            if(Animator != null)
-                Animator.Open();
+            if(animator != null)
+                animator.Open();
         }
 
         public void Close()
         {
-            if(Animator != null)
-                Animator.Close();
+            if(animator != null)
+                animator.Close();
         }
 
-        public bool Opened => Animator == null || Animator.State != AnimatorState.Closed;
+        public bool Opened => animator == null || animator.State != AnimatorState.Closed;
 
         public bool SpawnAutomatically => false;
 
@@ -101,7 +101,7 @@ namespace GroundConstruction
         {
             if(!Kit) return;
             //this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
-            if(Spawner.LaunchInProgress)
+            if(vessel_spawner.LaunchInProgress)
             {
                 Utils.Message("In progress...");
                 return;
@@ -120,7 +120,7 @@ namespace GroundConstruction
             var kit_ship = Kit.CreateShipConstruct(KitPart, part.flagURL);
             if(kit_ship != null)
             {
-                Utils.SaveGame(Kit.Name+"-before_spawn");
+                Utils.SaveGame(Kit.Name + "-before_spawn");
                 StartCoroutine(spawn_kit_vessel(kit_ship));
             }
         }
@@ -142,17 +142,17 @@ namespace GroundConstruction
                     Utils.Message("Container is too big for this assembly space");
                     return;
                 }
-                Utils.SaveGame(vessel.name+"-before_spawn_empty");
+                Utils.SaveGame(vessel.name + "-before_spawn_empty");
                 StartCoroutine(spawn_kit_vessel(kit_ship));
             }
         }
-      
+
         IEnumerator<YieldInstruction> spawn_kit_vessel(ShipConstruct kit_ship)
         {
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
             yield return
-                StartCoroutine(Spawner
+                StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(kit_ship,
                                                    SpawnManager.GetSpawnTransform(bounds),
                                                    SpawnManager.GetSpawnOffset(bounds) - bounds.center,
@@ -170,6 +170,78 @@ namespace GroundConstruction
         Kit.Valid ? Kit.Mass : 0;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
+        #endregion
+
+        #region IConstructionSpace
+        public bool CanConstruct(VesselKit kit) =>
+        !kit.HasLaunchClamps && SpawnManager.MetricFits(kit.ShipMetric);
+
+        public void Launch()
+        {
+            if(vessel_spawner.LaunchInProgress)
+                return;
+            if(Empty)
+            {
+                Utils.Message("Nothing to launch: container is empty.");
+                return;
+            }
+            if(vessel.packed)
+            {
+                Utils.Message("Cannot launch from a packed construction kit.");
+                return;
+            }
+            if(!Kit.Complete)
+            {
+                Utils.Message("Construction is not complete yet.");
+                return;
+            }
+            if(!Kit.BlueprintComplete())
+            {
+                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+                return;
+            }
+            StartCoroutine(launch_complete_construct());
+        }
+
+        IEnumerator<YieldInstruction> launch_complete_construct()
+        {
+            if(!HighLogic.LoadedSceneIsFlight) yield break;
+            while(!FlightGlobals.ready) yield return null;
+            vessel_spawner.BeginLaunch();
+            //hide UI
+            GameEvents.onHideUI.Fire();
+            yield return null;
+            //save the game
+            Utils.SaveGame(Kit.Name + "-before_launch");
+            yield return null;
+            //load ship construct and launch it
+            var construct = Kit.LoadConstruct();
+            if(construct == null)
+            {
+                Utils.Log("Unable to load ShipConstruct {}. " +
+                          "This usually means that some parts are missing " +
+                          "or some modules failed to initialize.", Kit.Name);
+                Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+                GameEvents.onShowUI.Fire();
+                vessel_spawner.AbortLaunch();
+                yield break;
+            }
+            var bounds = new Metric(construct, world_space: true).bounds;
+            yield return
+                StartCoroutine(vessel_spawner
+                               .SpawnShipConstruct(construct,
+                                                   SpawnManager.GetSpawnTransform(bounds),
+                                                   SpawnManager.GetSpawnOffset(bounds)
+                                                   - bounds.center
+                                                   + construct.Parts[0].localRoot.transform.position,
+                                                   Vector3.zero,
+                                                   null,
+                                                   null,
+                                                   null,
+                                                   Kit.TransferCrewToKit));
+            GameEvents.onShowUI.Fire();
+            Open();
+        }
         #endregion
     }
 }
