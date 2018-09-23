@@ -24,8 +24,9 @@ namespace GroundConstruction
 
         [KSPField, SerializeField]
         public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
-        protected VesselSpawner vessel_spawner;
-        protected MultiAnimator animator;
+        VesselSpawner vessel_spawner;
+        MultiAnimator animator;
+        bool can_construct_in_situ;
 
         public override void OnStart(StartState state)
         {
@@ -37,6 +38,8 @@ namespace GroundConstruction
                 animator = part.GetAnimator(AnimatorID);
             if(animator != null)
                 StartCoroutine(Utils.SlowUpdate(spawn_space_keeper));
+            if(Kit && !Kit.Empty)
+                can_construct_in_situ = CanConstruct(Kit);
         }
 
         public override void OnLoad(ConfigNode node)
@@ -78,6 +81,7 @@ namespace GroundConstruction
             Kit = kit;
             KitPart = part_name;
             Kit.Host = this;
+            can_construct_in_situ = CanConstruct(Kit);
             Close();
         }
 
@@ -109,6 +113,11 @@ namespace GroundConstruction
             if(!Kit.StageComplete(DIYKit.ASSEMBLY))
             {
                 Utils.Message("The kit is not yet assembled");
+                return;
+            }
+            if(Kit.StageStarted(DIYKit.CONSTRUCTION))
+            {
+                Utils.Message("Kit construction is already started");
                 return;
             }
             if(Opened)
@@ -174,11 +183,15 @@ namespace GroundConstruction
 
         #region IConstructionSpace
         public bool CanConstruct(VesselKit kit) =>
-        !kit.HasLaunchClamps && SpawnManager.MetricFits(kit.ShipMetric);
+        (!kit.HasLaunchClamps
+         && SpawnManager != null
+         && SpawnManager.MetricFits(kit.ShipMetric));
 
+        public bool CanStartConstruction() => can_construct_in_situ;
+        
         public void Launch()
         {
-            if(vessel_spawner.LaunchInProgress)
+            if(vessel_spawner == null || vessel_spawner.LaunchInProgress)
                 return;
             if(Empty)
             {
@@ -208,8 +221,6 @@ namespace GroundConstruction
             if(!HighLogic.LoadedSceneIsFlight) yield break;
             while(!FlightGlobals.ready) yield return null;
             vessel_spawner.BeginLaunch();
-            //hide UI
-            GameEvents.onHideUI.Fire();
             yield return null;
             //save the game
             Utils.SaveGame(Kit.Name + "-before_launch");
@@ -222,7 +233,6 @@ namespace GroundConstruction
                           "This usually means that some parts are missing " +
                           "or some modules failed to initialize.", Kit.Name);
                 Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
-                GameEvents.onShowUI.Fire();
                 vessel_spawner.AbortLaunch();
                 yield break;
             }
@@ -239,7 +249,7 @@ namespace GroundConstruction
                                                    null,
                                                    null,
                                                    Kit.TransferCrewToKit));
-            GameEvents.onShowUI.Fire();
+            Kit = new VesselKit();
             Open();
         }
         #endregion

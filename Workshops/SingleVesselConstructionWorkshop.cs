@@ -32,6 +32,6 @@ namespace GroundConstruction
 
         protected override bool init_task(ConstructionKitInfo task) => true;
         protected override bool check_host(ConstructionKitInfo task) =>
-        task.Module != null && task.Module.vessel == vessel;
+        base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
     }
 }

@@ -29,6 +29,7 @@ namespace GroundConstruction
     public interface IConstructionSpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
         bool CanConstruct(VesselKit kit);
+        bool CanStartConstruction();
         void Launch();
     }
 

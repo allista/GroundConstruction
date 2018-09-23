@@ -91,7 +91,6 @@ namespace GroundConstruction
         }
 
         protected override bool init_task(ConstructionKitInfo task) => true;
-        protected override bool check_host(ConstructionKitInfo task) => true;
 
         protected override bool can_construct()
         {
