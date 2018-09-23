@@ -4,7 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
-using System;
+using System.Linq;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -35,6 +35,8 @@ namespace GroundConstruction
         }
 
         public override bool Complete => Jobs.TrueForAll(j => j.Complete);
+
+        public bool StageStarted(int stage) => Jobs.Any(j => j[stage].WorkDone > 0);
 
         public bool StageComplete(int stage) => Jobs.TrueForAll(j => j[stage].Complete);
 
