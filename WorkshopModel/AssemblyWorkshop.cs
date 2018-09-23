@@ -58,7 +58,9 @@ namespace GroundConstruction
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
 
         protected override bool check_task(AssemblyKitInfo task) =>
-        base.check_task(task) && task.Kit.CurrentStageIndex <= DIYKit.CONSTRUCTION;
+        (base.check_task(task) 
+         && (task.Kit.CurrentStageIndex < DIYKit.CONSTRUCTION 
+             || !task.Kit.StageStarted(DIYKit.CONSTRUCTION)));
 
         protected virtual void process_construct(ShipConstruct construct)
         {
