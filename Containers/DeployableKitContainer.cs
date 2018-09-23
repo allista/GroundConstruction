@@ -231,6 +231,11 @@ namespace GroundConstruction
                 Utils.Message("Construction is not complete yet.");
                 return false;
             }
+            if(!kit.BlueprintComplete())
+            {
+                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+                return false;
+            }
             return true;
         }
 
@@ -239,8 +244,7 @@ namespace GroundConstruction
 
         protected virtual void on_vessel_launched(Vessel vsl)
         {
-            if(kit.CrewSource != null && kit.KitCrew != null && kit.KitCrew.Count > 0)
-                CrewTransferBatch.moveCrew(kit.CrewSource, vsl, kit.KitCrew);
+            kit.TransferCrewToKit(vsl);
         }
 
         protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
@@ -250,13 +254,6 @@ namespace GroundConstruction
             if(!HighLogic.LoadedSceneIsFlight) yield break;
             while(!FlightGlobals.ready) yield return null;
             vessel_spawner.BeginLaunch();
-            //check if all the parts were indeed constructed
-            if(!kit.BlueprintComplete())
-            {
-                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
-                vessel_spawner.AbortLaunch();
-                yield break;
-            }
             //hide UI
             GameEvents.onHideUI.Fire();
             yield return null;
