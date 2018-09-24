@@ -187,7 +187,7 @@ namespace GroundConstruction
          && SpawnManager != null
          && SpawnManager.MetricFits(kit.ShipMetric));
 
-        public bool CanStartConstruction() => can_construct_in_situ;
+        bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
         
         public void Launch()
         {

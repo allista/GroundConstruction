@@ -62,6 +62,9 @@ namespace GroundConstruction
          && (task.Kit.CurrentStageIndex < DIYKit.CONSTRUCTION 
              || !task.Kit.StageStarted(DIYKit.CONSTRUCTION)));
 
+        protected override bool check_host(AssemblyKitInfo task) =>
+        base.check_host(task) && task.AssemblySpace != null && task.AssemblySpace.Valid;
+
         protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct, false);
@@ -107,14 +110,6 @@ namespace GroundConstruction
                 }
             }
             return false;
-        }
-
-        protected override void on_task_complete(AssemblyKitInfo task)
-        {
-            base.on_task_complete(task);
-            var space = task.AssemblySpace;
-            if(space.SpawnAutomatically)
-                space.SpawnKit();
         }
 
         protected override void update_ui_data()

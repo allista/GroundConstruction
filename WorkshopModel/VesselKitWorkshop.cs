@@ -99,7 +99,8 @@ namespace GroundConstruction
         protected override bool check_task(KitInfo task) => 
         base.check_task(task) && check_host(task);
 
-        protected abstract bool check_host(KitInfo task);
+        protected virtual bool check_host(KitInfo task) =>
+        task.Container != null && task.Container.Valid;
 
         #region available kits
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();

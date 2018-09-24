@@ -90,7 +90,7 @@ namespace GroundConstruction
         base.check_task(task) && task.Kit.CurrentStageIndex >= DIYKit.CONSTRUCTION;
 
         protected override bool check_host(ConstructionKitInfo task) =>
-        task.ConstructionSpace.CanStartConstruction();
+        base.check_host(task) && task.ConstructionSpace != null && task.ConstructionSpace.Valid;
 
         protected override void draw()
         {

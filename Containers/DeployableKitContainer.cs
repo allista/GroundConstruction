@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace GroundConstruction
 {
-    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IControllable
+    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IControllable, IAssemblySpace
     {
         [KSPField(isPersistant = true)] public EditorFacility Facility;
 
@@ -99,9 +99,39 @@ namespace GroundConstruction
                 KitName = kit.Name;
         }
 
+        #region IAssemblySpace
+        bool IAssemblySpace.Valid => isEnabled && (Empty || !kit.StageComplete(DIYKit.ASSEMBLY));
+
+        public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
+        {
+            kit2space_ratio = -1;
+            if(kit && CanConstruct(kit))
+            {
+                kit2space_ratio = 1;
+                return true;
+            }
+            return false;
+        }
+
+        public void SetKit(VesselKit kit, string part_name)
+        {
+            StoreKit(kit, true);
+            kit.Host = this;
+        }
+
+        public void SpawnKit()
+        {
+            if(!kit) return;
+            if(!kit.StageComplete(DIYKit.ASSEMBLY))
+            {
+                Utils.Message("The kit is not yet assembled");
+                return;
+            }
+        }
+        #endregion
+
         #region Select Ship Construct
         public virtual bool CanConstruct(VesselKit kit) => true;
-        public virtual bool CanStartConstruction() => true;
 
         [KSPEvent(guiName = "Select Vessel", guiActive = false, guiActiveEditor = true, active = true)]
         public void SelectVessel()
