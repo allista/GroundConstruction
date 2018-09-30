@@ -15,7 +15,7 @@ namespace GroundConstruction
     {
         public enum Status { IDLE, ACTIVE, COMPLETE };
 
-        [Persistent] public uint   id;
+        [Persistent] public uint id;
         [Persistent] public string VesselName;
         [Persistent] public string PartName;
         [Persistent] public string TaskName;
@@ -27,7 +27,7 @@ namespace GroundConstruction
         [Persistent] public WorkshopType workshopType;
         [Persistent] public bool isOperable;
 
-        public ProtoWorkshop() {}
+        public ProtoWorkshop() { }
         public ProtoWorkshop(WorkshopBase workshop)
         {
             VesselName = workshop.vessel.name;
@@ -102,8 +102,8 @@ namespace GroundConstruction
                 EndUT = -1;
                 return true;
             }
-            ETA = EndUT > 0?
-                "Time left: "+KSPUtil.PrintTimeCompact(EndUT-now, false) : "Stalled...";
+            ETA = EndUT > 0 ?
+                "Time left: " + KSPUtil.PrintTimeCompact(EndUT - now, false) : "Stalled...";
             return false;
         }
 
@@ -119,22 +119,22 @@ namespace GroundConstruction
             {
                 if(IsActive)
                 {
-                    tooltip = Workforce+tooltip;
-                    status = new GUIContent(string.Format("[{0}] {1}: Idle", Stage, PartName), tooltip);
+                    tooltip = Stage + "\n" + Workforce + tooltip;
+                    status = new GUIContent(PartName + ": Idle", tooltip);
                 }
             }
             else
             {
-                tooltip = PartName+(IsActive? tooltip : "");
+                tooltip = Stage + "\n" + PartName + (IsActive ? tooltip : "");
                 if(State == Status.ACTIVE)
                 {
-                    style = EndUT > 0? Styles.yellow : Styles.red;
-                    status = new GUIContent(string.Format("[{0}] {1}: {2}", Stage, TaskName, ETA), tooltip);
+                    style = EndUT > 0 ? Styles.yellow : Styles.red;
+                    status = new GUIContent(string.Format("{0}: {1}", TaskName, ETA), tooltip);
                 }
                 else
                 {
                     style = Styles.green;
-                    status = new GUIContent(string.Format("[{0}] {1}: Complete", Stage, TaskName), tooltip);
+                    status = new GUIContent(TaskName + ": Complete", tooltip);
                 }
             }
             if(status != null)
