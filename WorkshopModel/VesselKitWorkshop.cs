@@ -26,7 +26,7 @@ namespace GroundConstruction
                 have_res = part.RequestResource(req.resource.id, req.resource_amount);
                 if(req.resource_amount > 0 && have_res.Equals(0))
                 {
-                    Utils.Message("Not enough {0}. The work on {1} was put on hold.", 
+                    Utils.Message("Not enough {0}. The work on {1} was put on hold.",
                                   req.resource.name, CurrentTask.Name);
                     work = 0;
                     goto end;
@@ -36,9 +36,9 @@ namespace GroundConstruction
             if(req.energy > 0)
             {
                 have_ec = part.RequestResource(Utils.ElectricCharge.id, req.energy);
-                if(have_ec/req.energy < GLB.WorkshopShutdownThreshold)
+                if(have_ec / req.energy < GLB.WorkshopShutdownThreshold)
                 {
-                    Utils.Message("Not enough energy. The work on {0} was put on hold.", 
+                    Utils.Message("Not enough energy. The work on {0} was put on hold.",
                                   CurrentTask.Name);
                     work = 0;
                     goto end;
@@ -47,18 +47,18 @@ namespace GroundConstruction
             //correct the amount of work we can do and of resources we need
             var frac = 1.0;
             if(req.resource_amount > 0)
-                frac = have_res/req.resource_amount;
+                frac = have_res / req.resource_amount;
             if(req.energy > 0)
-                frac = Math.Min(frac, have_ec/req.energy);
-            used_res = req.resource_amount*frac;
-            used_ec = req.energy*frac;
-            work = req.work*frac;
-            //return unused resources
-            end:
+                frac = Math.Min(frac, have_ec / req.energy);
+            used_res = req.resource_amount * frac;
+            used_ec = req.energy * frac;
+            work = req.work * frac;
+        //return unused resources
+        end:
             if(used_res < have_res)
-                part.RequestResource(req.resource.id, used_res-have_res);
+                part.RequestResource(req.resource.id, used_res - have_res);
             if(used_ec < have_ec)
-                part.RequestResource(Utils.ElectricCharge.id, used_ec-have_ec);
+                part.RequestResource(Utils.ElectricCharge.id, used_ec - have_ec);
             if(work.Equals(0))
                 stop();
             return work;
@@ -85,7 +85,7 @@ namespace GroundConstruction
                     start_next_item();
                 }
             }
-            return available_work-work;
+            return available_work - work;
         }
 
         protected override void on_stop(bool reset)
@@ -96,7 +96,7 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
-        protected override bool check_task(KitInfo task) => 
+        protected override bool check_task(KitInfo task) =>
         base.check_task(task) && check_host(task);
 
         protected virtual bool check_host(KitInfo task) =>
@@ -106,7 +106,7 @@ namespace GroundConstruction
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
         protected List<KitInfo> built_kits = new List<KitInfo>();
 
-        protected HashSet<Guid>get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
+        protected HashSet<Guid> get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
 
         protected float dist2kit(VesselKitInfo kit) =>
         (kit.Kit.Host.vessel.transform.position - vessel.transform.position).magnitude;
@@ -166,15 +166,15 @@ namespace GroundConstruction
                 if(ETA > 0)
                 {
                     var time = Planetarium.GetUniversalTime();
-                    EndUT = time+ETA;
-                    ETA_Display = "Time left: "+KSPUtil.PrintTimeCompact(ETA, false);
+                    EndUT = time + ETA;
+                    ETA_Display = "Time left: " + KSPUtil.PrintTimeCompact(ETA, false);
                 }
             }
             else
                 EndUT = -1;
             if(EndUT < 0)
                 ETA_Display = "Stalled...";
-            if(Math.Abs(EndUT-lastEndUT) > 1)
+            if(Math.Abs(EndUT - lastEndUT) > 1)
                 checkin();
         }
 
@@ -200,41 +200,18 @@ namespace GroundConstruction
         }
 
         protected Vector2 unbuilt_scroll = Vector2.zero;
-        protected virtual void unbuilt_kits_pane()
-        {
-            if(unbuilt_kits.Count == 0) return;
-            GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
-            GUILayout.BeginVertical(Styles.white);
-            BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
-            KitInfo add = null;
-            foreach(var info in unbuilt_kits)
-            {
-                GUILayout.BeginHorizontal();
-                info.Draw();
-                set_highlighted_task(info);
-                if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                    Styles.enabled_button, GUILayout.ExpandWidth(false), 
-                                    GUILayout.ExpandHeight(true)))
-                    add = info;
-                GUILayout.EndHorizontal();
-            }
-            if(add != null)
-                Queue.Enqueue(add);
-            GUILayout.EndScrollView();
-            GUILayout.EndVertical();
-        }
+        protected abstract void unbuilt_kits_pane();
 
         protected void current_task_pane()
         {
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<color=yellow><b>Kit:</b></color>", 
+            GUILayout.Label("<color=yellow><b>Kit:</b></color>",
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
-            CurrentTask.Draw();
-            set_highlighted_task(CurrentTask);
+            draw_task(CurrentTask);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<color=yellow><b>Part:</b></color>", 
+            GUILayout.Label("<color=yellow><b>Part:</b></color>",
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
             CurrentTask.DrawCurrentPart();
             GUILayout.EndHorizontal();
@@ -288,6 +265,25 @@ namespace GroundConstruction
             }
         }
 
+        Vector2 resources_scroll = Vector2.zero;
+        protected virtual void resources_pane()
+        {
+            if(selected_task != null)
+            {
+                if(!check_task(selected_task))
+                    selected_task = null;
+                else if(selected_task.Kit.AdditionalResources.Count > 0)
+                {
+                    GUILayout.Label("Additional resources required for "+selected_task.Name, Styles.label);
+                    var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3)*26;
+                    resources_scroll = GUILayout.BeginScrollView(resources_scroll, 
+                                                                 GUILayout.Height(h));
+                    selected_task.Kit.AdditionalResources.Draw();
+                    GUILayout.EndScrollView();
+                }
+            }
+        }
+
         protected virtual void draw_panes()
         {
             info_pane();
@@ -295,6 +291,7 @@ namespace GroundConstruction
             queue_pane();
             construction_pane();
             built_kits_pane();
+            resources_pane();
         }
 
         protected virtual void main_window(int WindowID)

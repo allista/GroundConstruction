@@ -14,7 +14,7 @@ namespace GroundConstruction
     {
         DIYKit.Requirements RequirementsForWork(double work);
         DIYKit.Requirements RemainingRequirements();
-        void Draw();
+        bool Draw(GUIStyle style = null);
     }
 
     /// <summary>
@@ -120,11 +120,12 @@ namespace GroundConstruction
             return remainder;
         }
 
-        public static void Draw(string Name, int stage, double total_work, Requirements remainder)
+        public static bool Draw(string Name, int stage, double total_work, Requirements remainder, GUIStyle style =  null)
         {
-            GUILayout.BeginVertical(Styles.white);
+            GUILayout.BeginVertical(style ?? Styles.white);
             GUILayout.BeginHorizontal();
-            GUILayout.Label(string.Format("<color=lime><b>{0}</b></color>", Name), Styles.rich_label, GUILayout.ExpandWidth(true));
+            var clicked = GUILayout.Button(string.Format("<color=lime><b>{0}</b></color>", Name), 
+                                           Styles.rich_label, GUILayout.ExpandWidth(true));
             var status = StringBuilderCache.Acquire();
             if(remainder.work > 0)
             {
@@ -133,7 +134,8 @@ namespace GroundConstruction
             }
             else
                 status.Append(" Complete.");
-            GUILayout.Label(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(false));
+            if(GUILayout.Button(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(false)))
+                clicked = true;
             GUILayout.EndHorizontal();
             if(remainder.work > 0)
             {
@@ -143,16 +145,18 @@ namespace GroundConstruction
                             remainder.resource.name,
                             Utils.formatBigValue((float)remainder.energy, " EC"),
                             remainder.work / 3600);
-                GUILayout.Label(requirements, Styles.rich_label, GUILayout.ExpandWidth(true));
+                if(GUILayout.Button(requirements, Styles.rich_label, GUILayout.ExpandWidth(true)))
+                    clicked = true;
             }
             GUILayout.EndVertical();
+            return clicked;
         }
 
-        public void Draw()
+        public bool Draw(GUIStyle style = null)
         {
             var stage = CurrentStage;
             var rem = RemainingRequirements();
-            Draw(Name, CurrentIndex, stage != null ? stage.TotalWork : 1, rem);
+            return Draw(Name, CurrentIndex, stage != null ? stage.TotalWork : 1, rem, style);
         }
 
         public override double DoSomeWork(double work)

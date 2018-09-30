@@ -78,11 +78,16 @@ namespace GroundConstruction
 
         public void SetKit(VesselKit kit, string part_name)
         {
-            Kit = kit;
-            KitPart = part_name;
-            Kit.Host = this;
-            can_construct_in_situ = CanConstruct(Kit);
-            Close();
+            if(kit != null)
+            {
+                Kit = kit;
+                KitPart = part_name;
+                Kit.Host = this;
+                can_construct_in_situ = CanConstruct(Kit);
+                Close();
+            }
+            else
+                Kit = new VesselKit();
         }
 
         public void Open()

@@ -129,8 +129,7 @@ namespace GroundConstruction
             foreach(var info in unbuilt_kits)
             {
                 GUILayout.BeginHorizontal();
-                info.Draw();
-                set_highlighted_task(info);
+                draw_task(info);
                 var depl = info.ConstructionSpace as IDeployable;
                 if(depl != null)
                 {

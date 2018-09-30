@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -43,15 +44,16 @@ namespace GroundConstruction
             vesselID = kit.Valid && kit.Host.vessel != null ? kit.Host.vessel.id : Guid.Empty;
         }
 
-        public void Draw() { if(Valid) Kit.Draw(); }
-        public void DrawCurrentPart()
+        public bool Draw(GUIStyle style = null) => Valid && Kit.Draw(style);
+        public bool DrawCurrentPart(GUIStyle style = null)
         {
             if(Valid)
             {
                 var part = Kit.CurrentJob;
                 if(part != null)
-                    part.Draw();
+                    return part.Draw(style);
             }
+            return false;
         }
 
         public static List<T> GetKitContainers<T>(Vessel vsl) where T : class, IKitContainer =>

@@ -24,6 +24,7 @@ namespace GroundConstruction
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
         [Persistent] public bool HasLaunchClamps;
+        [Persistent] public ConstructResources AdditionalResources = new ConstructResources();
 
         public PartModule Host;
         public Vessel CrewSource;
@@ -32,21 +33,22 @@ namespace GroundConstruction
 
         DIYKit.Requirements remainder;
 
-        static void strip_resources(IShipconstruct ship, bool assembled)
+        void strip_resources(IShipconstruct ship, bool assembled)
         {
+            AdditionalResources.Clear();
             if(assembled)
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(r =>
-                {
-                    if(r.info.isTweakable &&
-                       r.info.density > 0 &&
-                       r.info.id != Utils.ElectricCharge.id &&
-                       !GLB.KeepResourcesIDs.Contains(r.info.id))
-                        r.amount = 0;
-                }));
+            {
+                if(r.info.isTweakable &&
+                   r.info.density > 0 &&
+                   r.info.id != Utils.ElectricCharge.id &&
+                   !GLB.KeepResourcesIDs.Contains(r.info.id))
+                    AdditionalResources.Strip(r);
+            }));
             else
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(r => r.amount = 0));
+                                   p.Resources.ForEach(r => AdditionalResources.Strip(r)));
         }
 
         public VesselKit() { id = Guid.NewGuid(); }
@@ -218,12 +220,12 @@ namespace GroundConstruction
             workers.Clear();
         }
 
-        public void Draw()
+        public bool Draw(GUIStyle style = null)
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
             var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            DIYKit.Draw(Name, stage, total_work, rem);
+            return DIYKit.Draw(Name, stage, total_work, rem, style);
         }
 
         public Part CreatePart(string part_name, string flag_url, bool set_host)
@@ -336,6 +338,71 @@ namespace GroundConstruction
         }
 
         public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
+    }
+
+    public class ConstructResourceInfo : ResourceInfo
+    {
+        [Persistent] public double amount;
+
+        public ConstructResourceInfo() { }
+        public ConstructResourceInfo(string name) : base(name) { }
+
+        public void Add(double a)
+        {
+            amount += a;
+            if(amount < 0)
+                amount = 0;
+        }
+    }
+
+    public class ConstructResources : SortedList<string, ConstructResourceInfo>, IConfigNode
+    {
+        public void Strip(PartResource res)
+        {
+            if(res.amount > 0)
+            {
+                ConstructResourceInfo info;
+                if(!TryGetValue(res.resourceName, out info))
+                {
+                    info = new ConstructResourceInfo(res.resourceName);
+                    Add(info.name, info);
+                }
+                info.Add(res.amount);
+                res.amount = 0;
+            }
+        }
+
+        public void Draw()
+        {
+            if(Count == 0) return;
+            GUILayout.BeginVertical(Styles.white);
+            foreach(var r in this)
+            {
+                GUILayout.BeginHorizontal(Styles.white);
+                GUILayout.Label(r.Key);
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(Utils.formatBigValue((float)r.Value.amount, "u"));
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+        }
+
+        public void Load(ConfigNode node)
+        {
+            Clear();
+            foreach(var n in node.GetNodes())
+            {
+                var item = ConfigNodeObject.FromConfig<ConstructResourceInfo>(n);
+                if(item != null)
+                    Add(item.name, item);
+            }
+        }
+
+        public void Save(ConfigNode node)
+        {
+            foreach(var r in this)
+                r.Value.SaveInto(node);
+        }
     }
 }
 

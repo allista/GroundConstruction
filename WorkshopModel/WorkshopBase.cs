@@ -20,15 +20,16 @@ namespace GroundConstruction
         bool Valid { get; }
         bool Complete { get; }
         bool Recheck();
-        void Draw();
+        bool Draw(GUIStyle style = null);
     }
 
-    [Flags] public enum WorkshopType 
-    { 
+    [Flags]
+    public enum WorkshopType
+    {
         NONE = 0,
-        GROUND = 1, 
-        ORBITAL = 1 << 1, 
-        OMNI = GROUND | ORBITAL 
+        GROUND = 1,
+        ORBITAL = 1 << 1,
+        OMNI = GROUND | ORBITAL
     }
 
     public abstract class WorkshopBase : PartModule
@@ -231,7 +232,7 @@ namespace GroundConstruction
         protected abstract void draw();
         protected virtual void unlock() { }
 
-        protected void BeginScroll(int num_items, ref Vector2 scroll_pos, 
+        protected void BeginScroll(int num_items, ref Vector2 scroll_pos,
                                    int row_height = 60, int max_rows = 2)
         {
             scroll_pos = GUILayout.BeginScrollView(scroll_pos,
@@ -283,7 +284,7 @@ namespace GroundConstruction
         public override void StartTask(IWorkshopTask task)
         {
             var Task = task as T;
-            if(Task != null && CurrentTask.ID != Task.ID && 
+            if(Task != null && CurrentTask.ID != Task.ID &&
                check_task(Task) && init_task(Task))
             {
                 if(CurrentTask.Valid)
@@ -351,7 +352,7 @@ namespace GroundConstruction
             return false;
         }
 
-        protected virtual void on_update() 
+        protected virtual void on_update()
         {
             //highlight kit under the mouse
             disable_highlights();
@@ -360,7 +361,7 @@ namespace GroundConstruction
                 highlight_part.HighlightAlways(Color.yellow);
                 highlighted_parts.Add(highlight_part);
             }
-            highlight_part = null;    
+            highlight_part = null;
         }
 
         protected virtual void update_ui_data()
@@ -445,6 +446,7 @@ namespace GroundConstruction
         #region GUI
         protected HashSet<Part> highlighted_parts = new HashSet<Part>();
         protected Part highlight_part;
+        protected T selected_task;
 
         protected abstract void set_highlighted_task(T task);
 
@@ -452,6 +454,19 @@ namespace GroundConstruction
         {
             if(Event.current.type == EventType.Repaint && Utils.MouseInLastElement())
                 highlight_part = p;
+        }
+
+        protected void draw_task(T task)
+        {
+            var is_selected = selected_task != null && task.ID == selected_task.ID;
+            if(task.Draw(is_selected? Styles.normal_button : Styles.white))
+            {
+                if(is_selected)
+                    selected_task = null;
+                else
+                    selected_task = task;
+            }
+            set_highlighted_task(task);
         }
 
         protected void disable_highlights()
@@ -484,8 +499,7 @@ namespace GroundConstruction
                 foreach(var task in Queue)
                 {
                     GUILayout.BeginHorizontal();
-                    task.Draw();
-                    set_highlighted_task(task);
+                    draw_task(task);
                     if(GUILayout.Button(new GUIContent("^", "Move up"),
                                         Styles.normal_button, GUILayout.Width(25)))
                         up = task;

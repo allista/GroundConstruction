@@ -58,8 +58,8 @@ namespace GroundConstruction
         public VesselKit GetKit(Guid id) => Kits.Find(kit => kit.id == id);
 
         protected override bool check_task(AssemblyKitInfo task) =>
-        (base.check_task(task) 
-         && (task.Kit.CurrentStageIndex < DIYKit.CONSTRUCTION 
+        (base.check_task(task)
+         && (task.Kit.CurrentStageIndex < DIYKit.CONSTRUCTION
              || !task.Kit.StageStarted(DIYKit.CONSTRUCTION)));
 
         protected override bool check_host(AssemblyKitInfo task) =>
@@ -131,10 +131,12 @@ namespace GroundConstruction
         {
             foreach(var space in spaces)
             {
-                if(!space.Valid || !space.Empty) continue;
-                float ratio;
-                if(space.CheckKit(kit, kit_part, out ratio))
-                    return space;
+                if(space.Valid)
+                {
+                    float ratio;
+                    if(space.CheckKit(kit, kit_part, out ratio))
+                        return space;
+                }
             }
             return null;
         }
@@ -145,14 +147,16 @@ namespace GroundConstruction
             IAssemblySpace available_space = null;
             foreach(var space in spaces)
             {
-                if(!space.Valid || !space.Empty) continue;
-                float ratio;
-                if(space.CheckKit(kit, kit_part, out ratio))
+                if(space.Valid)
                 {
-                    if(ratio > best_ratio)
+                    float ratio;
+                    if(space.CheckKit(kit, kit_part, out ratio))
                     {
-                        best_ratio = ratio;
-                        available_space = space;
+                        if(ratio > best_ratio)
+                        {
+                            best_ratio = ratio;
+                            available_space = space;
+                        }
                     }
                 }
             }
@@ -211,6 +215,39 @@ namespace GroundConstruction
         #region GUI
         public override string Stage_Display => "ASSEMBLY";
 
+        protected override void unbuilt_kits_pane()
+        {
+            if(unbuilt_kits.Count == 0) return;
+            GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical(Styles.white);
+            BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
+            AssemblyKitInfo add = null, remove = null;
+            foreach(var info in unbuilt_kits)
+            {
+                GUILayout.BeginHorizontal();
+                draw_task(info);
+                if(!info.Kit.StageStarted(DIYKit.ASSEMBLY) &&
+                   GUILayout.Button(new GUIContent("<b>X</b>", "Discard this kit"),
+                                    Styles.danger_button, GUILayout.ExpandWidth(false),
+                                    GUILayout.ExpandHeight(true)))
+                    remove = info;
+                if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
+                                    Styles.enabled_button, GUILayout.ExpandWidth(false),
+                                    GUILayout.ExpandHeight(true)))
+                    add = info;
+                GUILayout.EndHorizontal();
+            }
+            if(add != null)
+                Queue.Enqueue(add);
+            else if(remove != null)
+            {
+                var space = remove.AssemblySpace;
+                space.SetKit(null, "");
+            }
+            GUILayout.EndScrollView();
+            GUILayout.EndVertical();
+        }
+
         protected override void queue_pane()
         {
             if(kit_parts.Count > 1)
@@ -242,8 +279,7 @@ namespace GroundConstruction
             foreach(var info in built_kits)
             {
                 GUILayout.BeginHorizontal();
-                info.Draw();
-                set_highlighted_task(info);
+                draw_task(info);
                 if(GUILayout.Button(new GUIContent("Finalize", "Finalize assembly and seal the container"),
                                     Styles.danger_button, GUILayout.ExpandWidth(false),
                                     GUILayout.ExpandHeight(true)))
@@ -267,10 +303,10 @@ namespace GroundConstruction
             foreach(var space in available_spaces)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                if(GUILayout.Button(new GUIContent(string.Format("<color=yellow><b>{0}</b></color>", space.Name), 
+                if(GUILayout.Button(new GUIContent(string.Format("<color=yellow><b>{0}</b></color>", space.Name),
                                                    "Press to select to assign assembly task to this space. " +
                                                    "Press again to deselect."),
-                                    selected_space == space? Styles.boxed_label : Styles.rich_label, 
+                                    selected_space == space ? Styles.normal_button : Styles.rich_label,
                                     GUILayout.ExpandWidth(true)))
                 {
                     if(selected_space != space)
@@ -295,7 +331,7 @@ namespace GroundConstruction
                     if(animated != null)
                     {
                         var opened = animated.Opened;
-                        if(Utils.ButtonSwitch("Close", "Open", opened, "", 
+                        if(Utils.ButtonSwitch("Close", "Open", opened, "",
                                               GUILayout.ExpandWidth(false)))
                         {
                             if(opened) animated.Close();
@@ -304,8 +340,18 @@ namespace GroundConstruction
                     }
                 }
                 else
-                    GUILayout.Label("<color=yellow>Occupied</color>",
+                {
+                    var construction_space = space as IConstructionSpace;
+                    if(construction_space != null && construction_space.Valid)
+                        GUILayout.Label(new GUIContent("<color=lime>In-place Construction</color>",
+                                                       "It is possible to construct this kit directly in the assembly space"),
+                                        Styles.rich_label, GUILayout.ExpandWidth(false));
+                    GUILayout.Space(10);
+                    GUILayout.Label(new GUIContent("<color=yellow>Occupied</color>",
+                                                   "The assembly space is occupied by a kit being assembled " +
+                                                   "or just by something located inside."),
                                     Styles.rich_label, GUILayout.ExpandWidth(false));
+                }
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();

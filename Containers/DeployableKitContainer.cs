@@ -20,6 +20,7 @@ namespace GroundConstruction
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
         protected SimpleTextEntry kitname_editor;
+        protected SimpleScrollView resource_manifest_view;
         protected ShipConstructLoader construct_loader;
         protected VesselSpawner vessel_spawner;
 
@@ -49,7 +50,7 @@ namespace GroundConstruction
                 KitMass = 0;
                 KitCost = 0;
                 KitWork = 0;
-                KitRes  = 0;
+                KitRes = 0;
             }
             else
             {
@@ -57,8 +58,8 @@ namespace GroundConstruction
                 KitMass = kit.Mass;
                 KitCost = kit.Cost;
                 var rem = kit.RemainingRequirements();
-                KitWork = (float)rem.work/3600;
-                KitRes  = (float)rem.resource_amount;
+                KitWork = (float)rem.work / 3600;
+                KitRes = (float)rem.resource_amount;
             }
         }
 
@@ -67,6 +68,7 @@ namespace GroundConstruction
             base.OnAwake();
             //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
+            resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
         }
@@ -76,6 +78,7 @@ namespace GroundConstruction
             base.OnDestroy();
             Destroy(deploy_hint_mesh.gameObject);
             Destroy(kitname_editor);
+            Destroy(resource_manifest_view);
             Destroy(construct_loader);
         }
 
@@ -97,6 +100,7 @@ namespace GroundConstruction
             update_part_info();
             if(KitName == "None")
                 KitName = kit.Name;
+            update_resources_view();
         }
 
         #region IAssemblySpace
@@ -115,8 +119,13 @@ namespace GroundConstruction
 
         public void SetKit(VesselKit kit, string part_name)
         {
-            StoreKit(kit, true);
-            kit.Host = this;
+            if(kit != null)
+            {
+                StoreKit(kit, true);
+                kit.Host = this;
+            }
+            else
+                kit = new VesselKit();
         }
 
         public void SpawnKit()
@@ -129,6 +138,23 @@ namespace GroundConstruction
             }
         }
         #endregion
+
+        [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true,
+                  guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
+                  active = true)]
+        public void EditName()
+        {
+            kitname_editor.Text = KitName;
+            kitname_editor.Toggle();
+        }
+
+        [KSPEvent(guiName = "Show Required Resources", guiActive = true, guiActiveEditor = true,
+                  guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
+                  active = false)]
+        public void ShowResources()
+        {
+            resource_manifest_view.Toggle();
+        }
 
         #region Select Ship Construct
         public virtual bool CanConstruct(VesselKit kit) => true;
@@ -152,6 +178,20 @@ namespace GroundConstruction
             construct.Unload();
         }
 
+        void update_resources_view()
+        {
+            if(kit && kit.AdditionalResources.Count > 0)
+            {
+                resource_manifest_view.DrawContent = kit.AdditionalResources.Draw;
+                Events["ShowResources"].active = true;
+            }
+            else
+            {
+                resource_manifest_view.Show(false);
+                Events["ShowResources"].active = false;
+            }
+        }
+
         public void StoreKit(VesselKit kit, bool slow = false)
         {
             if(CanConstruct(kit))
@@ -162,6 +202,7 @@ namespace GroundConstruction
                 update_size(slow);
                 create_deploy_hint_mesh();
                 update_deploy_hint();
+                update_resources_view();
                 if(HighLogic.LoadedSceneIsEditor ||
                    !GroundConstructionScenario.ShowDeployHint)
                     deploy_hint_mesh.gameObject.SetActive(false);
@@ -203,12 +244,12 @@ namespace GroundConstruction
 
         public bool Empty => !kit;
         public bool Valid => isEnabled;
-        public override string Name => Empty? "Container" : "Container: "+kit.Name;
+        public override string Name => Empty ? "Container" : "Container: " + kit.Name;
 
         [KSPEvent(guiName = "Deploy",
-                  #if DEBUG
+#if DEBUG
                   guiActive = true,
-                  #endif
+#endif
                   guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
         public void DeployEvent()
         {
@@ -224,19 +265,11 @@ namespace GroundConstruction
         }
 
         [KSPEvent(guiName = "Launch",
-                  #if DEBUG
+#if DEBUG
                   guiActive = true,
-                  #endif
+#endif
                   guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
         public void LaunchEvent() => Launch();
-
-        [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true,
-                  guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
-        public void EditName()
-        {
-            kitname_editor.Text = KitName;
-            kitname_editor.Toggle();
-        }
 
         public void EnableControls(bool enable = true)
         {
@@ -245,7 +278,7 @@ namespace GroundConstruction
 
         protected virtual bool can_launch()
         {
-            if(vessel_spawner.LaunchInProgress) 
+            if(vessel_spawner.LaunchInProgress)
                 return false;
             if(Empty)
             {
@@ -309,11 +342,11 @@ namespace GroundConstruction
             part.Die();
         }
 
-        public void ShowUI(bool enable = true) {}
+        public void ShowUI(bool enable = true) { }
 
         void OnGUI()
         {
-            if(Event.current.type != EventType.Layout && 
+            if(Event.current.type != EventType.Layout &&
                Event.current.type != EventType.Repaint) return;
             Styles.Init();
             if(vessel_spawner.LaunchInProgress)
@@ -324,22 +357,27 @@ namespace GroundConstruction
             {
                 //load ship construct
                 construct_loader.Draw();
-                //rename the kit
-                if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
-                    KitName = kit.Name = kitname_editor.Text;
+                if(kit)
+                {
+                    //rename the kit
+                    if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
+                        KitName = kit.Name = kitname_editor.Text;
+                    //additinal kit resources
+                    resource_manifest_view.Draw(kit.Name + " requires");
+                }
             }
         }
         #endregion
 
         #region IPartCostModifier implementation
-        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) => 
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
         Empty ? 0 : kit.Cost;
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 
         #region IPartMassModifier implementation
-        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) => 
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
         Empty ? 0 : kit.Mass;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
