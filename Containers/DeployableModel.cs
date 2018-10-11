@@ -70,6 +70,7 @@ namespace GroundConstruction
                 if(d.dockedPartUId == part.flightID)
                     return d.nodeTransform.position;
             }
+            this.Log("Warning: {} is docked not through attachNode or DockingNode");
             PartJoint j;
             if(part.parent = docked)
                 j = part.attachJoint;
@@ -88,7 +89,7 @@ namespace GroundConstruction
             if(update_parts && node.attachedPart != null)
             {
                 //this.Log("Updating attach node: {}, attached {}: {}", 
-                         //node.id, node.attachedPartId, node.attachedPart);//debug
+                //         node.id, node.attachedPartId, node.attachedPart);//debug
                 part.UpdateAttachedPartPos(node, true);
                 updated_parts.Add(node.attachedPart);
             }
@@ -100,7 +101,7 @@ namespace GroundConstruction
                               .InverseTransformPoint(other.owner.transform.position 
                                                      + other.owner.transform.TransformDirection(other.position));
             var new_pos = Vector3.Scale(cur_pos, rel_scale);
-            //other.owner.Log("Updating node {}, delta {}", other.id, new_pos - cur_pos);//debug
+            //other.owner.Log("Updating other node {}, delta {}", other.id, new_pos - cur_pos);//debug
             part.UpdateAttachedPartPosProportional(other.owner, part.transform.TransformDirection(new_pos - cur_pos));
             updated_parts.Add(other.owner);
         }
@@ -112,8 +113,8 @@ namespace GroundConstruction
             {
                 var new_pos = part.transform.TransformPoint(Vector3.Scale(anchor.localAnchor, scale));
                 var delta = new_pos-vessel.transform.TransformPoint(anchor.vesselAnchor);
-                //docked.Log("Updating docked part: scale {}, anchor {}, new local {}, dpos {}", 
-                           //scale, anchor, Vector3.Scale(anchor.localAnchor, scale), delta);//debug
+                //docked.Log("Updating docked part: scale {}, anchor {}, new local {}, dpos {}",
+                //           scale, anchor, Vector3.Scale(anchor.localAnchor, scale), delta);//debug
                 part.UpdateAttachedPartPosProportional(docked, delta);
                 updated_parts.Add(docked);
             }
@@ -191,7 +192,6 @@ namespace GroundConstruction
                 if(child.attachJoint != null)
                     save_dock_anchor(child, scale);
             }
-            GameEvents.onActiveJointNeedUpdate.Fire(vessel);
             while(time < 1)
             {
                 var old_size = Size;
@@ -199,12 +199,11 @@ namespace GroundConstruction
                 Size = Vector3.Lerp(start, TargetSize, time);
                 FlightGlobals.overrideOrbit = true;
                 update_model(true);
+                GameEvents.onActiveJointNeedUpdate.Fire(vessel);
                 if(vessel.LandedOrSplashed && part.GroundContact)
                     vessel.SetPosition(vessel.vesselTransform.position+up*(Size-old_size).y);
                 yield return new WaitForFixedUpdate();
             }
-            GameEvents.onActiveJointNeedUpdate.Fire(vessel);
-            yield return new WaitForFixedUpdate();
             FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
         }
