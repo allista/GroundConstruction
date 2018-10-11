@@ -14,7 +14,7 @@ namespace GroundConstruction
         part.FindModulesImplementing<IAssemblySpace>();
 
         protected override bool check_host(AssemblyKitInfo task) => 
-        task.Module != null && task.Module.part == part;
+        base.check_host(task) && task.Module != null && task.Module.part == part;
 
         protected override void update_kits()
         {

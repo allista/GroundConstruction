@@ -34,7 +34,7 @@ namespace GroundConstruction
             return spaces;
         }
 
-        protected override bool check_host(AssemblyKitInfo task) => true;
+        protected override bool check_host(AssemblyKitInfo task) => base.check_host(task) && true;
 
         protected override void update_kits()
         {

@@ -15,7 +15,7 @@ namespace GroundConstruction
         VesselKitInfo.GetKitContainers<IAssemblySpace>(vessel);
 
         protected override bool check_host(AssemblyKitInfo task) =>
-        task.Module != null && task.Module.vessel == vessel;
+        base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
 
         protected override void update_kits()
         {
