@@ -243,8 +243,9 @@ namespace GroundConstruction
         }
 
         public bool Empty => !kit;
-        public bool Valid => isEnabled;
         public override string Name => Empty ? "Container" : "Container: " + kit.Name;
+        bool IKitContainer.Valid => isEnabled;
+        bool IConstructionSpace.Valid => isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY);
 
         [KSPEvent(guiName = "Deploy",
 #if DEBUG
