@@ -123,7 +123,6 @@ namespace GroundConstruction
         {
             if(check_task(task))
             {
-                //this.Log("Task complete {}, {}", task.Complete, task);//debug
                 if(!task.Complete)
                     unbuilt_kits.Add(task);
                 else built_kits.Add(task);
@@ -274,9 +273,9 @@ namespace GroundConstruction
                     selected_task = null;
                 else if(selected_task.Kit.AdditionalResources.Count > 0)
                 {
-                    GUILayout.Label("Additional resources required for "+selected_task.Name, Styles.label);
-                    var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3)*26;
-                    resources_scroll = GUILayout.BeginScrollView(resources_scroll, 
+                    GUILayout.Label("Additional resources required for " + selected_task.Name, Styles.label);
+                    var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
+                    resources_scroll = GUILayout.BeginScrollView(resources_scroll,
                                                                  GUILayout.Height(h));
                     selected_task.Kit.AdditionalResources.Draw();
                     GUILayout.EndScrollView();
