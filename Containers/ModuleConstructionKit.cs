@@ -113,6 +113,8 @@ namespace GroundConstruction
 
         protected override IEnumerable prepare_deployment()
         {
+            foreach(var _ in base.prepare_deployment())
+                yield return null;
             if(part.parent) part.decouple(2);
             yield return null;
             while(part.children.Count > 0)

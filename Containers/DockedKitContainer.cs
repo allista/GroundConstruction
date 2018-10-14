@@ -51,6 +51,8 @@ namespace GroundConstruction
 
         protected override IEnumerable prepare_deployment()
         {
+            foreach(var _ in base.prepare_deployment())
+                yield return null;
             //try to find part connected though the construction node
             Part cpart = null;
             var cnode = part.FindAttachNode(ConstructionNode);
