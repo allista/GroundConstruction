@@ -21,7 +21,7 @@ namespace GroundConstruction
             public DockAnchor(Part p, Vector3 anchor, Vector3 scale)
             {
                 vesselAnchor = p.vessel.transform.InverseTransformPoint(anchor);
-                localAnchor = Vector3.Scale(p.transform.InverseTransformPoint(anchor), 
+                localAnchor = Vector3.Scale(p.transform.InverseTransformPoint(anchor),
                                             scale.Inverse());
             }
 
@@ -37,7 +37,7 @@ namespace GroundConstruction
 
         protected MeshFilter deploy_hint_mesh;
         protected static readonly Color deploy_hint_color = new Color(0, 1, 0, 0.25f);
-        
+
         [KSPField] public string MetricMesh = string.Empty;
         [KSPField] public Vector3 MinSize = new Vector3(0.5f, 0.5f, 0.5f);
 
@@ -74,7 +74,7 @@ namespace GroundConstruction
             PartJoint j;
             if(part.parent = docked)
                 j = part.attachJoint;
-            else 
+            else
                 j = docked.attachJoint;
             return j.Host.transform.TransformPoint(j.HostAnchor);
         }
@@ -90,7 +90,7 @@ namespace GroundConstruction
             {
                 //this.Log("Updating attach node: {}, attached {}: {}", 
                 //         node.id, node.attachedPartId, node.attachedPart);//debug
-                part.UpdateAttachedPartPos(node, true);
+                part.UpdateAttachedPartPos(node);
                 updated_parts.Add(node.attachedPart);
             }
         }
@@ -98,11 +98,11 @@ namespace GroundConstruction
         void update_other_node(AttachNode other, Vector3 rel_scale, HashSet<Part> updated_parts)
         {
             var cur_pos = part.transform
-                              .InverseTransformPoint(other.owner.transform.position 
+                              .InverseTransformPoint(other.owner.transform.position
                                                      + other.owner.transform.TransformDirection(other.position));
             var new_pos = Vector3.Scale(cur_pos, rel_scale);
             //other.owner.Log("Updating other node {}, delta {}", other.id, new_pos - cur_pos);//debug
-            part.UpdateAttachedPartPosProportional(other.owner, part.transform.TransformDirection(new_pos - cur_pos));
+            part.UpdateAttachedPartPos(other.owner, part.transform.TransformDirection(new_pos - cur_pos));
             updated_parts.Add(other.owner);
         }
 
@@ -112,10 +112,10 @@ namespace GroundConstruction
             if(dock_anchors.TryGetValue(docked, out anchor))
             {
                 var new_pos = part.transform.TransformPoint(Vector3.Scale(anchor.localAnchor, scale));
-                var delta = new_pos-vessel.transform.TransformPoint(anchor.vesselAnchor);
+                var delta = new_pos - vessel.transform.TransformPoint(anchor.vesselAnchor);
                 //docked.Log("Updating docked part: scale {}, anchor {}, new local {}, dpos {}",
                 //           scale, anchor, Vector3.Scale(anchor.localAnchor, scale), delta);//debug
-                part.UpdateAttachedPartPosProportional(docked, delta);
+                part.UpdateAttachedPartPos(docked, delta);
                 updated_parts.Add(docked);
             }
         }
@@ -173,15 +173,17 @@ namespace GroundConstruction
                 yield break;
             var start = Size;
             var time = 0f;
-            var speed = Mathf.Min(GLB.DeploymentSpeed / Mathf.Abs((TargetSize-Size).MaxComponentF()),
+            var speed = Mathf.Min(GLB.MaxDeploymentMomentum 
+                                  / part.TotalMass() 
+                                  / Mathf.Abs((TargetSize - Size).MaxComponentF()),
                                   1 / GLB.MinDeploymentTime);
             var up = vessel.up;
             var scale = get_scale();
             if(vessel.LandedOrSplashed)
             {
                 RaycastHit hit;
-                if(Physics.Raycast(part.partTransform.position, -up, out hit, 
-                                   Mathf.Max(vessel.heightFromTerrain*2, 1), scenery_mask))
+                if(Physics.Raycast(part.partTransform.position, -up, out hit,
+                                   Mathf.Max(vessel.heightFromTerrain * 2, 1), scenery_mask))
                     up = hit.normal;
             }
             dock_anchors.Clear();
@@ -197,14 +199,17 @@ namespace GroundConstruction
                 var old_size = Size;
                 time += speed * TimeWarp.fixedDeltaTime;
                 Size = Vector3.Lerp(start, TargetSize, time);
-                FlightGlobals.overrideOrbit = true;
                 update_model(true);
                 GameEvents.onActiveJointNeedUpdate.Fire(vessel);
                 if(vessel.LandedOrSplashed && part.GroundContact)
-                    vessel.SetPosition(vessel.vesselTransform.position+up*(Size-old_size).y);
+                {
+                    FlightGlobals.overrideOrbit = true;
+                    vessel.SetPosition(vessel.vesselTransform.position + up * (Size - old_size).y);
+                }
                 yield return new WaitForFixedUpdate();
             }
-            FlightGlobals.overrideOrbit = false;
+            if(FlightGlobals.overrideOrbit)
+                FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
         }
 
@@ -287,16 +292,18 @@ namespace GroundConstruction
                     update_model(false);
                     just_started = false;
                 }
+            }
+            if(GroundConstructionScenario.ShowDeployHint)
+                update_deploy_hint();
+            else
                 deploy_hint_mesh.gameObject.SetActive(false);
-            }
-            if(HighLogic.LoadedSceneIsFlight)
-            {
-                if(GroundConstructionScenario.ShowDeployHint)
-                    update_deploy_hint();
-                else
-                    deploy_hint_mesh.gameObject.SetActive(false);
-            }
         }
+
+        [KSPEvent(guiName = "Show Deployment Hint", guiActive = true, guiActiveEditor = true,
+                  guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
+                  active = true)]
+        public void ShowDeploymentHint() =>
+        GroundConstructionScenario.ShowDeployHint = !GroundConstructionScenario.ShowDeployHint;
 
         #region Deployment
         protected abstract Vector3 get_deployed_size();
@@ -309,7 +316,7 @@ namespace GroundConstruction
             if(T != null)
             {
                 var fwd_T = deploy_hint_mesh.gameObject.transform;
-                fwd_T.position = T.position+T.TransformDirection(get_deployed_offset());
+                fwd_T.position = T.position + T.TransformDirection(get_deployed_offset());
                 fwd_T.rotation = T.rotation;
                 deploy_hint_mesh.gameObject.SetActive(true);
             }
@@ -318,7 +325,7 @@ namespace GroundConstruction
         protected virtual void create_deploy_hint_mesh()
         {
             var scale = Vector3.Scale(OrigPartSize, OrigSize.Inverse());
-            var size = Vector3.Scale(get_deployed_size(), scale)/2;
+            var size = Vector3.Scale(get_deployed_size(), scale) / 2;
             var mesh = deploy_hint_mesh.mesh;
             mesh.vertices = new[]{
                 // bottom
@@ -336,9 +343,9 @@ namespace GroundConstruction
                 Vector3.right*size.x+Vector3.forward*size.z+Vector3.up*size.y*2,  // 9  - rft
                 Vector3.right*size.x-Vector3.forward*size.z+Vector3.up*size.y*2   // 10 - rbt
             };
-            mesh.triangles = new[] { 
-                0, 1, 2, 2, 3, 0, 
-                4, 5, 6, 
+            mesh.triangles = new[] {
+                0, 1, 2, 2, 3, 0,
+                4, 5, 6,
                 0, 7, 1, 1, 7, 8,
                 1, 8, 2, 2, 8, 9,
                 2, 9, 3, 3, 9, 10,
