@@ -486,6 +486,12 @@ namespace GroundConstruction
             }
         }
 
+        protected void clear_if_selected(T task) 
+        {
+            if(task.ID == selected_task.ID)
+                selected_task = null;
+        }
+
         Vector2 queue_scroll = Vector2.zero;
         protected virtual void queue_pane()
         {
@@ -508,7 +514,11 @@ namespace GroundConstruction
                         del = task;
                     GUILayout.EndHorizontal();
                 }
-                if(del != null) Queue.Remove(del);
+                if(del != null) 
+                {
+                    Queue.Remove(del);
+                    clear_if_selected(del);
+                }
                 else if(up != null) Queue.MoveUp(up);
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();

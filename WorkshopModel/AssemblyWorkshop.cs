@@ -246,8 +246,7 @@ namespace GroundConstruction
                 var space = remove.AssemblySpace;
                 if(space != null)
                     space.SetKit(null, "");
-                if(remove == selected_task)
-                    selected_task = null;
+                clear_if_selected(remove);
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
