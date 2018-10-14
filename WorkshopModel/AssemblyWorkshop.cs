@@ -63,7 +63,9 @@ namespace GroundConstruction
              || !task.Kit.StageStarted(DIYKit.CONSTRUCTION)));
 
         protected override bool check_host(AssemblyKitInfo task) =>
-        base.check_host(task) && task.AssemblySpace != null && task.AssemblySpace.Valid;
+        (base.check_host(task) 
+         && (task.Container as PartModule == this 
+             || task.AssemblySpace != null && task.AssemblySpace.Valid));
 
         protected virtual void process_construct(ShipConstruct construct)
         {
@@ -242,7 +244,10 @@ namespace GroundConstruction
             else if(remove != null)
             {
                 var space = remove.AssemblySpace;
-                space.SetKit(null, "");
+                if(space != null)
+                    space.SetKit(null, "");
+                if(remove == selected_task)
+                    selected_task = null;
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
