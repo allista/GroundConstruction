@@ -269,17 +269,27 @@ namespace GroundConstruction
         {
             if(selected_task != null)
             {
+                var close = false;
                 if(!check_task(selected_task))
                     selected_task = null;
                 else if(selected_task.Kit.AdditionalResources.Count > 0)
                 {
-                    GUILayout.Label("Additional resources required for " + selected_task.Name, Styles.label);
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>", 
+                                                  selected_task.Name), 
+                                    Styles.label, GUILayout.ExpandWidth(true));
+                    if(GUILayout.Button(new GUIContent("<color=red>X</color>", "Close"),
+                                        Styles.rich_label, GUILayout.ExpandWidth(false)))
+                        close = true;
+                    GUILayout.EndHorizontal();
                     var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
                     resources_scroll = GUILayout.BeginScrollView(resources_scroll,
                                                                  GUILayout.Height(h));
                     selected_task.Kit.AdditionalResources.Draw();
                     GUILayout.EndScrollView();
                 }
+                if(close)
+                    selected_task = null;
             }
         }
 
