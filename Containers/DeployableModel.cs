@@ -70,7 +70,6 @@ namespace GroundConstruction
                 if(d.dockedPartUId == part.flightID)
                     return d.nodeTransform.position;
             }
-            this.Log("Warning: {} is docked not through attachNode or DockingNode");
             PartJoint j;
             if(part.parent = docked)
                 j = part.attachJoint;
