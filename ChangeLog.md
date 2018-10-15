@@ -1,6 +1,19 @@
 #Ground Construction ChangeLog
 
-* **v2.1 -- Global Construction**
+* **v2.2 -- In-place Construction**
+    * Added **ability to construct kits inside assembly spaces**.
+    * **Named docking ports** in Dockable Kit Container.
+    	* _Only works with the newly created containers. Old ones will still have stock docking ports._
+    * Added **display of additional resources** required for the vessel in a kit.
+    	* Available in the interface of any workshop and via part menu of containers.
+    * **Deployment Hint may be activated in Editor** (and in flight) via part menu of a container.
+    * Deployment speed is inverse-proportional to the kit mass, so as not to brake everything with a too heavy deploing kit.
+    * Spread parts along the **Tech Tree** more evenly:
+        * Deployable Kit Container to Specialized Construction
+        * Ground Assembly Line to Advanced Metalworks
+        * Orbital Assembly Line/Space to Meta Materials
+
+* v2.1 -- **Global Construction**
     * **Empty kit containers can be used as assembly spaces**
         * They can be created in Editor as well as inside some assembly spaces.
         * This completely lifts the limitation on the final mass and size of the vessel you construct.
