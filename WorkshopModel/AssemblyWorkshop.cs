@@ -63,8 +63,8 @@ namespace GroundConstruction
              || !task.Kit.StageStarted(DIYKit.CONSTRUCTION)));
 
         protected override bool check_host(AssemblyKitInfo task) =>
-        (base.check_host(task) 
-         && (task.Container as PartModule == this 
+        (base.check_host(task)
+         && (task.Container as PartModule == this
              || task.AssemblySpace != null && task.AssemblySpace.Valid));
 
         protected virtual void process_construct(ShipConstruct construct)
@@ -269,6 +269,10 @@ namespace GroundConstruction
                                                "Add a subassembly to construction queue"),
                                 Styles.active_button, GUILayout.ExpandWidth(true)))
                 construct_loader.SelectSubassembly();
+            if(GUILayout.Button(new GUIContent("Add Part",
+                                               "Add a single part to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectPart(part.flagURL);
             GUILayout.EndHorizontal();
             base.queue_pane();
         }
