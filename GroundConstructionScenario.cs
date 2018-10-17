@@ -153,7 +153,7 @@ namespace GroundConstruction
                 foreach(var cb in CelestialBodies)
                 {
                     if(GUILayout.Button(new GUIContent(cb, "Show workshops on "+cb),
-                                        CelestialBodyTab == cb? Styles.green : Styles.yellow,
+                                        CelestialBodyTab == cb? Styles.enabled : Styles.active,
                                         GUILayout.Width(cb_width)))
                         CelestialBodyTab = cb;
                 }
@@ -169,7 +169,7 @@ namespace GroundConstruction
                     info.Draw();
                     if(info.IsActive)
                         GUILayout.Label(new GUIContent("◉", "This is the active vessel"),
-                                        Styles.grey, GUILayout.ExpandWidth(false));
+                                        Styles.inactive, GUILayout.ExpandWidth(false));
                     else if(GUILayout.Button(new GUIContent("◉", "Switch to this workshop"),
                                              Styles.enabled_button, GUILayout.ExpandWidth(false)))
                         switchto = info;

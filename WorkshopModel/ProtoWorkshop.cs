@@ -128,12 +128,12 @@ namespace GroundConstruction
                 tooltip = Stage + "\n" + PartName + (IsActive ? tooltip : "");
                 if(State == Status.ACTIVE)
                 {
-                    style = EndUT > 0 ? Styles.yellow : Styles.red;
+                    style = EndUT > 0 ? Styles.active : Styles.danger;
                     status = new GUIContent(string.Format("{0}: {1}", TaskName, ETA), tooltip);
                 }
                 else
                 {
-                    style = Styles.green;
+                    style = Styles.enabled;
                     status = new GUIContent(TaskName + ": Complete", tooltip);
                 }
             }

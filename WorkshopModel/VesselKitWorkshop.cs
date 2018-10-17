@@ -259,7 +259,7 @@ namespace GroundConstruction
                 }
                 else
                     GUILayout.Label(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
-                                    Styles.grey_button, GUILayout.ExpandWidth(false));
+                                    Styles.inactive_button, GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
             }
         }
