@@ -459,7 +459,7 @@ namespace GroundConstruction
         protected void draw_task(T task)
         {
             var is_selected = selected_task != null && task.ID == selected_task.ID;
-            if(task.Draw(is_selected? Styles.normal_button : Styles.white))
+            if(task.Draw(is_selected ? Styles.normal_button : Styles.white))
             {
                 if(is_selected)
                     selected_task = null;
@@ -486,9 +486,11 @@ namespace GroundConstruction
             }
         }
 
-        protected void clear_if_selected(T task) 
+        protected void clear_if_selected(T task)
         {
-            if(task.ID == selected_task.ID)
+            if(task != null
+               && selected_task != null
+               && task.ID == selected_task.ID)
                 selected_task = null;
         }
 
@@ -514,7 +516,7 @@ namespace GroundConstruction
                         del = task;
                     GUILayout.EndHorizontal();
                 }
-                if(del != null) 
+                if(del != null)
                 {
                     Queue.Remove(del);
                     clear_if_selected(del);
