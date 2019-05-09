@@ -44,7 +44,7 @@ namespace GroundConstruction
             }
             else
             {
-                Complexity = 1 - 1 / ((dry_cost / part.mass + part.Modules.Count * 1000) * GLB.ComplexityFactor + 1);
+                Complexity = 1 - 1 / ((dry_cost / part.mass + GLB.IgnoreModules.SizeOfDifference(part.Modules) * 1000) * GLB.ComplexityFactor + 1);
                 var structure_mass = part.mass * (1 - Complexity);
                 var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost);
                 var kit_mass = part_mass - structure_mass;
@@ -52,7 +52,7 @@ namespace GroundConstruction
                 Construction.TotalWork = total_work(Construction, structure_mass);
                 Assembly.TotalWork = total_work(Assembly, kit_mass);
                 update_total_work();
-                var frac = (float)(Assembly.TotalWork/TotalWork);
+                var frac = (float)(Assembly.TotalWork / TotalWork);
                 //Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
                 Mass.Add(frac, kit_mass);
                 Cost.Add(frac, kit_cost);
@@ -60,7 +60,7 @@ namespace GroundConstruction
             }
         }
 
-        double total_work(JobStage task, double end_mass) => 
+        double total_work(JobStage task, double end_mass) =>
         (Complexity * task.Resource.ComplexityWork + Construction.Resource.WorkPerMass) * end_mass * 3600;
 
         //deprecated config conversion
@@ -75,7 +75,7 @@ namespace GroundConstruction
                 Assembly.TotalWork = Assembly.WorkDone = Construction.TotalWork;
                 update_total_work();
                 float v;
-                var frac = (float)(Assembly.TotalWork/TotalWork);
+                var frac = (float)(Assembly.TotalWork / TotalWork);
                 var val = node.GetValue("Title");
                 if(!string.IsNullOrEmpty(val))
                     Name = val;
