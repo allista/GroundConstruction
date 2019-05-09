@@ -1,6 +1,13 @@
 #Ground Construction ChangeLog
 
-* **v2.2 -- In-place Construction**
+* **v2.3.1**
+    * Excluded some pure-technical part modules (like ModuleTestSubject and ModuleOverheatDisplay) from DIY kit complexity calculation, which decreases both SpecializedParts and SKH build costs of many kits. _**Note** for modders: the excluded part modules are listed in the IgnoreModules.cfg and could be added/changed using MM._
+
+* v2.3 -- **Part Construction**
+    * Compatible with KSP-1.7
+    * Added "Add Part" option to **create kit from a single part**.
+
+* v2.2 -- **In-place Construction**
     * Added **ability to construct kits inside assembly spaces**.
     * **Named docking ports** in Dockable Kit Container.
     	* _Only works with the newly created containers. Old ones will still have stock docking ports._

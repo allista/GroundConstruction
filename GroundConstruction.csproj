@@ -36,23 +36,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
-      <HintPath>..\KSP-test\KSP_test_1.6.0\KSP_Data\Managed\System.dll</HintPath>
+      <HintPath>..\KSP-test\KSP_test_1.7.0\KSP_Data\Managed\System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\KSP-test\KSP_test_1.6.0\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\KSP-test\KSP_test_1.7.0\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Core">
-      <HintPath>..\KSP-test\KSP_test_1.6.0\KSP_Data\Managed\System.Core.dll</HintPath>
+      <HintPath>..\KSP-test\KSP_test_1.7.0\KSP_Data\Managed\System.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\KSP-test\KSP_test_1.6.0\KSP_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\KSP-test\KSP_test_1.7.0\KSP_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\KSP-test\KSP_test_1.6.0\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\KSP-test\KSP_test_1.7.0\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -112,5 +112,17 @@
     <Folder Include="WorkshopModel\" />
     <Folder Include="Containers\" />
     <Folder Include="Workshops\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GameData\GroundConstruction\IgnoreModules.cfg" />
+    <None Include="GameData\GroundConstruction\KitResources.cfg" />
+    <None Include="GameData\GroundConstruction\Engineer.cfg" />
+    <None Include="GameData\GroundConstruction\Patches\ISRU_Patch.cfg" />
+    <None Include="GameData\GroundConstruction\Patches\EPL.cfg" />
+    <None Include="ChangeLog.md" />
+    <None Include="GroundConstruction.netkan" />
+    <None Include="GroundConstruction-Core.netkan" />
+    <None Include="make-release.sh" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>
