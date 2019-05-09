@@ -119,5 +119,10 @@
     <None Include="GameData\GroundConstruction\Engineer.cfg" />
     <None Include="GameData\GroundConstruction\Patches\ISRU_Patch.cfg" />
     <None Include="GameData\GroundConstruction\Patches\EPL.cfg" />
+    <None Include="ChangeLog.md" />
+    <None Include="GroundConstruction.netkan" />
+    <None Include="GroundConstruction-Core.netkan" />
+    <None Include="make-release.sh" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>
