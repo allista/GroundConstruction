@@ -113,4 +113,16 @@
     <Folder Include="Containers\" />
     <Folder Include="Workshops\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="GameData\GroundConstruction\IgnoreModules.cfg" />
+    <None Include="GameData\GroundConstruction\KitResources.cfg" />
+    <None Include="GameData\GroundConstruction\Engineer.cfg" />
+    <None Include="GameData\GroundConstruction\Patches\ISRU_Patch.cfg" />
+    <None Include="GameData\GroundConstruction\Patches\EPL.cfg" />
+    <None Include="ChangeLog.md" />
+    <None Include="GroundConstruction.netkan" />
+    <None Include="GroundConstruction-Core.netkan" />
+    <None Include="make-release.sh" />
+    <None Include="README.md" />
+  </ItemGroup>
 </Project>
