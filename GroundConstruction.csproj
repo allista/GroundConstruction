@@ -129,5 +129,13 @@
     <None Include="GroundConstruction-Core.netkan" />
     <None Include="make-release.sh" />
     <None Include="README.md" />
+    <None Include="GameData\GroundConstruction\Parts\DIYKit\DIYKit.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\DIYKit\OrbitalKitContainer.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\SpaceCrane\SpaceCrane.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\GroundAssemblyLine.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\InlineGroundWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg" />
   </ItemGroup>
 </Project>
