@@ -60,7 +60,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="GroundConstructionScenario.cs" />
-    <Compile Include="ToolbarManager.cs" />
+    <Compile Include="GCAppToolbar.cs" />
     <Compile Include="ConstructionSkill.cs" />
     <Compile Include="GCFilterManager.cs" />
     <Compile Include="VesselInfo.cs" />
@@ -105,6 +105,11 @@
       <Name>MultiAnimators</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\AT_Utils\Unity\AT_Utils.UI.csproj">
+      <Project>{0B711E55-8312-144F-53AD-EDA5A8CEE04A}</Project>
+      <Name>AT_Utils.UI</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WorkModel\" />
@@ -124,5 +129,13 @@
     <None Include="GroundConstruction-Core.netkan" />
     <None Include="make-release.sh" />
     <None Include="README.md" />
+    <None Include="GameData\GroundConstruction\Parts\DIYKit\DIYKit.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\DIYKit\OrbitalKitContainer.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\SpaceCrane\SpaceCrane.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\GroundAssemblyLine.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\InlineGroundWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg" />
+    <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg" />
   </ItemGroup>
 </Project>

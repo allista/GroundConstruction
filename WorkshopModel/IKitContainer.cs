@@ -39,7 +39,7 @@ namespace GroundConstruction
         DEPLOYED,
     }
 
-    public interface IDeployable
+    public interface IDeployable : IJointLockState
     {
         DeplyomentState State { get; }
         void Deploy();

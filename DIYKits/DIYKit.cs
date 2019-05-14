@@ -7,6 +7,7 @@
 using System;
 using UnityEngine;
 using AT_Utils;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -124,7 +125,7 @@ namespace GroundConstruction
         {
             GUILayout.BeginVertical(style ?? Styles.white);
             GUILayout.BeginHorizontal();
-            var clicked = GUILayout.Button(string.Format("<color=lime><b>{0}</b></color>", Name), 
+            var clicked = GUILayout.Button(Colors.Good.Tag("<b>{0}</b>", Name), 
                                            Styles.rich_label, GUILayout.ExpandWidth(true));
             var status = StringBuilderCache.Acquire();
             if(remainder.work > 0)

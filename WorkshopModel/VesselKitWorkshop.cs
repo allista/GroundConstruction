@@ -5,10 +5,11 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
-using System.Collections.Generic;
-using System.Linq;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -205,12 +206,12 @@ namespace GroundConstruction
         {
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<color=yellow><b>Kit:</b></color>",
+            GUILayout.Label(Colors.Active.Tag("<b>Kit:</b>"),
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
             draw_task(CurrentTask);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("<color=yellow><b>Part:</b></color>",
+            GUILayout.Label(Colors.Active.Tag("<b>Part:</b>"),
                             Styles.boxed_label, GUILayout.Width(40), GUILayout.ExpandHeight(true));
             CurrentTask.DrawCurrentPart();
             GUILayout.EndHorizontal();
@@ -223,8 +224,8 @@ namespace GroundConstruction
             {
                 GUILayout.BeginVertical(Styles.white);
                 GUILayout.Label(Working ?
-                                "<color=yellow><b>Working on</b></color>" :
-                                "<color=silver><b>Paused</b></color>",
+                                Colors.Active.Tag("<b>Working on</b>") :
+                                Colors.Inactive.Tag("<b>Paused</b>"),
                                 Styles.boxed_label, GUILayout.ExpandWidth(true));
                 current_task_pane();
                 if(Working)
@@ -259,7 +260,7 @@ namespace GroundConstruction
                 }
                 else
                     GUILayout.Label(new GUIContent("Stop", "Stop construction and move the kit back to the Queue"),
-                                    Styles.grey_button, GUILayout.ExpandWidth(false));
+                                    Styles.inactive_button, GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
             }
         }
@@ -278,7 +279,7 @@ namespace GroundConstruction
                     GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>", 
                                                   selected_task.Name), 
                                     Styles.label, GUILayout.ExpandWidth(true));
-                    if(GUILayout.Button(new GUIContent("<color=red>X</color>", "Close"),
+                    if(GUILayout.Button(new GUIContent(Colors.Close.Tag("X"), "Close"),
                                         Styles.rich_label, GUILayout.ExpandWidth(false)))
                         close = true;
                     GUILayout.EndHorizontal();

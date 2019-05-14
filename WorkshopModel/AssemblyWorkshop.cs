@@ -7,8 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using AT_Utils;
 using UnityEngine;
+using AT_Utils;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -311,7 +312,7 @@ namespace GroundConstruction
             foreach(var space in available_spaces)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                if(GUILayout.Button(new GUIContent(string.Format("<color=yellow><b>{0}</b></color>", space.Name),
+                if(GUILayout.Button(new GUIContent(Colors.Active.Tag("<b>{0}</b>", space.Name),
                                                    "Press to select to assign assembly task to this space. " +
                                                    "Press again to deselect."),
                                     selected_space == space ? Styles.normal_button : Styles.rich_label,
@@ -351,11 +352,11 @@ namespace GroundConstruction
                 {
                     var construction_space = space as IConstructionSpace;
                     if(construction_space != null && construction_space.Valid)
-                        GUILayout.Label(new GUIContent("<color=lime>In-place Construction</color>",
+                        GUILayout.Label(new GUIContent(Colors.Enabled.Tag("In-place Construction"),
                                                        "It is possible to construct this kit directly in the assembly space"),
                                         Styles.rich_label, GUILayout.ExpandWidth(false));
                     GUILayout.Space(10);
-                    GUILayout.Label(new GUIContent("<color=yellow>Occupied</color>",
+                    GUILayout.Label(new GUIContent(Colors.Warning.Tag("Occupied"),
                                                    "The assembly space is occupied by a kit being assembled " +
                                                    "or just by something located inside."),
                                     Styles.rich_label, GUILayout.ExpandWidth(false));
