@@ -1,6 +1,12 @@
 #Ground Construction ChangeLog
 
-* **v2.3.1**
+* **v2.3.2**
+    * Made docked deployment compatible with **auto struts** and **Kerbal Joint Reinforcement Next >=4.0.1**
+    * Added ability to change UI color scheme at runtime
+        * To access the Color Scheme dialog, **right-click the GC toolbar button**
+
+
+* v2.3.1
     * Excluded some pure-technical part modules (like ModuleTestSubject and ModuleOverheatDisplay) from DIY kit complexity calculation, which decreases both SpecializedParts and SKH build costs of many kits. _**Note** for modders: the excluded part modules are listed in the IgnoreModules.cfg and could be added/changed using MM._
 
 * v2.3 -- **Part Construction**
