@@ -250,7 +250,7 @@ namespace GroundConstruction
         public void Draw()
         {
             GUILayout.BeginVertical();
-            if(IsActive) GUILayout.Label(VesselName, Styles.green, GUILayout.ExpandWidth(true));
+            if(IsActive) GUILayout.Label(VesselName, Styles.enabled, GUILayout.ExpandWidth(true));
             else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"),
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
@@ -266,7 +266,7 @@ namespace GroundConstruction
                     var task = Workshops[item.Value].GetCurrentTask();
                     if(!task.Valid)
                         GUILayout.Label(new GUIContent("⇶", "Workshop is idle"),
-                                        Styles.grey, GUILayout.Width(25));
+                                        Styles.inactive, GUILayout.Width(25));
                     else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"),
                                              Styles.enabled_button, GUILayout.Width(25)))
                         sync_task = task;

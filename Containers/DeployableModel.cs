@@ -165,6 +165,7 @@ namespace GroundConstruction
         }
 
         static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
+        bool resizing;
         IEnumerator<YieldInstruction> resize_coro;
         IEnumerator<YieldInstruction> _resize()
         {
@@ -172,8 +173,8 @@ namespace GroundConstruction
                 yield break;
             var start = Size;
             var time = 0f;
-            var speed = Mathf.Min(GLB.MaxDeploymentMomentum 
-                                  / part.TotalMass() 
+            var speed = Mathf.Min(GLB.MaxDeploymentMomentum
+                                  / part.TotalMass()
                                   / Mathf.Abs((TargetSize - Size).MaxComponentF()),
                                   1 / GLB.MinDeploymentTime);
             var up = vessel.up;
@@ -193,6 +194,10 @@ namespace GroundConstruction
                 if(child.attachJoint != null)
                     save_dock_anchor(child, scale);
             }
+            resizing = true;
+            if(vessel != null)
+                vessel.CycleAllAutoStrut﻿﻿();
+            yield return null;
             while(time < 1)
             {
                 var old_size = Size;
@@ -207,9 +212,17 @@ namespace GroundConstruction
                 }
                 yield return new WaitForFixedUpdate();
             }
+            resizing = false;
+            if(vessel != null)
+                vessel.CycleAllAutoStrut﻿﻿();
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
+        }
+
+        public virtual bool IsJointUnlocked()
+        {
+            return resizing;
         }
 
         public override void OnAwake()

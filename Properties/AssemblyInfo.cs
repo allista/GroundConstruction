@@ -28,7 +28,7 @@ using AT_Utils;
 #if NIGHTBUILD
 [assembly: AssemblyVersion("2.3.*")]
 #else
-[assembly: AssemblyVersion("2.3.1")]
+[assembly: AssemblyVersion("2.3.2")]
 #endif
 [assembly: KSPAssembly("GroundConstruction", 2, 3)]
 
