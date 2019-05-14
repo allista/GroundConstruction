@@ -16,7 +16,7 @@ namespace GroundConstruction
         protected override string TB_ICON => "GroundConstruction/Icons/toolbar-icon";
         protected override string AL_ICON => "GroundConstruction/Icons/applauncher-icon";
 
-        protected override ApplicationLauncher.AppScenes AP_SCENES =>
+        protected override ApplicationLauncher.AppScenes AL_SCENES =>
         ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW |
             ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.SPACECENTER;
 
