@@ -94,6 +94,83 @@ namespace GroundConstruction
         }
         #endregion
 
+        protected override void on_vessel_launched(Vessel vsl)
+        {
+            base.on_vessel_launched(vsl);
+            var construction_node = part.FindAttachNode(ConstructionNode);
+            this.Log("ConstructionNode {}: {}", ConstructionNode, construction_node);//debug
+            if(construction_node == null)
+                return;
+            var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
+            var construction_node_fwd = part.partTransform.TransformDirection(construction_node.orientation).normalized;
+            var best_dist = float.MaxValue;
+            var docking_delta = Vector3.zero;
+            Part docking_part = null;
+            AttachNode docking_node = null;
+            vsl.Log("Parts: {}", vsl.Parts);
+            foreach(var p in vsl.Parts)
+            {
+                p.Log("Examining part of the launched vessel");//debug
+                foreach(var n in p.attachNodes)
+                {
+                    p.Log("Examining attach node: {}", n.id);//debug
+                    if(n.attachedPart == null)
+                    {
+                        var orientation = p.partTransform.TransformDirection(n.orientation);
+                        p.Log("{}.orientation: {} => {}", n.id, n.orientation, orientation);//debug
+                        p.Log("{} vs {} cos: {}", n.id, ConstructionNode, Vector3.Dot(construction_node_fwd, orientation));//debug
+                        if(Vector3.Dot(construction_node_fwd, orientation) > 0.9)
+                        {
+                            var delta = p.partTransform.TransformPoint(n.position) - construction_node_pos;
+                            var dist = delta.sqrMagnitude;
+                            p.Log("{}.dist: {}", n.id, dist);//debug
+                            if(docking_node == null || dist < best_dist)
+                            {
+                                docking_part = p;
+                                docking_node = n;
+                                docking_delta = delta;
+                                best_dist = dist;
+                            }
+                        }
+                    }
+                }
+            }
+            this.Log("Best dist: {}, AttachNode: {}", best_dist, docking_node.id);//debug
+            var construction_part = get_construction_part();
+            if(construction_part == null)
+                return;
+            var recepient_node = construction_part.FindAttachNodeByPart(part);
+            construction_part.Log("Constructed from: {}", recepient_node?.id);//debug
+            if(recepient_node == null)
+                return;
+            this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());//debug
+            var old_vessel = construction_part.vessel;
+            // reset vessels' position and rotation
+            construction_part.vessel.SetPosition(construction_part.vessel.transform.position, true);
+            construction_part.vessel.SetRotation(construction_part.vessel.transform.rotation);
+            docking_part.vessel.SetPosition(docking_part.vessel.transform.position - docking_delta, true);
+            docking_part.vessel.SetRotation(docking_part.vessel.transform.rotation);
+            construction_part.vessel.IgnoreGForces(10);
+            docking_part.vessel.IgnoreGForces(10);
+            if(construction_part == part.parent)
+                part.decouple();
+            else
+                construction_part.decouple();
+            recepient_node.attachedPart = docking_part;
+            recepient_node.attachedPartId = docking_part.flightID;
+            docking_node.attachedPart = construction_part;
+            docking_node.attachedPartId = construction_part.flightID;
+            docking_part.Couple(construction_part);
+            // add fuel lookups
+            construction_part.fuelLookupTargets.Add(docking_part);
+            docking_part.fuelLookupTargets.Add(construction_part);
+            GameEvents.onPartFuelLookupStateChange.Fire(new GameEvents.HostedFromToAction<bool, Part>(true, docking_part, construction_part));
+            FlightGlobals.ForceSetActiveVessel(construction_part.vessel);
+            FlightInputHandler.SetNeutralControls();
+            GameEvents.onVesselWasModified.Fire(construction_part.vessel);
+            this.Log("Docked {} to {}, new vessel {}", docking_part, construction_part, construction_part.vessel.GetID());//debug
+        }
+
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
             var bounds = new Metric(construct, world_space:true).bounds;
