@@ -49,10 +49,8 @@ namespace GroundConstruction
 
         protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
 
-        protected override IEnumerable prepare_deployment()
+        Part get_construction_part()
         {
-            foreach(var _ in base.prepare_deployment())
-                yield return null;
             //try to find part connected though the construction node
             Part cpart = null;
             var cnode = part.FindAttachNode(ConstructionNode);
@@ -70,8 +68,16 @@ namespace GroundConstruction
                     }
                 }
             }
+            return cpart;
+        }
+
+        protected override IEnumerable prepare_deployment()
+        {
+            foreach(var i in base.prepare_deployment())
+                yield return i;
+            var cpart = get_construction_part();
             //decouple all parts but the one on the construction node
-            if(part.parent != null && part.parent != cpart) 
+            if(part.parent != null && part.parent != cpart)
             {
                 part.decouple(2);
                 yield return null;
