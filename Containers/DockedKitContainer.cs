@@ -173,29 +173,29 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var bounds = new Metric(construct, world_space:true).bounds;
+            var bounds = new Metric(construct, world_space: true).bounds;
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
                                                    SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds) 
-                                                   - bounds.center 
+                                                   SpawnManager.GetSpawnOffset(bounds)
+                                                   - bounds.center
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
-                                                   null, 
+                                                   null,
                                                    on_vessel_loaded,
-                                                   null, 
+                                                   null,
                                                    on_vessel_launched));
         }
 
-        #if DEBUG
+#if DEBUG
         void OnRenderObject()
         {
             if(vessel == null) return;
             var T = SpawnManager.GetSpawnTransform();
             if(T != null)
             {
-                var pos = T.position+T.TransformDirection(SpawnManager.GetSpawnOffset(Size));
+                var pos = T.position + T.TransformDirection(SpawnManager.GetSpawnOffset(Size));
                 Utils.GLVec(pos, T.up, Color.green);
                 Utils.GLVec(pos, T.forward, Color.blue);
                 Utils.GLVec(pos, T.right, Color.red);
@@ -207,6 +207,6 @@ namespace GroundConstruction
                     Utils.GLDrawPoint(j.Host.transform.TransformPoint(j.HostAnchor), Color.magenta);
             }
         }
-        #endif
+#endif
     }
 }
