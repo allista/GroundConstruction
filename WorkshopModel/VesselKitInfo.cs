@@ -81,6 +81,7 @@ namespace GroundConstruction
         public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
 
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
+        public IDockingConstructionSpace DockingConstructionSpace => Kit.Host as IDockingConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
     }
 

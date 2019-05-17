@@ -33,6 +33,11 @@ namespace GroundConstruction
         void Launch();
     }
 
+    public interface IDockingConstructionSpace : IConstructionSpace
+    {
+        void LaunchAndDock();
+    }
+
     public enum DeplyomentState {
         IDLE,
         DEPLOYING,
