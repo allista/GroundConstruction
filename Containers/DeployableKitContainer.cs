@@ -274,7 +274,7 @@ namespace GroundConstruction
                   guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
         public void LaunchEvent() => Launch();
 
-        public void EnableControls(bool enable = true)
+        public virtual void EnableControls(bool enable = true)
         {
             Events["LaunchEvent"].active = enable;
         }

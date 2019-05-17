@@ -47,6 +47,9 @@ namespace GroundConstruction
         [Persistent] public float MinDeploymentTime = 3;    //s
 
         [Persistent] public int EasingFrames = 120;
+        
+        [Persistent] public float MaxDockingCos = 0.999f;
+        [Persistent] public float MaxDockingDist = 0.2f;
     }
 
     public class ResourceUsageInfo : ResourceInfo
