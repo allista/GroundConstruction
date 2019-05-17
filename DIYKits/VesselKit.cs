@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -56,7 +57,7 @@ namespace GroundConstruction
             : this()
         {
             Host = host;
-            Name = ship.shipName;
+            Name = Localizer.Format(ship.shipName);
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
             ShipMetric = new Metric(ship, true, true);
