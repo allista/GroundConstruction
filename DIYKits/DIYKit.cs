@@ -127,16 +127,14 @@ namespace GroundConstruction
             GUILayout.BeginHorizontal();
             var clicked = GUILayout.Button(Colors.Good.Tag("<b>{0}</b>", Name), 
                                            Styles.rich_label, GUILayout.ExpandWidth(true));
-            var status = StringBuilderCache.Acquire();
             if(remainder.work > 0)
             {
+                var status = StringBuilderCache.Acquire();
                 status.Append(stage == ASSEMBLY ? " Assembly:" : " Construction:");
                 status.AppendFormat(" <b>{0:P1}</b>", (total_work - remainder.work) / total_work);
+                if(GUILayout.Button(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(false)))
+                    clicked = true;
             }
-            else
-                status.Append(" Complete.");
-            if(GUILayout.Button(status.ToStringAndRelease(), Styles.rich_label, GUILayout.ExpandWidth(false)))
-                clicked = true;
             GUILayout.EndHorizontal();
             if(remainder.work > 0)
             {
