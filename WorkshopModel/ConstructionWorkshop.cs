@@ -130,8 +130,7 @@ namespace GroundConstruction
             {
                 GUILayout.BeginHorizontal();
                 draw_task(info);
-                var depl = info.ConstructionSpace as IDeployable;
-                if(depl != null)
+                if(info.ConstructionSpace is IDeployable depl)
                 {
                     if(depl.State == DeplyomentState.DEPLOYED)
                     {

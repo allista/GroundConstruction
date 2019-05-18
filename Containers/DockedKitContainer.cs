@@ -221,11 +221,10 @@ namespace GroundConstruction
             }
             this.Log("Part: {}, Best dist: {}, AttachNode: {}, occupied: {}",
                      best_part, best_dist, best_node?.id, best_node?.attachedPart != null);//debug
-            if(best_node != null)
-            {
-                if(best_node.attachedPart != null && best_node.attachedPart != part)
-                    best_node = null;
-            }
+            if(best_node != null 
+               && best_node.attachedPart != null 
+               && best_node.attachedPart != part)
+                best_node = null;
             return best_node;
         }
 

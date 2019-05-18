@@ -323,10 +323,8 @@ namespace GroundConstruction
         protected virtual void on_vessel_loaded(Vessel vsl) =>
         FXMonger.Explode(part, part.partTransform.position, 0);
 
-        protected virtual void on_vessel_launched(Vessel vsl)
-        {
-            kit.TransferCrewToKit(vsl);
-        }
+        protected virtual void on_vessel_launched(Vessel vsl) =>
+        kit.TransferCrewToKit(vsl);
 
         protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
 

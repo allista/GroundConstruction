@@ -60,7 +60,7 @@ namespace GroundConstruction
             }));
             else
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(r => AdditionalResources.Strip(r)));
+                                   p.Resources.ForEach(AdditionalResources.Strip));
         }
 
         void update_docking_offset(IShipconstruct ship)
