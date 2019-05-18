@@ -354,6 +354,7 @@ namespace GroundConstruction
                 yield break;
             }
             model.gameObject.SetActive(false);
+            FXMonger.Explode(part, part.partTransform.position, 0);
             yield return StartCoroutine(launch(construct));
             GameEvents.onShowUI.Fire();
             part.Die();
