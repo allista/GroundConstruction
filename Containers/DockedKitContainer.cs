@@ -187,6 +187,7 @@ namespace GroundConstruction
         }
         #endregion
 
+        //TODO: extract this method somewhere to use both here and in VesselKit
         AttachNode find_closest_free_node(IEnumerable<Part> parts,
                                           Vector3 world_pos, Vector3 world_fwd,
                                           out Vector3 world_delta)
@@ -195,20 +196,15 @@ namespace GroundConstruction
             var best_dist = float.MaxValue;
             Part best_part = null;
             AttachNode best_node = null;
-            this.Log("Searching for closest attach node to: {}, fwd {}", world_pos, world_fwd);//debug
             foreach(var p in parts)
             {
                 foreach(var n in p.attachNodes)
                 {
-                    p.Log("Examining attach node: {}", n.id);//debug
                     var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
-                    p.Log("{}.orientation: {} => {}", n.id, n.orientation, orientation);//debug
-                    p.Log("{} vs {} cos: {}", n.id, ConstructionNode, Vector3.Dot(world_fwd, orientation));//debug
                     if(Vector3.Dot(world_fwd, orientation) > GLB.MaxDockingCos)
                     {
                         var delta = p.partTransform.TransformPoint(n.position) - world_pos;
                         var dist = delta.sqrMagnitude;
-                        p.Log("{}.dist: {}", n.id, dist);//debug
                         if(best_node == null || dist < best_dist)
                         {
                             best_part = p;
@@ -219,8 +215,6 @@ namespace GroundConstruction
                     }
                 }
             }
-            this.Log("Part: {}, Best dist: {}, AttachNode: {}, occupied: {}",
-                     best_part, best_dist, best_node?.id, best_node?.attachedPart != null);//debug
             if(best_node != null 
                && best_node.attachedPart != null 
                && best_node.attachedPart != part)
