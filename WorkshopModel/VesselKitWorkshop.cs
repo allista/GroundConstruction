@@ -294,6 +294,23 @@ namespace GroundConstruction
             }
         }
 
+        void kit_configuration()
+        {
+            if(selected_task != null)
+            {
+                var cfg = selected_task.Configurator;
+                if(cfg != null && cfg.IsConfigurable)
+                {
+                    GUILayout.BeginVertical();
+                    GUILayout.Label(string.Format("Construction options for <b>{0}</b>",
+                                                  selected_task.Name),
+                                    Styles.label, GUILayout.ExpandWidth(true));
+                    cfg.DrawOptions();
+                    GUILayout.EndVertical();
+                }
+            }
+        }
+
         protected virtual void draw_panes()
         {
             info_pane();
@@ -301,6 +318,7 @@ namespace GroundConstruction
             queue_pane();
             construction_pane();
             built_kits_pane();
+            kit_configuration();
             resources_pane();
         }
 
