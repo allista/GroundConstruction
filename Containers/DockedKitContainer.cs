@@ -12,7 +12,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class DockedKitContainer : DeployableKitContainer, IDockingConstructionSpace
+    public class DockedKitContainer : DeployableKitContainer, IConstructionSpace, IConfigurable
     {
         [KSPField, SerializeField]
         public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
@@ -22,6 +22,12 @@ namespace GroundConstruction
         protected AttachNode construction_node;
         protected ModuleDockingNode construction_port;
         protected AttachNode recipient_node;
+
+        [KSPField(guiActive = true, guiName ="Kit Dockable")]
+        public bool DockableDisplay;
+
+        [KSPField(isPersistant = true)]
+        public bool DockedConstruction;
 
         Bounds get_construction_bounds() => DockedConstruction && kit.DockingPossible ?
                                                kit.GetBoundsForDocking() : kit.ShipMetric.bounds;
@@ -51,8 +57,19 @@ namespace GroundConstruction
                 this.EnableModule(false);
                 return;
             }
-            Events["LaunchAndDockEvent"].active = Events["LaunchEvent"].active;
-            update_unfocusedRange("LaunchAndDock");
+        }
+
+        void update_part_events()
+        {
+            Events[nameof(ToggleDockedConstruction)].guiName = "After construction: " + (DockedConstruction ? "Dock" : "Launch");
+        }
+
+        protected override void update_part_info()
+        {
+            base.update_part_info();
+            DockableDisplay = kit && kit.DockingPossible;
+            DockedConstruction &= DockableDisplay;
+            update_part_events();
         }
 
         #region Deployment
@@ -120,10 +137,53 @@ namespace GroundConstruction
             }
         }
 
-        protected override IEnumerable finalize_deployment()
+        protected override IEnumerable prepare_deployment()
         {
-            foreach(var i in base.finalize_deployment()) yield return i;
-            update_unfocusedRange("LaunchAndDock");
+            update_part_info();
+            foreach(var i in base.prepare_deployment()) 
+                yield return i;
+        }
+
+        public bool IsConfigurable => kit && kit.DockingPossible;
+
+        static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
+        static readonly GUIContent docked_label = new GUIContent("Dock", "Dock the constructed vessel to the main vessel after launch.");
+        public void DrawOptions()
+        {
+            GUILayout.BeginHorizontal(Styles.white);
+            GUILayout.Label("After construction:");
+            GUILayout.FlexibleSpace();
+            if(state == DeplyomentState.IDLE)
+            {
+                var old_value = DockedConstruction;
+                if(Utils.ButtonSwitch(launch_label, !DockedConstruction,
+                                      GUILayout.ExpandWidth(false)))
+                    DockedConstruction = false;
+                if(Utils.ButtonSwitch(docked_label, DockedConstruction,
+                                      GUILayout.ExpandWidth(false)))
+                    DockedConstruction = true;
+                if(DockedConstruction != old_value)
+                    create_deploy_hint_mesh();
+            }
+            else
+            {
+                GUILayout.Label(DockedConstruction
+                                ? docked_label
+                                : launch_label, 
+                                Styles.enabled, GUILayout.ExpandWidth(false));
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        [KSPEvent(guiName = "After construction", guiActive = true, guiActiveEditor = true)]
+        public void ToggleDockedConstruction()
+        {
+            if(state == DeplyomentState.IDLE && IsConfigurable)
+            {
+                DockedConstruction = !DockedConstruction;
+                update_part_events();
+                create_deploy_hint_mesh();
+            }
         }
         #endregion
 
@@ -272,27 +332,19 @@ namespace GroundConstruction
                                                    on_vessel_launched));
         }
 
-        public virtual void LaunchAndDock()
+        public override void Launch()
         {
-            var recipient_part = get_construction_part();
-            update_recipient_node(recipient_part);
-            if(recipient_node != null)
-                Launch();
-            else
-                Utils.Message("Cannot attach the construction to {0}", recipient_part.name);
-        }
-
-        [KSPEvent(guiName = "Launch and Dock",
-#if DEBUG
-                  guiActive = true,
-#endif
-                  guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
-        public void LaunchAndDockEvent() => LaunchAndDock();
-
-        public override void EnableControls(bool enable = true)
-        {
-            base.EnableControls(enable);
-            Events["LaunchAndDockEvent"].active = enable;
+            if(DockedConstruction)
+            {
+                var recipient_part = get_construction_part();
+                update_recipient_node(recipient_part);
+                if(recipient_node == null)
+                {
+                    Utils.Message("Cannot attach the construction to {0}", recipient_part.name);
+                    return;
+                }
+            }
+            base.Launch();
         }
 
 #if DEBUG

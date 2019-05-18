@@ -42,7 +42,7 @@ namespace GroundConstruction
 
         public List<VesselKit> GetKits() { return new List<VesselKit> { kit }; }
 
-        void update_part_info()
+        protected virtual void update_part_info()
         {
             if(Empty)
             {

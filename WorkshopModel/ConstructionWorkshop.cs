@@ -174,7 +174,6 @@ namespace GroundConstruction
             ConstructionKitInfo crew = null;
             ConstructionKitInfo resources = null;
             ConstructionKitInfo launch = null;
-            IDockingConstructionSpace launch_docked = null;
             foreach(var info in built_kits)
             {
                 GUILayout.BeginHorizontal();
@@ -189,16 +188,6 @@ namespace GroundConstruction
                 if(GUILayout.Button(new GUIContent("Launch", "Launch assembled vessel"),
                                     Styles.danger_button, GUILayout.ExpandWidth(false)))
                     launch = info;
-                var docking_space = info.DockingConstructionSpace;
-                if(docking_space != null)
-                {
-                    if(GUILayout.Button(new GUIContent("Dock", 
-                                                       "Dock assembled vessel in place of the container. " +
-                                                       "May fail if no suitable attachment node is found. " +
-                                                       "In that case the vessel is launched as usual."),
-                                    Styles.danger_button, GUILayout.ExpandWidth(false)))
-                        launch_docked = docking_space;
-                }
                 GUILayout.EndHorizontal();
             }
             if(resources != null)
@@ -207,8 +196,6 @@ namespace GroundConstruction
                 setup_crew_transfer(crew);
             if(launch != null && launch.Recheck())
                 launch.ConstructionSpace.Launch();
-            if(launch_docked != null)
-                launch_docked.LaunchAndDock();
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
