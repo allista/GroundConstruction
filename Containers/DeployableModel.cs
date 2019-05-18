@@ -164,6 +164,12 @@ namespace GroundConstruction
             return StartCoroutine(resize_coro);
         }
 
+        protected virtual IEnumerable<YieldInstruction> prepare_resize()
+        {
+            part.BreakConnectedCompoundParts();
+            yield return null;
+        }
+
         static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
         bool resizing;
         IEnumerator<YieldInstruction> resize_coro;
@@ -171,6 +177,8 @@ namespace GroundConstruction
         {
             if(Size == TargetSize)
                 yield break;
+            foreach(var i in prepare_resize())
+                yield return i;
             var start = Size;
             var time = 0f;
             var speed = Mathf.Min(GLB.MaxDeploymentMomentum
@@ -375,7 +383,6 @@ namespace GroundConstruction
 
         protected virtual IEnumerable prepare_deployment()
         {
-            part.BreakConnectedCompoundParts();
             yield return null;
         }
 
