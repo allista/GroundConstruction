@@ -121,11 +121,15 @@ namespace GroundConstruction
             return remainder;
         }
 
-        public static bool Draw(string Name, int stage, double total_work, Requirements remainder, GUIStyle style =  null)
+        public static bool Draw(string Name, int stage, double total_work, Requirements remainder, 
+                                GUIStyle style =  null, string additional_info = "")
         {
             GUILayout.BeginVertical(style ?? Styles.white);
             GUILayout.BeginHorizontal();
-            var clicked = GUILayout.Button(Colors.Good.Tag("<b>{0}</b>", Name), 
+            var name = Colors.Good.Tag("<b>{0}</b>", Name);
+            if(!string.IsNullOrEmpty(additional_info))
+                name += " " + additional_info;
+            var clicked = GUILayout.Button(name, 
                                            Styles.rich_label, GUILayout.ExpandWidth(true));
             if(remainder.work > 0)
             {
