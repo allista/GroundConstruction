@@ -177,7 +177,7 @@ namespace GroundConstruction
             foreach(var info in built_kits)
             {
                 GUILayout.BeginHorizontal();
-                info.Draw();
+                draw_task(info);
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
                                     Styles.active_button, GUILayout.ExpandWidth(false)))
