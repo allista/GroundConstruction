@@ -223,6 +223,25 @@ namespace GroundConstruction
                 docking_node.attachedPart = construction_part;
                 docking_node.attachedPartId = construction_part.flightID;
                 docking_part.Couple(construction_part);
+                // manage docking ports, if any
+                foreach(var port in construction_part.FindModulesImplementing<ModuleDockingNode>())
+                {
+                    if(port.referenceNode == recipient_node)
+                    {
+                        port.dockedPartUId = docking_part.persistentId;
+                        port.fsm.StartFSM(port.st_preattached);
+                        break;
+                    }
+                }
+                foreach(var port in docking_part.FindModulesImplementing<ModuleDockingNode>())
+                {
+                    if(port.referenceNode == docking_node)
+                    {
+                        port.dockedPartUId = construction_part.persistentId;
+                        port.fsm.StartFSM(port.st_preattached);
+                        break;
+                    }
+                }
                 // add fuel lookups
                 construction_part.fuelLookupTargets.Add(docking_part);
                 docking_part.fuelLookupTargets.Add(construction_part);
