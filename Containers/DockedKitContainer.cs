@@ -23,6 +23,9 @@ namespace GroundConstruction
         protected ModuleDockingNode construction_port;
         protected AttachNode recipient_node;
 
+        Bounds get_construction_bounds() => DockedConstruction && kit.DockingPossible ?
+                                               kit.GetBoundsForDocking() : kit.ShipMetric.bounds;
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
@@ -72,7 +75,7 @@ namespace GroundConstruction
 
         protected override Vector3 get_deployed_offset() => SpawnManager.GetSpawnOffset(Size);
 
-        protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+        protected override Vector3 get_deployed_size() => get_construction_bounds().size;
 
         Part get_construction_part()
         {
@@ -189,40 +192,25 @@ namespace GroundConstruction
                 var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
                 var construction_node_fwd = part.partTransform.TransformDirection(construction_node.orientation).normalized;
                 var construction_part = recipient_node.owner;
-                Vector3 docking_delta;
-                var docking_node = find_closest_free_node(vsl.Parts,
-                                                          construction_node_pos,
-                                                          construction_node_fwd,
-                                                          out docking_delta);
+                var spawn_transform = SpawnManager.GetSpawnTransform();
+                Vector3 docking_offset = spawn_transform.position
+                    + spawn_transform.TransformDirection(SpawnManager.GetSpawnOffset(Size))
+                    - construction_node_pos;
+                var docking_node = kit.GetDockingNode(vsl);
                 if(docking_node == null)
                 {
                     Utils.Message("No suitable attachment node found in \"{0}\" to dock it to the {1}",
                                   vsl.GetDisplayName(), construction_part.Title());
                     return;
                 }
-                var spawn_transform = SpawnManager.GetSpawnTransform();
-                var spawn_offset = spawn_transform.position
-                    + spawn_transform.TransformDirection(SpawnManager.GetSpawnOffset(Size))
-                    - construction_node_pos;
-                this.Log("spawn offset: {}\ndocking delta: {}\ndelta: {}",
-                         spawn_offset, docking_delta, docking_delta - spawn_offset);//debug
-                if((docking_delta - spawn_offset).magnitude > GLB.MaxDockingDist)
-                {
-                    Utils.Message("Attachment node is too far away from the {0}",
-                                  construction_part.Title());
-                    return;
-                }
-                this.Log("docking node: area {}, xfeed {}\nrecipient node: area {}, xfeed {}",
-                    docking_node.contactArea, docking_node.ResourceXFeed,
-                    recipient_node.contactArea, recipient_node.ResourceXFeed);//debug
                 FXMonger.Explode(part, construction_node_pos, 0);
                 var docking_part = docking_node.owner;
                 this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());//debug
                 var old_vessel = construction_part.vessel;
-                // reset vessels' position and rotation
+                // vessels' position and rotation
                 construction_part.vessel.SetPosition(construction_part.vessel.transform.position, true);
                 construction_part.vessel.SetRotation(construction_part.vessel.transform.rotation);
-                docking_part.vessel.SetPosition(docking_part.vessel.transform.position - docking_delta, true);
+                docking_part.vessel.SetPosition(docking_part.vessel.transform.position - docking_offset, true);
                 docking_part.vessel.SetRotation(docking_part.vessel.transform.rotation);
                 construction_part.vessel.IgnoreGForces(10);
                 docking_part.vessel.IgnoreGForces(10);
@@ -249,13 +237,14 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var bounds = new Metric(construct, world_space: true).bounds;
+            var bounds = get_construction_bounds();
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
                                                    SpawnManager.GetSpawnTransform(bounds),
                                                    SpawnManager.GetSpawnOffset(bounds)
                                                    - bounds.center
+                                                   - kit.DockingOffset
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
                                                    null,

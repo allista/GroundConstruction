@@ -22,6 +22,17 @@ namespace GroundConstruction
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
 
+        [Persistent] public uint DockingPartId;
+        [Persistent] public string DockingNodeId;
+        [Persistent] public Vector3 DockingOffset;
+
+        public bool DockingPossible => !string.IsNullOrEmpty(DockingNodeId);
+
+        public AttachNode GetDockingNode(Vessel vsl) =>
+        DockingPossible 
+            ? vsl.Parts.GetPartByCraftID(DockingPartId)?.FindAttachNode(DockingNodeId) 
+            : null;
+
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
         [Persistent] public bool HasLaunchClamps;
@@ -52,6 +63,58 @@ namespace GroundConstruction
                                    p.Resources.ForEach(r => AdditionalResources.Strip(r)));
         }
 
+        void update_docking_offset(IShipconstruct ship)
+        {
+            DockingPartId = 0;
+            DockingNodeId = string.Empty;
+            DockingOffset = Vector3.zero;
+            var bounds = ship.Bounds();
+            var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
+            Utils.Log("{}: bounds {}\nbottom center: {}", Name, bounds, bottom_center);//debug
+            var offset = Vector3.zero;
+            var best_dist = float.MaxValue;
+            Part best_part = null;
+            AttachNode best_node = null;
+            foreach(var p in ship.Parts)
+            {
+                foreach(var n in p.attachNodes)
+                {
+                    p.Log("Examining attach node: {}", n.id);//debug
+                    var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
+                    p.Log("{}.orientation: {} => {}", n.id, n.orientation, orientation);//debug
+                    p.Log("{} down cos: {}", n.id, Vector3.Dot(Vector3.down, orientation));//debug
+                    if(Vector3.Dot(Vector3.down, orientation) > GLB.MaxDockingCos)
+                    {
+                        var delta = p.partTransform.TransformPoint(n.position) - bottom_center;
+                        var dist = delta.sqrMagnitude;
+                        p.Log("{}.dist: {}", n.id, dist);//debug
+                        if(best_node == null || dist < best_dist)
+                        {
+                            best_part = p;
+                            best_node = n;
+                            best_dist = dist;
+                            offset = delta;
+                        }
+                    }
+                }
+            }
+            Utils.Log("Part: {}, Best dist: {}, AttachNode: {}\nOccupied: {}\noffset: {}",
+                      best_part.GetID(), best_dist, best_node?.id, best_node?.attachedPart != null, offset);//debug
+            if(best_node != null 
+               && best_node.attachedPart == null
+               && offset.y < GLB.MaxDockingDist)
+            {
+                DockingOffset = offset;
+                DockingPartId = best_part.craftID;
+                DockingNodeId = best_node.id;
+                Utils.Log("Docking posible through: {}, bounds: {}", best_node.id, GetBoundsForDocking());//debug
+            }
+        }
+
+        public Bounds GetBoundsForDocking() =>
+        new Bounds(ShipMetric.bounds.center,
+                   ShipMetric.bounds.size + DockingOffset.AbsComponents());
+
         public VesselKit() { id = Guid.NewGuid(); }
         public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
             : this()
@@ -61,6 +124,7 @@ namespace GroundConstruction
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
             ShipMetric = new Metric(ship, true, true);
+            update_docking_offset(ship);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();
@@ -226,7 +290,7 @@ namespace GroundConstruction
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
             var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            return DIYKit.Draw(Name, stage, total_work, rem, style);
+            return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible? "(D)" : null);
         }
 
         public Part CreatePart(string part_name, string flag_url, bool set_host)
