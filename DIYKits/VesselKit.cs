@@ -22,15 +22,13 @@ namespace GroundConstruction
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
 
-        [Persistent] public uint DockingPartId;
-        [Persistent] public string DockingNodeId;
-        [Persistent] public Vector3 DockingOffset;
+        [Persistent] public DockingNodeList DockingNodes = new DockingNodeList();
 
-        public bool DockingPossible => !string.IsNullOrEmpty(DockingNodeId);
+        public bool DockingPossible => DockingNodes.Count > 0;
 
-        public AttachNode GetDockingNode(Vessel vsl) =>
-        DockingPossible 
-            ? vsl.Parts.GetPartByCraftID(DockingPartId)?.FindAttachNode(DockingNodeId) 
+        public AttachNode GetDockingNode(Vessel vsl, int node_idx) =>
+        node_idx >= 0 && node_idx < DockingNodes.Count
+            ? DockingNodes[node_idx].GetDockingNode(vsl)
             : null;
 
         [Persistent] public float ResourcesMass;
@@ -65,55 +63,41 @@ namespace GroundConstruction
 
         void update_docking_offset(IShipconstruct ship)
         {
-            DockingPartId = 0;
-            DockingNodeId = string.Empty;
-            DockingOffset = Vector3.zero;
+            DockingNodes.Clear();
             var bounds = ship.Bounds();
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
             Utils.Log("{}: bounds {}\nbottom center: {}", Name, bounds, bottom_center);//debug
-            var offset = Vector3.zero;
-            var best_dist = float.MaxValue;
-            Part best_part = null;
-            AttachNode best_node = null;
             foreach(var p in ship.Parts)
             {
                 foreach(var n in p.attachNodes)
                 {
-                    p.Log("Examining attach node: {}", n.id);//debug
+                    if(n.attachedPart != null) continue;
+                    p.Log("Examining free attach node: {}", n.id);//debug
                     var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
                     p.Log("{}.orientation: {} => {}", n.id, n.orientation, orientation);//debug
                     p.Log("{} down cos: {}", n.id, Vector3.Dot(Vector3.down, orientation));//debug
                     if(Vector3.Dot(Vector3.down, orientation) > GLB.MaxDockingCos)
                     {
                         var delta = p.partTransform.TransformPoint(n.position) - bottom_center;
-                        var dist = delta.sqrMagnitude;
-                        p.Log("{}.dist: {}", n.id, dist);//debug
-                        if(best_node == null || dist < best_dist)
+                        p.Log("{}.dist: {}", n.id, delta.sqrMagnitude);//debug
+                        if(delta.y < GLB.MaxDockingDist)
                         {
-                            best_part = p;
-                            best_node = n;
-                            best_dist = dist;
-                            offset = delta;
+                            DockingNodes.Add(new ConstructDockingNode
+                            {
+                                Name = string.Format("{0} ({1})", p.Title(), n.id),
+                                PartId = p.craftID,
+                                NodeId = n.id,
+                                DockingOffset = delta
+                            });
                         }
                     }
                 }
             }
-            Utils.Log("Part: {}, Best dist: {}, AttachNode: {}\nOccupied: {}\noffset: {}",
-                      best_part.GetID(), best_dist, best_node?.id, best_node?.attachedPart != null, offset);//debug
-            if(best_node != null 
-               && best_node.attachedPart == null
-               && offset.y < GLB.MaxDockingDist)
-            {
-                DockingOffset = offset;
-                DockingPartId = best_part.craftID;
-                DockingNodeId = best_node.id;
-                Utils.Log("Docking posible through: {}, bounds: {}", best_node.id, GetBoundsForDocking());//debug
-            }
         }
 
-        public Bounds GetBoundsForDocking() =>
+        public Bounds GetBoundsForDocking(int node_idx) =>
         new Bounds(ShipMetric.bounds.center,
-                   ShipMetric.bounds.size + DockingOffset.AbsComponents());
+                   ShipMetric.bounds.size + DockingNodes[node_idx].DockingOffset.AbsComponents());
 
         public VesselKit() { id = Guid.NewGuid(); }
         public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
@@ -290,7 +274,7 @@ namespace GroundConstruction
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
             var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible? "(D)" : null);
+            return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible ? "(D)" : null);
         }
 
         public Part CreatePart(string part_name, string flag_url, bool set_host)
@@ -359,6 +343,27 @@ namespace GroundConstruction
         }
 
         public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
+    }
+
+    public class ConstructDockingNode : ConfigNodeObject
+    {
+        [Persistent] public string Name;
+        [Persistent] public uint PartId;
+        [Persistent] public string NodeId;
+        [Persistent] public Vector3 DockingOffset;
+
+        public Part GetDockingPart(Vessel vsl) =>
+        vsl.Parts.GetPartByCraftID(PartId);
+
+        public AttachNode GetDockingNode(Vessel vsl) =>
+        vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
+
+        public override string ToString() => Name;
+    }
+
+    public class DockingNodeList : PersistentList<ConstructDockingNode>
+    {
+
     }
 
     public class ConstructResourceInfo : ResourceInfo

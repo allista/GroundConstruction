@@ -27,10 +27,12 @@ namespace GroundConstruction
         public bool DockableDisplay;
 
         [KSPField(isPersistant = true)]
-        public bool DockedConstruction;
+        public int ConstructDockingNode = -1;
+        ConstructDockingNode construct_docking_node;
 
-        Bounds get_construction_bounds() => DockedConstruction && kit.DockingPossible ?
-                                               kit.GetBoundsForDocking() : kit.ShipMetric.bounds;
+        Bounds get_construction_bounds() => ConstructDockingNode >= 0 && kit.DockingPossible 
+            ? kit.GetBoundsForDocking(ConstructDockingNode) 
+            : kit.ShipMetric.bounds;
 
         public override void OnStart(StartState state)
         {
@@ -61,14 +63,24 @@ namespace GroundConstruction
 
         void update_part_events()
         {
-            Events[nameof(ToggleDockedConstruction)].guiName = "After construction: " + (DockedConstruction ? "Dock" : "Launch");
+            var evt = Events[nameof(ToggleDockedConstruction)];
+            if(construct_docking_node != null)
+            {
+                evt.guiName = "Dock via " + construct_docking_node;
+            }
+            else
+                evt.guiName = "Launch after construction";
         }
 
         protected override void update_part_info()
         {
             base.update_part_info();
             DockableDisplay = kit && kit.DockingPossible;
-            DockedConstruction &= DockableDisplay;
+            if(!DockableDisplay)
+            {
+                ConstructDockingNode = -1;
+                construct_docking_node = null;
+            }
             update_part_events();
         }
 
@@ -150,29 +162,55 @@ namespace GroundConstruction
         static readonly GUIContent docked_label = new GUIContent("Dock", "Dock the constructed vessel to the main vessel after launch.");
         public void DrawOptions()
         {
+            GUILayout.BeginVertical();
             GUILayout.BeginHorizontal(Styles.white);
             GUILayout.Label("After construction:");
             GUILayout.FlexibleSpace();
             if(state == DeplyomentState.IDLE)
             {
-                var old_value = DockedConstruction;
-                if(Utils.ButtonSwitch(launch_label, !DockedConstruction,
+                var old_value = ConstructDockingNode;
+                if(Utils.ButtonSwitch(launch_label, ConstructDockingNode < 0,
                                       GUILayout.ExpandWidth(false)))
-                    DockedConstruction = false;
-                if(Utils.ButtonSwitch(docked_label, DockedConstruction,
+                {
+                    ConstructDockingNode = -1;
+                    construct_docking_node = null;
+                }
+                if(Utils.ButtonSwitch(docked_label, ConstructDockingNode >= 0,
                                       GUILayout.ExpandWidth(false)))
-                    DockedConstruction = true;
-                if(DockedConstruction != old_value)
+                {
+                    ConstructDockingNode = 0;
+                    construct_docking_node = kit.DockingNodes[0];
+                }
+                if(ConstructDockingNode != old_value)
+                {
+                    update_part_events();
                     create_deploy_hint_mesh();
+                }
             }
-            else
-            {
-                GUILayout.Label(DockedConstruction
-                                ? docked_label
-                                : launch_label, 
+            else if(ConstructDockingNode >= 0)
+                GUILayout.Label("Dock "+ construct_docking_node,
                                 Styles.enabled, GUILayout.ExpandWidth(false));
-            }
+            else
+                GUILayout.Label(launch_label,
+                                Styles.enabled, GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
+            if(state == DeplyomentState.IDLE && ConstructDockingNode >= 0)
+            {
+                GUILayout.BeginHorizontal(Styles.white);
+                GUILayout.Label("Dock via:");
+                GUILayout.FlexibleSpace();
+                var choice = Utils.LeftRightChooser(construct_docking_node.ToString());
+                if(choice != 0)
+                {
+                    ConstructDockingNode = (ConstructDockingNode + choice) % kit.DockingNodes.Count;
+                    if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count-1;
+                    construct_docking_node = kit.DockingNodes[ConstructDockingNode];
+                    update_part_events();
+                    create_deploy_hint_mesh();
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
         }
 
         [KSPEvent(guiName = "After construction", guiActive = true, guiActiveEditor = true)]
@@ -180,7 +218,14 @@ namespace GroundConstruction
         {
             if(state == DeplyomentState.IDLE && IsConfigurable)
             {
-                DockedConstruction = !DockedConstruction;
+                ConstructDockingNode += 1;
+                if(ConstructDockingNode < kit.DockingNodes.Count)
+                    construct_docking_node = kit.DockingNodes[ConstructDockingNode];
+                else
+                {
+                    ConstructDockingNode = -1;
+                    construct_docking_node = null;
+                }
                 update_part_events();
                 create_deploy_hint_mesh();
             }
@@ -249,7 +294,7 @@ namespace GroundConstruction
                 Vector3 docking_offset = spawn_transform.position
                     + spawn_transform.TransformDirection(SpawnManager.GetSpawnOffset(Size))
                     - construction_node_pos;
-                var docking_node = kit.GetDockingNode(vsl);
+                var docking_node = kit.GetDockingNode(vsl, ConstructDockingNode);
                 if(docking_node == null)
                 {
                     Utils.Message("No suitable attachment node found in \"{0}\" to dock it to the {1}",
@@ -310,13 +355,14 @@ namespace GroundConstruction
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
             var bounds = get_construction_bounds();
+            var docking_offset = construct_docking_node != null ? construct_docking_node.DockingOffset : Vector3.zero;
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
                                                    SpawnManager.GetSpawnTransform(bounds),
                                                    SpawnManager.GetSpawnOffset(bounds)
                                                    - bounds.center
-                                                   - kit.DockingOffset
+                                                   - docking_offset
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
                                                    null,
@@ -327,7 +373,7 @@ namespace GroundConstruction
 
         public override void Launch()
         {
-            if(DockedConstruction)
+            if(ConstructDockingNode >= 0)
             {
                 var recipient_part = get_construction_part();
                 update_recipient_node(recipient_part);
