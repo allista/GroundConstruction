@@ -126,7 +126,7 @@ namespace GroundConstruction
                 kit.Host = this;
             }
             else
-                kit = new VesselKit();
+                RemoveKit(true);
         }
 
         public void SpawnKit()
@@ -194,23 +194,37 @@ namespace GroundConstruction
             }
         }
 
+        protected void on_kit_changed(bool slow)
+        {
+            update_part_info();
+            update_constraint_controls();
+            update_size(slow);
+            create_deploy_hint_mesh();
+            update_deploy_hint();
+            update_resources_view();
+            if(HighLogic.LoadedSceneIsEditor ||
+               !GroundConstructionScenario.ShowDeployHint)
+                deploy_hint_mesh.gameObject.SetActive(false);
+        }
+
         public void StoreKit(VesselKit kit, bool slow = false)
         {
             if(CanConstruct(kit))
             {
                 this.kit = kit;
-                update_part_info();
-                update_constraint_controls();
-                update_size(slow);
-                create_deploy_hint_mesh();
-                update_deploy_hint();
-                update_resources_view();
-                if(HighLogic.LoadedSceneIsEditor ||
-                   !GroundConstructionScenario.ShowDeployHint)
-                    deploy_hint_mesh.gameObject.SetActive(false);
+                on_kit_changed(slow);
             }
             else
                 Utils.Message("This kit cannot be constructed inside this container");
+        }
+
+        public void RemoveKit(bool slow = false)
+        {
+            if(kit)
+            {
+                kit = new VesselKit();
+                on_kit_changed(slow);
+            }
         }
         #endregion
 
