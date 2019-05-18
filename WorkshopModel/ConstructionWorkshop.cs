@@ -135,23 +135,23 @@ namespace GroundConstruction
                     if(depl.State == DeplyomentState.DEPLOYED)
                     {
                         if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                            Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                            Styles.enabled_button, GUILayout.ExpandWidth(false),
                                             GUILayout.ExpandHeight(true)))
                             add = info;
                     }
                     else if(depl.State != DeplyomentState.DEPLOYING)
                     {
                         if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-                                            Styles.active_button, GUILayout.ExpandWidth(false), 
+                                            Styles.active_button, GUILayout.ExpandWidth(false),
                                             GUILayout.ExpandHeight(true)))
                             deploy = depl;
                     }
                     else
-                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label, 
+                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label,
                                         GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                 }
                 else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                         Styles.enabled_button, GUILayout.ExpandWidth(false),
                                          GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();

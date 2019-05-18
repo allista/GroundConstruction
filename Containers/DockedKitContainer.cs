@@ -53,7 +53,7 @@ namespace GroundConstruction
             if(construction_node == null)
             {
                 this.Log("ERROR: unable to find construction AttachNode with id: {}",
-                    ConstructionNode);
+                         ConstructionNode);
                 this.EnableModule(false);
                 return;
             }
