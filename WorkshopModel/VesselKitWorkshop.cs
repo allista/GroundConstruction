@@ -279,9 +279,6 @@ namespace GroundConstruction
                     GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>", 
                                                   selected_task.Name), 
                                     Styles.label, GUILayout.ExpandWidth(true));
-                    if(GUILayout.Button(new GUIContent(Colors.Close.Tag("X"), "Close"),
-                                        Styles.rich_label, GUILayout.ExpandWidth(false)))
-                        close = true;
                     GUILayout.EndHorizontal();
                     var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
                     resources_scroll = GUILayout.BeginScrollView(resources_scroll,
