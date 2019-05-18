@@ -82,24 +82,37 @@ namespace GroundConstruction
             return cpart;
         }
 
-        protected override IEnumerable prepare_deployment()
+        protected override IEnumerable<YieldInstruction> prepare_resize()
         {
-            foreach(var i in base.prepare_deployment())
+            foreach(var i in base.prepare_resize())
                 yield return i;
-            var cpart = get_construction_part();
-            //decouple all parts but the one on the construction node
-            if(part.parent != null && part.parent != cpart)
+            if(vessel != null)
             {
-                part.decouple(2);
-                yield return null;
-            }
-            while(part.children.Count > 0)
-            {
-                var child = part.children[0];
-                if(child != cpart)
+                var cpart = get_construction_part();
+                //undock docking ports, if any
+                foreach(var port in part.FindModulesImplementing<ModuleDockingNode>())
                 {
-                    child.decouple(2);
+                    if(port != construction_port)
+                    {
+                        port.DecoupleAction(null);
+                        port.UndockAction(null);
+                        yield return null;
+                    }
+                }
+                //decouple all parts but the one on the construction node
+                if(part.parent != null && part.parent != cpart)
+                {
+                    part.decouple(2);
                     yield return null;
+                }
+                while(part.children.Count > 0)
+                {
+                    var child = part.children[0];
+                    if(child != cpart)
+                    {
+                        child.decouple(2);
+                        yield return null;
+                    }
                 }
             }
         }
