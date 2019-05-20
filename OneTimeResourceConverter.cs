@@ -7,9 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using AT_Utils;
-
 using UnityEngine;
+using AT_Utils;
 
 namespace GroundConstruction
 {
@@ -54,7 +53,7 @@ namespace GroundConstruction
         {
             yield return null;
             var GLB = Globals.Instance;
-            var ratio = old_res.density/GLB.StructureResource.density;
+            var ratio = old_res.density / GLB.StructureResource.density;
             foreach(var p in vsl.Parts)
             {
                 var res = p.Resources.Get(old_res.id);
@@ -63,8 +62,8 @@ namespace GroundConstruction
                 var tank = tanks.Find(t => t.Resource != null && t.Resource.resourceName == old_res.name);
                 if(tank == null)
                 {
-                    var new_amount = res.amount*ratio;
-                    var new_max = res.maxAmount*ratio;
+                    var new_amount = res.amount * ratio;
+                    var new_max = res.maxAmount * ratio;
                     if(new_amount > new_max) new_amount = new_max;
                     var existing_res = p.Resources.Get(GLB.StructureResource.id);
                     //if there's already new resource in this part, transfer to it as much mass as possible
@@ -77,7 +76,7 @@ namespace GroundConstruction
                             existing_res.amount = existing_res.maxAmount;
                             new_amount -= space;
                         }
-                        res.amount = new_amount/ratio;
+                        res.amount = new_amount / ratio;
                         if(res.amount.Equals(0))
                             p.RemoveResource(res);
                     }
@@ -98,19 +97,19 @@ namespace GroundConstruction
                 }
                 else
                 {
-                    var new_amount = tank.Resource.amount*ratio;
+                    var new_amount = tank.Resource.amount * ratio;
                     var existing_tank = tanks.Find(t => t.Resource != null && t.Resource.resourceName == GLB.StructureResource.name);
                     //if there's already such a tank, transfer new resource into it, as much as possible
                     if(existing_tank != null)
                     {
-                        var space = existing_tank.MaxAmount-existing_tank.Amount;
-                        if(space > new_amount) existing_tank.Amount = existing_tank.Amount+new_amount;
+                        var space = existing_tank.MaxAmount - existing_tank.Amount;
+                        if(space > new_amount) existing_tank.Amount = existing_tank.Amount + new_amount;
                         else
                         {
                             existing_tank.Amount = existing_tank.MaxAmount;
                             new_amount -= space;
                         }
-                        tank.Amount = new_amount/ratio;
+                        tank.Amount = new_amount / ratio;
                     }
                     else //convert tank type and tank resource
                     {
@@ -135,7 +134,7 @@ namespace GroundConstruction
         bool show_window;
         const float width = 350;
         const float height = 150;
-        Rect WindowPos = new Rect((Screen.width-width)/2, Screen.height/4, width, height*4);
+        Rect WindowPos = new Rect((Screen.width - width) / 2, Screen.height / 4, width, height * 4);
         Vector2 vessels_scroll = Vector2.zero;
         SimpleWarning warning;
 
