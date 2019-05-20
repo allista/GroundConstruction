@@ -145,8 +145,11 @@ namespace GroundConstruction
                   active = true)]
         public void EditName()
         {
-            kitname_editor.Text = KitName;
-            kitname_editor.Toggle();
+            if(kit)
+            {
+                kitname_editor.Text = kit.Name;
+                kitname_editor.Toggle();
+            }
         }
 
         [KSPEvent(guiName = "Show Required Resources", guiActive = true, guiActiveEditor = true,
