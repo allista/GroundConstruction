@@ -22,6 +22,12 @@ namespace GroundConstruction
         {
             base.OnAwake();
             warning = gameObject.AddComponent<SimpleWarning>();
+            warning.yesCallback = () =>
+            {
+                StartCoroutine(convert_vessel(to_convert));
+                to_convert = null;
+            };
+            warning.noCallback = () => to_convert = null;
         }
 
         void OnDestroy()
@@ -142,7 +148,18 @@ namespace GroundConstruction
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(vsl.vesselName, Styles.white, GUILayout.ExpandWidth(true));
                 if(GUILayout.Button("Convert", Styles.danger_button, GUILayout.ExpandWidth(false)))
-                { if(to_convert == null) { to_convert = vsl; warning.Show(true); } }
+                {
+                    if(to_convert == null)
+                    {
+                        to_convert = vsl;
+                        warning.Message = string.Format("This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
+                                                        "<color=red><b>This cannot be undone!</b></color>\n" +
+                                                        "It is best that you <b>save the game</b> before doing this.\n" +
+                                                        "Are you sure you wish to continue?",
+                                                        old_res.name, Globals.Instance.StructureResource.name)
+                        warning.Show(true);
+                    }
+                }
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();
@@ -163,20 +180,6 @@ namespace GroundConstruction
                                              "Convert old GC resources in nearby vessels",
                                              GUILayout.Width(width),
                                              GUILayout.Height(height)).clampToScreen();
-                if(to_convert != null)
-                {
-                    warning.Draw(string.Format("This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
-                                               "<color=red><b>This cannot be undone!</b></color>\n" +
-                                               "It is best that you <b>save the game</b> before doing this.\n" +
-                                               "Are you sure you wish to continue?", old_res.name, Globals.Instance.StructureResource.name));
-                    if(warning.Result == SimpleDialog.Answer.Yes)
-                    {
-                        StartCoroutine(convert_vessel(to_convert));
-                        to_convert = null;
-                    }
-                    else if(warning.Result == SimpleDialog.Answer.No)
-                        to_convert = null;
-                }
             }
         }
     }

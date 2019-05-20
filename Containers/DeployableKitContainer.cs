@@ -68,6 +68,7 @@ namespace GroundConstruction
             base.OnAwake();
             //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
+            kitname_editor.yesCallback = () => { if(kit) KitName = kit.Name = kitname_editor.Text; };
             resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
@@ -374,9 +375,6 @@ namespace GroundConstruction
                 construct_loader.Draw();
                 if(kit)
                 {
-                    //rename the kit
-                    if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
-                        KitName = kit.Name = kitname_editor.Text;
                     //additinal kit resources
                     resource_manifest_view.Draw(kit.Name + " requires");
                 }
