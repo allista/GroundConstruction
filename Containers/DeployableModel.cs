@@ -49,6 +49,8 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public DeplyomentState state;
         bool just_started;
 
+        protected SimpleWarning warning;
+
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
         public DeplyomentState State { get { return state; } }
@@ -236,6 +238,9 @@ namespace GroundConstruction
         public override void OnAwake()
         {
             base.OnAwake();
+            warning = gameObject.AddComponent<SimpleWarning>();
+            warning.Message = "Deployment cannot be undone.\nAre you sure?";
+            warning.yesCallback = do_deploy;
             model = part.transform.Find("model");
             //add deploy hints
             var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
@@ -252,6 +257,7 @@ namespace GroundConstruction
         protected virtual void OnDestroy()
         {
             Destroy(deploy_hint_mesh.gameObject);
+            Destroy(warning);
         }
 
         public override void OnStart(StartState state)
@@ -399,13 +405,15 @@ namespace GroundConstruction
             state = DeplyomentState.DEPLOYED;
         }
 
-        public virtual void Deploy()
+        protected virtual void do_deploy()
         {
             if(!can_deploy()) return;
             Utils.SaveGame(Name + "-before_deployment");
             state = DeplyomentState.DEPLOYING;
             StartCoroutine(deploy());
         }
+
+        public virtual void Deploy() => warning.Show(true);
         #endregion
 
         protected void update_unfocusedRange(params string[] events)
