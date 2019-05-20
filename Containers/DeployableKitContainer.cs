@@ -157,7 +157,11 @@ namespace GroundConstruction
                   active = false)]
         public void ShowResources()
         {
-            resource_manifest_view.Toggle();
+            if(kit)
+            {
+                resource_manifest_view.Title = kit.Name + " requires";
+                resource_manifest_view.Toggle();
+            }
         }
 
         #region Select Ship Construct
@@ -369,19 +373,13 @@ namespace GroundConstruction
                Event.current.type != EventType.Repaint) return;
             Styles.Init();
             if(vessel_spawner.LaunchInProgress)
-                GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
-                          "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
-                          Styles.rich_label);
-            else
             {
-                //load ship construct
-                construct_loader.Draw();
-                if(kit)
-                {
-                    //additinal kit resources
-                    resource_manifest_view.Draw(kit.Name + " requires");
-                }
+                GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
+                              "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
+                              Styles.rich_label);
+                return;
             }
+            construct_loader.Draw();
         }
         #endregion
 
