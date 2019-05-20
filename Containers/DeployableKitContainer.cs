@@ -71,7 +71,6 @@ namespace GroundConstruction
             resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
-            resource_manifest_view.Show(false);
         }
 
         protected override void OnDestroy()
