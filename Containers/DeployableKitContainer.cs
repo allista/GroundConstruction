@@ -15,15 +15,17 @@ namespace GroundConstruction
 {
     public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IAssemblySpace, IControllable, IConfigurable
     {
-        [KSPField(isPersistant = true)] public EditorFacility Facility;
         public enum YRotation { Forward, Left, Backward, Right };
 
         [KSPField(isPersistant = true)]
         public YRotation yRotation = YRotation.Forward;
 
+        [KSPField(isPersistant = true)] 
+        public EditorFacility Facility;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
+
         protected SimpleTextEntry kitname_editor;
         protected SimpleScrollView resource_manifest_view;
         protected ShipConstructLoader construct_loader;
@@ -41,7 +43,8 @@ namespace GroundConstruction
         [KSPField(guiName = "Resources required", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
         public float KitRes;
 
-        [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
+        [KSPField(isPersistant = true)] 
+        public VesselKit kit = new VesselKit();
 
         public VesselKit GetKit(Guid id) { return kit.id == id ? kit : null; }
 

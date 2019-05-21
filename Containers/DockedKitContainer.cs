@@ -31,8 +31,8 @@ namespace GroundConstruction
         public int ConstructDockingNode = -1;
         ConstructDockingNode construct_docking_node;
 
-        Bounds get_construction_bounds() => ConstructDockingNode >= 0 && kit.DockingPossible 
-            ? kit.GetBoundsForDocking(ConstructDockingNode) 
+        Bounds get_construction_bounds() => ConstructDockingNode >= 0 && kit.DockingPossible
+            ? kit.GetBoundsForDocking(ConstructDockingNode)
             : kit.ShipMetric.bounds;
 
         public override void OnStart(StartState state)
