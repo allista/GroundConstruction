@@ -115,8 +115,8 @@ namespace GroundConstruction
             base.Deploy();
         }
 
-        protected override Transform get_deploy_transform() =>
         SpawnManager.GetSpawnTransform() ?? part.transform;
+        protected override Transform get_deploy_transform_unrotated() =>
 
         protected override Vector3 get_deployed_offset() => SpawnManager.GetSpawnOffset(Size);
 
@@ -306,9 +306,9 @@ namespace GroundConstruction
                 var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
                 var construction_node_fwd = part.partTransform.TransformDirection(construction_node.orientation).normalized;
                 var construction_part = recipient_node.owner;
-                var spawn_transform = SpawnManager.GetSpawnTransform();
+                var spawn_transform = get_deploy_transform();
                 Vector3 docking_offset = spawn_transform.position
-                    + spawn_transform.TransformDirection(SpawnManager.GetSpawnOffset(Size))
+                    + spawn_transform.TransformDirection(get_deployed_offset())
                     - construction_node_pos;
                 var docking_node = kit.GetDockingNode(vsl, ConstructDockingNode);
                 if(docking_node == null)
@@ -375,7 +375,7 @@ namespace GroundConstruction
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
-                                                   SpawnManager.GetSpawnTransform(bounds),
+                                                   get_deploy_transform(),
                                                    SpawnManager.GetSpawnOffset(bounds)
                                                    - bounds.center
                                                    - docking_offset
@@ -406,10 +406,10 @@ namespace GroundConstruction
         void OnRenderObject()
         {
             if(vessel == null) return;
-            var T = SpawnManager.GetSpawnTransform();
+            var T = get_deploy_transform();
             if(T != null)
             {
-                var pos = T.position + T.TransformDirection(SpawnManager.GetSpawnOffset(Size));
+                var pos = T.position + T.TransformDirection(get_deployed_offset());
                 Utils.GLVec(pos, T.up, Color.green);
                 Utils.GLVec(pos, T.forward, Color.blue);
                 Utils.GLVec(pos, T.right, Color.red);

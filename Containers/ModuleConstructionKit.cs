@@ -19,21 +19,6 @@ namespace GroundConstruction
 
         ATGroundAnchor anchor;
 
-        Transform get_spawn_transform()
-        {
-            Transform minT = null;
-            if(vessel != null)
-            {
-                var alt = double.MaxValue;
-                foreach(var T in spawn_transforms)
-                {
-                    var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
-                    if(t_alt < alt) { alt = t_alt; minT = T; }
-                }
-            }
-            return minT;
-        }
-
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
@@ -51,8 +36,20 @@ namespace GroundConstruction
         }
 
         #region Deployment
-        protected override Transform get_deploy_transform() =>
-        get_spawn_transform() ?? part.transform;
+        protected override Transform get_deploy_transform_unrotated()
+        {
+            Transform minT = null;
+            if(vessel != null)
+            {
+                var alt = double.MaxValue;
+                foreach(var T in spawn_transforms)
+                {
+                    var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
+                    if(t_alt < alt) { alt = t_alt; minT = T; }
+                }
+            }
+            return minT ?? part.transform;
+        }
 
         protected override Vector3 get_deployed_offset() => Vector3.zero;
 
@@ -163,7 +160,7 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var launch_transform = get_spawn_transform();
+            var launch_transform = get_deploy_transform();
             yield return 
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
@@ -179,7 +176,7 @@ namespace GroundConstruction
         void OnRenderObject()
         {
             if(vessel == null || spawn_transforms == null) return;
-            var T = get_spawn_transform();
+            var T = get_deploy_transform();
             if(T != null)
             {
                 Utils.GLVec(T.position, T.up, Color.green);

@@ -16,6 +16,11 @@ namespace GroundConstruction
     public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IControllable, IAssemblySpace
     {
         [KSPField(isPersistant = true)] public EditorFacility Facility;
+        public enum YRotation { Forward, Left, Backward, Right };
+
+        [KSPField(isPersistant = true)]
+        public YRotation yRotation = YRotation.Forward;
+
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
@@ -236,7 +241,44 @@ namespace GroundConstruction
         #endregion
 
         #region Deployment
+        protected void shift_Y_rotation(int delta)
+        {
+            yRotation = (YRotation)(((int)yRotation + delta) % Enum.GetNames(typeof(YRotation)).Length);
+            if(yRotation < 0) yRotation = 0;
+            GroundConstructionScenario.ShowDeployHint = true;
+        }
+
+        [KSPEvent(guiName = "Rotate launch direction", guiActive = true, guiActiveEditor = true, active = true)]
+        public void RotateSpawnOrientation()
+        {
+            if(kit && state == DeplyomentState.IDLE)
+                shift_Y_rotation(1);
+        }
+
+        protected Quaternion get_Y_rotation() => Quaternion.AngleAxis((int)yRotation * 90f, Vector3.up);
+
         protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+
+        protected abstract Transform get_deploy_transform_unrotated();
+
+        protected override Transform get_deploy_transform()
+        {
+            var T = get_deploy_transform_unrotated();
+            if(yRotation > 0 && T != null)
+            {
+                var rT = T.Find("__SPAWN_TRANSFORM_ROTATED");
+                if(rT == null)
+                {
+                    var empty = new GameObject("__SPAWN_TRANSFORM_ROTATED");
+                    empty.transform.SetParent(T, false);
+                    rT = empty.transform;
+                }
+                rT.localPosition = Vector3.zero;
+                rT.localRotation = get_Y_rotation();
+                return rT;
+            }
+            return T;
+        }
 
         protected override bool can_deploy()
         {
