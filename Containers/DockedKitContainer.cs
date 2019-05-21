@@ -115,8 +115,8 @@ namespace GroundConstruction
             base.Deploy();
         }
 
-        SpawnManager.GetSpawnTransform() ?? part.transform;
         protected override Transform get_deploy_transform_unrotated() =>
+        SpawnManager.GetSpawnTransform();
 
         protected override Vector3 get_deployed_offset() => SpawnManager.GetSpawnOffset(Size);
 
