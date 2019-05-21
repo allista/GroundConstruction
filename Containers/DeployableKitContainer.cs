@@ -283,6 +283,43 @@ namespace GroundConstruction
             return T;
         }
 
+        bool same_vessel_collision_if_deployed()
+        {
+            var T = get_deploy_transform();
+            var size = get_deployed_size();
+            var offset = get_deployed_offset();
+            var B = new Bounds(offset, size);
+            this.Log("Deployed bounds: {}", B);//debug
+            for(int i = 0, vesselPartsCount = vessel.Parts.Count; i < vesselPartsCount; i++)
+            {
+                var p = vessel.Parts[i];
+                if(p == part) continue;
+                this.Log("Checking part: {}", p);//debug
+                //var colliders = p.gameObject.GetComponentsInChildren<Collider>();
+                //for(int j = 0, maxLength = colliders.Length; j < maxLength; j++)
+                //{
+                //    var c = colliders[j];
+                //    if(c.enabled 
+                //       && !c.isTrigger 
+                //       && c.attachedRigidbody != null 
+                //       && c.CompareTag("Untagged"))
+                //    {
+                //        this.Log("Checking collider: {}", c.GetID());//debug
+                //        var cB = c.bounds;
+                //        var cB_local = new Bounds(T.InverseTransformDirection(cB.center - T.position),
+                //            T.InverseTransformDirection(cB.size).AbsComponents());
+                //        this.Log("{} bounds: {}", c.GetID(), cB_local);
+                //        if(B.Intersects(cB_local))
+                //        {
+                //            this.Log("{} intersects with this part", c.GetID());//debug
+                //            return true;
+                //        }
+                //    }
+                //}
+            }
+            return false;
+        }
+
         protected override bool can_deploy()
         {
             if(Empty)
@@ -293,6 +330,11 @@ namespace GroundConstruction
             if(vessel.packed)
             {
                 Utils.Message("Cannot deploy a packed construction kit.");
+                return false;
+            }
+            if(same_vessel_collision_if_deployed())
+            {
+                Utils.Message("Other parts of the vessel are in the way.\nCheck deployment hint!");
                 return false;
             }
             return true;
