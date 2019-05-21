@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace GroundConstruction
 {
-    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IControllable, IAssemblySpace
+    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IAssemblySpace, IControllable, IConfigurable
     {
         [KSPField(isPersistant = true)] public EditorFacility Facility;
         public enum YRotation { Forward, Left, Backward, Right };
@@ -437,6 +437,28 @@ namespace GroundConstruction
         Empty ? 0 : kit.Mass;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
+        #endregion
+
+        #region IConfigurable implementation
+        public virtual bool IsConfigurable => kit;
+
+        public virtual void DrawOptions()
+        {
+            GUILayout.BeginHorizontal(Styles.white);
+            GUILayout.Label("Launch orientation:");
+            GUILayout.FlexibleSpace();
+            Utils.ButtonSwitch("Show", ref GroundConstructionScenario.ShowDeployHint);
+            if(state == DeplyomentState.IDLE)
+            {
+                var choice = Utils.LeftRightChooser(yRotation.ToString(), width:160);
+                if(choice != 0)
+                    shift_Y_rotation(choice);
+            }
+            else
+                GUILayout.Label(yRotation.ToString(),
+                                Styles.enabled, GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
+        }
         #endregion
     }
 }

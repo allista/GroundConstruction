@@ -172,13 +172,14 @@ namespace GroundConstruction
                 yield return i;
         }
 
-        public bool IsConfigurable => kit && kit.DockingPossible;
+        public override bool IsConfigurable => kit && kit.DockingPossible;
 
         static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
         static readonly GUIContent docked_label = new GUIContent("Dock", "Dock the constructed vessel to the main vessel after launch.");
-        public void DrawOptions()
+        public override void DrawOptions()
         {
             GUILayout.BeginVertical();
+            base.DrawOptions();
             GUILayout.BeginHorizontal(Styles.white);
             GUILayout.Label("After construction:");
             GUILayout.FlexibleSpace();
