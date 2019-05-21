@@ -60,6 +60,8 @@ namespace GroundConstruction
                 this.EnableModule(false);
                 return;
             }
+            if(kit && ConstructDockingNode >= 0)
+                construct_docking_node = kit.DockingNodes[ConstructDockingNode];
         }
 
         void update_part_events()
