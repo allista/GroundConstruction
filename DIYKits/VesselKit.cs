@@ -66,20 +66,15 @@ namespace GroundConstruction
             DockingNodes.Clear();
             var bounds = ship.Bounds();
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
-            Utils.Log("{}: bounds {}\nbottom center: {}", Name, bounds, bottom_center);//debug
             foreach(var p in ship.Parts)
             {
                 foreach(var n in p.attachNodes)
                 {
                     if(n.attachedPart != null) continue;
-                    p.Log("Examining free attach node: {}", n.id);//debug
                     var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
-                    p.Log("{}.orientation: {} => {}", n.id, n.orientation, orientation);//debug
-                    p.Log("{} down cos: {}", n.id, Vector3.Dot(Vector3.down, orientation));//debug
                     if(Vector3.Dot(Vector3.down, orientation) > GLB.MaxDockingCos)
                     {
                         var delta = p.partTransform.TransformPoint(n.position) - bottom_center;
-                        p.Log("{}.dist: {}", n.id, delta.sqrMagnitude);//debug
                         if(delta.y < GLB.MaxDockingDist)
                         {
                             DockingNodes.Add(new ConstructDockingNode
