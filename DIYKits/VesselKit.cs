@@ -61,9 +61,9 @@ namespace GroundConstruction
                                    p.Resources.ForEach(AdditionalResources.Strip));
         }
 
-        void update_docking_offset(IShipconstruct ship)
+        public static DockingNodeList FindDockingNodes(IShipconstruct ship)
         {
-            DockingNodes.Clear();
+            var nodes = new DockingNodeList();
             var bounds = ship.Bounds();
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
             foreach(var p in ship.Parts)
@@ -77,7 +77,7 @@ namespace GroundConstruction
                         var delta = p.partTransform.TransformPoint(n.position) - bottom_center;
                         if(delta.y < GLB.MaxDockingDist)
                         {
-                            DockingNodes.Add(new ConstructDockingNode
+                            nodes.Add(new ConstructDockingNode
                             {
                                 Name = string.Format("{0} #{1} ({2})", p.Title(), p.craftID, n.id),
                                 PartId = p.craftID,
@@ -88,6 +88,7 @@ namespace GroundConstruction
                     }
                 }
             }
+            return nodes;
         }
 
         public Bounds GetBoundsForDocking(int node_idx) =>
@@ -103,7 +104,7 @@ namespace GroundConstruction
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
             ShipMetric = new Metric(ship, true, true);
-            update_docking_offset(ship);
+            DockingNodes = FindDockingNodes(ship);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();

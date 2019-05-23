@@ -92,6 +92,7 @@
     <Compile Include="Workshops\SingleVesselConstructionWorkshop.cs" />
     <Compile Include="Workshops\GroundAssemblyWorkshop.cs" />
     <Compile Include="Containers\AssemblySpace.cs" />
+    <Compile Include="GCEditorGUI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
