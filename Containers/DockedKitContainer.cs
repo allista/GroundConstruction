@@ -387,7 +387,7 @@ namespace GroundConstruction
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
                                                    get_deploy_transform(),
-                                                   SpawnManager.GetSpawnOffset(bounds)
+                                                   get_deployed_offset()
                                                    - bounds.center
                                                    - docking_offset
                                                    + construct.Parts[0].localRoot.transform.position,
