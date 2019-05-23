@@ -317,6 +317,7 @@ namespace GroundConstruction
                         p.HighlightAlways(Colors.Danger.color);
                         StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
                         ShowDeployHint = true;
+                        WorldSpaceTrace.Create(c, p.partTransform, 0.2f);
                         this.Log("ConvexHull of {} intersect with deployment", p.GetID());//debug
                         return true;
                     }
