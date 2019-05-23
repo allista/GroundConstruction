@@ -35,9 +35,6 @@ namespace GroundConstruction
 
         [Persistent] public float ComplexityFactor = 1e-4f;
 
-        [Persistent] public float ComplexityWeight = 110;
-        [Persistent] public float MetalworkWeight = 100;
-
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
         [Persistent] public float MinKitVolume = 0.02f; //m3
 
