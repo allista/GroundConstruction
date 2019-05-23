@@ -31,7 +31,8 @@ namespace GroundConstruction
         public int ConstructDockingNode = -1;
         ConstructDockingNode construct_docking_node;
 
-        Bounds get_construction_bounds() => ConstructDockingNode >= 0 && kit.DockingPossible
+        Bounds get_deployed_bounds() => 
+        ConstructDockingNode >= 0 && kit.DockingPossible
             ? kit.GetBoundsForDocking(ConstructDockingNode)
             : kit.ShipMetric.bounds;
 
@@ -122,7 +123,7 @@ namespace GroundConstruction
 
         protected override Vector3 get_deployed_offset() => SpawnManager.GetSpawnOffset(Size);
 
-        protected override Vector3 get_deployed_size() => get_construction_bounds().size;
+        protected override Vector3 get_deployed_size() => get_deployed_bounds().size;
 
         protected override void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
         {
@@ -380,7 +381,7 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var bounds = get_construction_bounds();
+            var bounds = get_deployed_bounds();
             var docking_offset = construct_docking_node != null ? construct_docking_node.DockingOffset : Vector3.zero;
             yield return
                 StartCoroutine(vessel_spawner
