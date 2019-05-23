@@ -138,5 +138,6 @@
     <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg" />
     <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg" />
     <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Plugins\PluginData\GroundConstruction\GroundConstruction.glob" />
   </ItemGroup>
 </Project>
