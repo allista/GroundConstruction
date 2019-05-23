@@ -55,7 +55,7 @@ namespace GroundConstruction
                 //Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
                 Mass.Add(frac, kit_mass);
                 Cost.Add(frac, kit_cost);
-                SetStageComplete(ASSEMBLY, true);
+                SetStageComplete(ASSEMBLY, assembled);
             }
         }
 
