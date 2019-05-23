@@ -248,7 +248,8 @@ namespace GroundConstruction
         {
             yRotation = (YRotation)(((int)yRotation + delta) % Enum.GetNames(typeof(YRotation)).Length);
             if(yRotation < 0) yRotation = 0;
-            GroundConstructionScenario.ShowDeployHint = true;
+            create_deploy_hint_mesh();
+            ShowDeployHint = true;
         }
 
         [KSPEvent(guiName = "Rotate launch direction", guiActive = true, guiActiveEditor = true, active = true)]
@@ -492,7 +493,7 @@ namespace GroundConstruction
             GUILayout.BeginHorizontal(Styles.white);
             GUILayout.Label("Launch orientation:");
             GUILayout.FlexibleSpace();
-            Utils.ButtonSwitch("Show", ref GroundConstructionScenario.ShowDeployHint);
+            Utils.ButtonSwitch("Show", ref ShowDeployHint);
             if(state == DeplyomentState.IDLE)
             {
                 var choice = Utils.LeftRightChooser(yRotation.ToString(), width:160);
