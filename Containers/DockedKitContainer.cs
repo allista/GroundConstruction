@@ -124,6 +124,13 @@ namespace GroundConstruction
 
         protected override Vector3 get_deployed_size() => get_construction_bounds().size;
 
+        protected override void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        {
+            if(construct_docking_node != null)
+                offset -= construct_docking_node.DockingOffset;
+            base.update_kit_hull_mesh(deployT, offset, show);
+        }
+
         Part get_construction_part()
         {
             var cpart = construction_node.attachedPart;

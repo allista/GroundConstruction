@@ -31,6 +31,9 @@ namespace GroundConstruction
         protected ShipConstructLoader construct_loader;
         protected VesselSpawner vessel_spawner;
 
+        protected MeshFilter kit_hull_mesh;
+        static readonly Color kit_hull_color = new Color { r = 0, g = 1, b = 1, a = 0.25f };
+
         [KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
         public float KitMass;
 
@@ -80,6 +83,15 @@ namespace GroundConstruction
             resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
+            //add kit hull mesh
+            var obj = new GameObject("KitHullMesh", typeof(MeshFilter), typeof(MeshRenderer));
+            obj.transform.SetParent(gameObject.transform);
+            kit_hull_mesh = obj.GetComponent<MeshFilter>();
+            var renderer = obj.GetComponent<MeshRenderer>();
+            renderer.material = Utils.no_z_material;
+            renderer.material.color = kit_hull_color;
+            renderer.enabled = true;
+            obj.SetActive(false);
         }
 
         protected override void OnDestroy()
@@ -339,6 +351,38 @@ namespace GroundConstruction
                 return false;
             }
             return true;
+        }
+
+        protected override void create_deploy_hint_mesh()
+        {
+            base.create_deploy_hint_mesh();
+            if(kit)
+            {
+                var mesh = kit.ShipMetric.hull_mesh;
+                if(mesh != null)
+                    kit_hull_mesh.mesh = mesh;
+            }
+        }
+
+        protected virtual void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        {
+            if(show && deployT != null)
+            {
+                var T = kit_hull_mesh.gameObject.transform;
+                offset -= kit.ShipMetric.center;
+                offset += new Vector3(0, kit.ShipMetric.bounds.size.y/2, 0);
+                T.position = deployT.position + deployT.TransformDirection(offset);
+                T.rotation = deployT.rotation;
+                kit_hull_mesh.gameObject.SetActive(true);
+            }
+            else
+                kit_hull_mesh.gameObject.SetActive(false);
+        }
+
+        protected override void update_deploy_hint(bool show)
+        {
+            base.update_deploy_hint(show);
+            update_kit_hull_mesh(get_deploy_transform(), get_deployed_offset(), show);
         }
 
         protected override IEnumerable prepare_deployment()
