@@ -62,7 +62,7 @@ namespace GroundConstruction
         protected override Vector3 get_deployed_size()
         {
             var size = kit.ShipMetric.size;
-            if(Facility == EditorFacility.SPH) 
+            if(Facility == EditorFacility.SPH)
                 size = new Vector3(size.x, size.z, size.y);
             return size;
         }
@@ -140,7 +140,7 @@ namespace GroundConstruction
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
         }
         #endregion
-        
+
         #region Launching
         protected override bool can_launch()
         {
@@ -167,10 +167,10 @@ namespace GroundConstruction
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
             var launch_transform = get_deploy_transform();
-            yield return 
+            yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
-                                                           null, 
+                                                           null,
                                                            on_vessel_loaded,
                                                            null,
                                                            on_vessel_launched,
@@ -178,7 +178,7 @@ namespace GroundConstruction
         }
         #endregion
 
-        #if DEBUG
+#if DEBUG
         void OnRenderObject()
         {
             if(vessel == null || spawn_transforms == null) return;
@@ -190,6 +190,6 @@ namespace GroundConstruction
                 Utils.GLVec(T.position, T.right, Color.red);
             }
         }
-        #endif
+#endif
     }
 }
