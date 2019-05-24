@@ -177,7 +177,7 @@ namespace GroundConstruction
                   active = false)]
         public void ShowResources()
         {
-            if(kit)
+            if(kit && kit.AdditionalResources.Count > 0)
             {
                 resource_manifest_view.Title = kit.Name + " requires";
                 resource_manifest_view.Toggle();
@@ -210,7 +210,8 @@ namespace GroundConstruction
             Facility = construct.shipFacility;
             StoreKit(new VesselKit(this, construct));
             construct.Unload();
-            resource_manifest_view.Show(true);
+            if(kit.AdditionalResources.Count > 0)
+                resource_manifest_view.Show(true);
         }
 
         void update_resources_view()
