@@ -114,13 +114,16 @@ namespace GroundConstruction
                    ShipMetric.bounds.size + DockingNodes[node_idx].DockingOffset.AbsComponents());
 
         public VesselKit() { id = Guid.NewGuid(); }
-        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
+        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true, bool simulate = false)
             : this()
         {
             Host = host;
             Name = Localizer.Format(ship.shipName);
-            strip_resources(ship, assembled);
-            Blueprint = ship.SaveShip();
+            if(!simulate)
+            {
+                strip_resources(ship, assembled);
+                Blueprint = ship.SaveShip();
+            }
             count_kit_resources(ship);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship);

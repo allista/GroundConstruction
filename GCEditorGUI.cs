@@ -17,13 +17,19 @@ namespace GroundConstruction
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class GCEditorGUI : AddonWindowBase<GCEditorGUI>
     {
-        DockingNodeList DockingNodes = new DockingNodeList();
+        VesselKit AssembleKit;
+        VesselKit ConstructionKit;
+        DockingNodeList DockingNodes => AssembleKit?.DockingNodes;
         bool update;
 
         bool highlight_all;
         ConstructDockingNode highlight_node = null;
         Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
-        bool all_highlighted => highlighted_parts.Count > 0 && highlighted_parts.Count == DockingNodes.Count;
+
+        bool all_highlighted =>
+        highlighted_parts.Count > 0
+        && AssembleKit != null
+            && highlighted_parts.Count == AssembleKit.DockingNodes.Count;
 
         public override void Awake()
         {
@@ -77,7 +83,10 @@ namespace GroundConstruction
                 highlight_all = all_highlighted;
                 disable_highlights();
                 if(ship != null)
-                    DockingNodes = VesselKit.FindDockingNodes(ship);
+                {
+                    AssembleKit = new VesselKit(null, ship, false, true);
+                    ConstructionKit = new VesselKit(null, ship, true, true);
+                }
                 update = false;
             }
             if(highlight_node != null)
@@ -129,6 +138,16 @@ namespace GroundConstruction
         void attach_nodes_pane()
         {
             GUILayout.BeginVertical(Styles.white);
+            if(AssembleKit != null)
+            {
+                GUILayout.Label("Assembly requirements", Styles.label, GUILayout.ExpandWidth(true));
+                AssembleKit.Draw();
+            }
+            if(ConstructionKit != null)
+            {
+                GUILayout.Label("Construction requirements", Styles.label, GUILayout.ExpandWidth(true));
+                ConstructionKit.Draw();
+            }
             GUILayout.Label("Attach nodes for docked construction", Styles.label, GUILayout.ExpandWidth(true));
             if(GUILayout.Button("Highight all nodes",
                                 all_highlighted ? Styles.enabled_button : Styles.active_button,
