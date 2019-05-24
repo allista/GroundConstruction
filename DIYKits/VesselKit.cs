@@ -97,7 +97,7 @@ namespace GroundConstruction
                         {
                             nodes.Add(new ConstructDockingNode
                             {
-                                Name = string.Format("{0} #{1} ({2})", p.Title(), p.craftID, n.id),
+                                Name = string.Format("{0} {1:X} ({2})", p.Title(), p.craftID, n.id),
                                 PartId = p.craftID,
                                 NodeId = n.id,
                                 DockingOffset = delta
