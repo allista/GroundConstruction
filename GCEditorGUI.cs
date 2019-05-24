@@ -23,7 +23,7 @@ namespace GroundConstruction
         bool update;
 
         bool highlight_all;
-        ConstructDockingNode highlight_node = null;
+        ConstructDockingNode highlight_node;
         Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
 
         bool all_highlighted =>

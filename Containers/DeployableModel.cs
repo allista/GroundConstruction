@@ -39,6 +39,7 @@ namespace GroundConstruction
         protected MeshFilter deploy_hint_mesh;
         protected static readonly Color deploy_hint_color = new Color(0, 1, 0, 0.25f);
 
+        public abstract string Name { get; }
         [KSPField] public string MetricMesh = string.Empty;
         [KSPField] public Vector3 MinSize = new Vector3(0.5f, 0.5f, 0.5f);
 
@@ -407,8 +408,6 @@ namespace GroundConstruction
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
         }
-
-        public abstract string Name { get; }
 
         protected abstract bool can_deploy();
 
