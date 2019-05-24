@@ -20,7 +20,7 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)]
         public YRotation yRotation = YRotation.Forward;
 
-        [KSPField(isPersistant = true)] 
+        [KSPField(isPersistant = true)]
         public EditorFacility Facility;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
@@ -46,7 +46,7 @@ namespace GroundConstruction
         [KSPField(guiName = "Resources required", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
         public float KitRes;
 
-        [KSPField(isPersistant = true)] 
+        [KSPField(isPersistant = true)]
         public VesselKit kit = new VesselKit();
 
         public VesselKit GetKit(Guid id) { return kit.id == id ? kit : null; }
@@ -508,7 +508,7 @@ namespace GroundConstruction
             Utils.ButtonSwitch("Show", ref ShowDeployHint);
             if(state == DeplyomentState.IDLE)
             {
-                var choice = Utils.LeftRightChooser(yRotation.ToString(), width:160);
+                var choice = Utils.LeftRightChooser(yRotation.ToString(), width: 160);
                 if(choice != 0)
                     shift_Y_rotation(choice);
             }

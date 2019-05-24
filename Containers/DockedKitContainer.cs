@@ -24,14 +24,14 @@ namespace GroundConstruction
         protected ModuleDockingNode construction_port;
         protected AttachNode recipient_node;
 
-        [KSPField(guiActive = true, guiName ="Kit Dockable")]
+        [KSPField(guiActive = true, guiName = "Kit Dockable")]
         public bool DockableDisplay;
 
         [KSPField(isPersistant = true)]
         public int ConstructDockingNode = -1;
         ConstructDockingNode construct_docking_node;
 
-        Bounds get_deployed_bounds() => 
+        Bounds get_deployed_bounds() =>
         ConstructDockingNode >= 0 && kit.DockingPossible
             ? kit.GetBoundsForDocking(ConstructDockingNode)
             : kit.ShipMetric.bounds;
@@ -178,7 +178,7 @@ namespace GroundConstruction
         protected override IEnumerable prepare_deployment()
         {
             update_part_info();
-            foreach(var i in base.prepare_deployment()) 
+            foreach(var i in base.prepare_deployment())
                 yield return i;
         }
 
@@ -215,7 +215,7 @@ namespace GroundConstruction
                 }
             }
             else if(ConstructDockingNode >= 0)
-                GUILayout.Label("Dock "+ construct_docking_node,
+                GUILayout.Label("Dock " + construct_docking_node,
                                 Styles.enabled, GUILayout.ExpandWidth(false));
             else
                 GUILayout.Label(launch_label,
@@ -230,7 +230,7 @@ namespace GroundConstruction
                 if(choice != 0)
                 {
                     ConstructDockingNode = (ConstructDockingNode + choice) % kit.DockingNodes.Count;
-                    if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count-1;
+                    if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count - 1;
                     construct_docking_node = kit.DockingNodes[ConstructDockingNode];
                     update_part_events();
                     create_deploy_hint_mesh();
@@ -289,8 +289,8 @@ namespace GroundConstruction
                     }
                 }
             }
-            if(best_node != null 
-               && best_node.attachedPart != null 
+            if(best_node != null
+               && best_node.attachedPart != null
                && best_node.attachedPart != part)
                 best_node = null;
             return best_node;

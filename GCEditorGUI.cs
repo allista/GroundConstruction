@@ -157,7 +157,7 @@ namespace GroundConstruction
             foreach(var n in DockingNodes)
             {
                 if(GUILayout.Button(n.ToString(),
-                                    highlighted_parts.ContainsKey(n.PartId)? Styles.active : Styles.white, 
+                                    highlighted_parts.ContainsKey(n.PartId) ? Styles.active : Styles.white,
                                     GUILayout.ExpandWidth(true)))
                     highlight_node = n;
             }

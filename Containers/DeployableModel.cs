@@ -352,10 +352,10 @@ namespace GroundConstruction
         protected void update_deploy_hint() =>
         update_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
 
-        protected Vector3 metric_to_part_scale => 
+        protected Vector3 metric_to_part_scale =>
         Vector3.Scale(OrigPartSize, OrigSize.Inverse());
 
-        protected Vector3 get_deployed_part_size() => 
+        protected Vector3 get_deployed_part_size() =>
         Vector3.Scale(get_deployed_size(), metric_to_part_scale);
 
         protected Bounds get_deployed_part_bounds(bool to_model_space)
