@@ -182,60 +182,61 @@ namespace GroundConstruction
                 yield return i;
         }
 
-        public override bool IsConfigurable => kit && kit.DockingPossible;
-
         static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
         static readonly GUIContent docked_label = new GUIContent("Dock", "Dock the constructed vessel to the main vessel after launch.");
         public override void DrawOptions()
         {
             GUILayout.BeginVertical();
             base.DrawOptions();
-            GUILayout.BeginHorizontal(Styles.white);
-            GUILayout.Label("After construction:");
-            GUILayout.FlexibleSpace();
-            if(state == DeplyomentState.IDLE)
-            {
-                var old_value = ConstructDockingNode;
-                if(Utils.ButtonSwitch(launch_label, ConstructDockingNode < 0,
-                                      GUILayout.ExpandWidth(false)))
-                {
-                    ConstructDockingNode = -1;
-                    construct_docking_node = null;
-                }
-                if(Utils.ButtonSwitch(docked_label, ConstructDockingNode >= 0,
-                                      GUILayout.ExpandWidth(false)))
-                {
-                    ConstructDockingNode = 0;
-                    construct_docking_node = kit.DockingNodes[0];
-                }
-                if(ConstructDockingNode != old_value)
-                {
-                    update_part_events();
-                    create_deploy_hint_mesh();
-                }
-            }
-            else if(ConstructDockingNode >= 0)
-                GUILayout.Label("Dock " + construct_docking_node,
-                                Styles.enabled, GUILayout.ExpandWidth(false));
-            else
-                GUILayout.Label(launch_label,
-                                Styles.enabled, GUILayout.ExpandWidth(false));
-            GUILayout.EndHorizontal();
-            if(state == DeplyomentState.IDLE && ConstructDockingNode >= 0)
+            if(kit.DockingPossible)
             {
                 GUILayout.BeginHorizontal(Styles.white);
-                GUILayout.Label("Dock via:");
+                GUILayout.Label("After construction:");
                 GUILayout.FlexibleSpace();
-                var choice = Utils.LeftRightChooser(construct_docking_node.ToString());
-                if(choice != 0)
+                if(state == DeplyomentState.IDLE)
                 {
-                    ConstructDockingNode = (ConstructDockingNode + choice) % kit.DockingNodes.Count;
-                    if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count - 1;
-                    construct_docking_node = kit.DockingNodes[ConstructDockingNode];
-                    update_part_events();
-                    create_deploy_hint_mesh();
+                    var old_value = ConstructDockingNode;
+                    if(Utils.ButtonSwitch(launch_label, ConstructDockingNode < 0,
+                                          GUILayout.ExpandWidth(false)))
+                    {
+                        ConstructDockingNode = -1;
+                        construct_docking_node = null;
+                    }
+                    if(Utils.ButtonSwitch(docked_label, ConstructDockingNode >= 0,
+                                          GUILayout.ExpandWidth(false)))
+                    {
+                        ConstructDockingNode = 0;
+                        construct_docking_node = kit.DockingNodes[0];
+                    }
+                    if(ConstructDockingNode != old_value)
+                    {
+                        update_part_events();
+                        create_deploy_hint_mesh();
+                    }
                 }
+                else if(ConstructDockingNode >= 0)
+                    GUILayout.Label("Dock " + construct_docking_node,
+                                    Styles.enabled, GUILayout.ExpandWidth(false));
+                else
+                    GUILayout.Label(launch_label,
+                                    Styles.enabled, GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
+                if(state == DeplyomentState.IDLE && ConstructDockingNode >= 0)
+                {
+                    GUILayout.BeginHorizontal(Styles.white);
+                    GUILayout.Label("Dock via:");
+                    GUILayout.FlexibleSpace();
+                    var choice = Utils.LeftRightChooser(construct_docking_node.ToString());
+                    if(choice != 0)
+                    {
+                        ConstructDockingNode = (ConstructDockingNode + choice) % kit.DockingNodes.Count;
+                        if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count - 1;
+                        construct_docking_node = kit.DockingNodes[ConstructDockingNode];
+                        update_part_events();
+                        create_deploy_hint_mesh();
+                    }
+                    GUILayout.EndHorizontal();
+                }
             }
             GUILayout.EndVertical();
         }
@@ -245,7 +246,7 @@ namespace GroundConstruction
                   guiActive = true, guiActiveEditor = true)]
         public void ToggleDockedConstruction()
         {
-            if(state == DeplyomentState.IDLE && IsConfigurable)
+            if(state == DeplyomentState.IDLE && kit && kit.DockingPossible)
             {
                 ConstructDockingNode += 1;
                 if(ConstructDockingNode < kit.DockingNodes.Count)
