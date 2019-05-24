@@ -153,7 +153,7 @@ namespace GroundConstruction
                                 all_highlighted ? Styles.enabled_button : Styles.active_button,
                                 GUILayout.ExpandWidth(true)))
                 highlight_all = true;
-            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(150));
+            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(100));
             foreach(var n in DockingNodes)
             {
                 if(GUILayout.Button(n.ToString(),
