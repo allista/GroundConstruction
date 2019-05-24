@@ -392,6 +392,7 @@ namespace GroundConstruction
                                                    get_deployed_offset()
                                                    - bounds.center
                                                    - docking_offset
+                                                   + new Vector3(0, bounds.extents.y, 0)
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
                                                    null,
