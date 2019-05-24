@@ -333,7 +333,7 @@ namespace GroundConstruction
             {
                 var T = kit_hull_mesh.gameObject.transform;
                 offset -= kit.ShipMetric.center;
-                offset += new Vector3(0, kit.ShipMetric.bounds.size.y/2, 0);
+                offset += new Vector3(0, kit.ShipMetric.bounds.extents.y, 0);
                 T.position = deployT.position + deployT.TransformDirection(offset);
                 T.rotation = deployT.rotation;
                 kit_hull_mesh.gameObject.SetActive(true);
