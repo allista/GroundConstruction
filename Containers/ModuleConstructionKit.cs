@@ -39,13 +39,19 @@ namespace GroundConstruction
         protected override Transform get_deploy_transform_unrotated()
         {
             Transform minT = null;
-            if(vessel != null)
+            var alt = double.MaxValue;
+            for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
             {
-                var alt = double.MaxValue;
-                foreach(var T in spawn_transforms)
+                var T = spawn_transforms[i];
+                double t_alt;
+                if(vessel != null)
+                    t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
+                else
+                    t_alt = T.position.y;
+                if(t_alt < alt)
                 {
-                    var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
-                    if(t_alt < alt) { alt = t_alt; minT = T; }
+                    alt = t_alt;
+                    minT = T;
                 }
             }
             return minT ?? part.transform;
