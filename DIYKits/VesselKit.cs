@@ -31,6 +31,8 @@ namespace GroundConstruction
             ? DockingNodes[node_idx].GetDockingNode(vsl)
             : null;
 
+        [Persistent] public float KitResourcesMass;
+        [Persistent] public float KitResourcesCost;
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
         [Persistent] public bool HasLaunchClamps;
@@ -59,6 +61,22 @@ namespace GroundConstruction
             else
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(AdditionalResources.Strip));
+        }
+
+        void count_kit_resources(IShipconstruct ship)
+        {
+            KitResourcesCost = KitResourcesMass = 0f;
+            ship.Parts.ForEach(p =>
+                               p.Resources.ForEach(res =>
+            {
+                var amount = (float)res.amount;
+                var info = res.info;
+                if(info != null)
+                {
+                    KitResourcesMass += amount * info.density;
+                    KitResourcesCost += amount * info.unitCost;
+                }
+            }));
         }
 
         public static DockingNodeList FindDockingNodes(IShipconstruct ship)
@@ -103,6 +121,7 @@ namespace GroundConstruction
             Name = Localizer.Format(ship.shipName);
             strip_resources(ship, assembled);
             Blueprint = ship.SaveShip();
+            count_kit_resources(ship);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
@@ -119,7 +138,7 @@ namespace GroundConstruction
             {
                 var parts = 0f;
                 Jobs.ForEach(p => parts += p.Mass);
-                return ResourcesMass + parts;
+                return KitResourcesMass + ResourcesMass + parts;
             }
         }
 
@@ -129,7 +148,7 @@ namespace GroundConstruction
             {
                 var parts = 0f;
                 Jobs.ForEach(p => parts += p.Cost);
-                return ResourcesCost + parts;
+                return KitResourcesCost + ResourcesCost + parts;
             }
         }
 
@@ -137,14 +156,14 @@ namespace GroundConstruction
         {
             var parts = 0f;
             Jobs.ForEach(p => parts += p.MassAtStage(stage));
-            return parts;
+            return KitResourcesMass + parts;
         }
 
         public float CostAtStage(int stage)
         {
             var parts = 0f;
             Jobs.ForEach(p => parts += p.CostAtStage(stage));
-            return parts;
+            return KitResourcesCost + parts;
         }
 
         public double CurrentTaskETA
