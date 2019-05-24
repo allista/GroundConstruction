@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
 using System.Collections;
-using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -297,35 +296,6 @@ namespace GroundConstruction
             return T;
         }
 
-        bool same_vessel_collision_if_deployed()
-        {
-            var B = get_deployed_part_bounds(true);
-            this.Log("Deployed bounds: {}", B);//debug
-            for(int i = 0, vesselPartsCount = vessel.Parts.Count; i < vesselPartsCount; i++)
-            {
-                var p = vessel.Parts[i];
-                if(p == part) continue;
-                //if(p.parent == part || part.parent == p) continue;
-                this.Log("Checking part: {}", p.GetID());//debug
-                var pM = new Metric(p, true, true);
-                for(int j = 0, pMhullPointsCount = pM.hull.Points.Count; j < pMhullPointsCount; j++)
-                {
-                    var c = pM.hull.Points[j];
-                    var lc = model.InverseTransformPoint(c);
-                    if(B.Contains(lc))
-                    {
-                        p.HighlightAlways(Colors.Danger.color);
-                        StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
-                        ShowDeployHint = true;
-                        WorldSpaceTrace.Create(c, p.partTransform, 0.2f);
-                        this.Log("ConvexHull of {} intersect with deployment", p.GetID());//debug
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         protected override bool can_deploy()
         {
             if(Empty)
@@ -336,11 +306,6 @@ namespace GroundConstruction
             if(vessel.packed)
             {
                 Utils.Message("Cannot deploy a packed construction kit.");
-                return false;
-            }
-            if(same_vessel_collision_if_deployed())
-            {
-                Utils.Message("Other parts of the vessel are in the way.\nCheck deployment hint!");
                 return false;
             }
             return true;

@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -242,7 +243,7 @@ namespace GroundConstruction
             base.OnAwake();
             warning = gameObject.AddComponent<SimpleWarning>();
             warning.Message = "Deployment cannot be undone.\nAre you sure?";
-            warning.yesCallback = do_deploy;
+            warning.yesCallback = start_deployment;
             model = part.transform.Find("model");
             //add deploy hints
             var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
@@ -411,6 +412,31 @@ namespace GroundConstruction
 
         protected abstract bool can_deploy();
 
+        bool same_vessel_collision_if_deployed()
+        {
+            var B = get_deployed_part_bounds(true);
+            for(int i = 0, vesselPartsCount = vessel.Parts.Count; i < vesselPartsCount; i++)
+            {
+                var p = vessel.Parts[i];
+                if(p == part) continue;
+                if(p.parent == part || part.parent == p) continue;
+                var pM = new Metric(p, true, true);
+                for(int j = 0, pMhullPointsCount = pM.hull.Points.Count; j < pMhullPointsCount; j++)
+                {
+                    var c = pM.hull.Points[j];
+                    var lc = model.InverseTransformDirection(c - model.position);
+                    if(B.Contains(lc))
+                    {
+                        p.HighlightAlways(Colors.Danger.color);
+                        StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
+                        ShowDeployHint = true;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         protected virtual IEnumerable prepare_deployment()
         {
             yield return null;
@@ -429,15 +455,29 @@ namespace GroundConstruction
             state = DeplyomentState.DEPLOYED;
         }
 
-        protected virtual void do_deploy()
+        protected void start_deployment()
         {
-            if(!can_deploy()) return;
             Utils.SaveGame(Name + "-before_deployment");
             state = DeplyomentState.DEPLOYING;
             StartCoroutine(deploy());
         }
 
-        public virtual void Deploy() => warning.Show(true);
+        public virtual void Deploy()
+        {
+            if(can_deploy())
+            {
+                if(same_vessel_collision_if_deployed())
+                {
+                    warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
+                        "if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
+                        "will not collide with anything when launched.\n" +
+                        Colors.Danger.Tag("Start the deployment?"),
+                    () => warning.Show(true));
+                }
+                else
+                    warning.Show(true);
+            }
+        }
         #endregion
 
         protected void update_unfocusedRange(params string[] events)
