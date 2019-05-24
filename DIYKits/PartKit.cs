@@ -42,7 +42,7 @@ namespace GroundConstruction
             {
                 Complexity = Mathf.Clamp01(1 - 1 / ((dry_cost / part.mass + GLB.IgnoreModules.SizeOfDifference(part.Modules) * 1000) * GLB.ComplexityFactor + 1));
                 var structure_mass = part.mass * Mathf.Clamp01(1 - Complexity);
-                var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost);
+                var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost*0.9f);
                 var kit_mass = part.mass - structure_mass;
                 var kit_cost = dry_cost - structure_cost;
                 Construction.TotalWork = total_work(Construction, structure_mass);
