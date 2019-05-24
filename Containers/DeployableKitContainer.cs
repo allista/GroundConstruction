@@ -72,6 +72,7 @@ namespace GroundConstruction
                 KitWork = (float)rem.work / 3600;
                 KitRes = (float)rem.resource_amount;
             }
+            update_part_events();
         }
 
         public override void OnAwake()
@@ -121,7 +122,6 @@ namespace GroundConstruction
             update_part_info();
             if(KitName == "None")
                 KitName = kit.Name;
-            update_resources_view();
         }
 
         #region IAssemblySpace
@@ -214,7 +214,7 @@ namespace GroundConstruction
                 resource_manifest_view.Show(true);
         }
 
-        void update_resources_view()
+        protected virtual void update_part_events()
         {
             if(kit && kit.AdditionalResources.Count > 0)
             {
@@ -235,7 +235,6 @@ namespace GroundConstruction
             update_size(slow);
             create_deploy_hint_mesh();
             update_deploy_hint();
-            update_resources_view();
             if(HighLogic.LoadedSceneIsEditor ||
                !GroundConstructionScenario.ShowDeployHint)
                 deploy_hint_mesh.gameObject.SetActive(false);

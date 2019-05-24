@@ -65,8 +65,9 @@ namespace GroundConstruction
                 construct_docking_node = kit.DockingNodes[ConstructDockingNode];
         }
 
-        void update_part_events()
+        protected override void update_part_events()
         {
+            base.update_part_events();
             var evt = Events[nameof(ToggleDockedConstruction)];
             if(construct_docking_node != null)
             {
@@ -85,7 +86,6 @@ namespace GroundConstruction
                 ConstructDockingNode = -1;
                 construct_docking_node = null;
             }
-            update_part_events();
         }
 
         #region Deployment
