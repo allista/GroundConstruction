@@ -135,7 +135,7 @@ namespace GroundConstruction
         }
 
         Vector2 scroll;
-        void attach_nodes_pane()
+        void draw(int windowId)
         {
             GUILayout.BeginVertical(Styles.white);
             if(AssembleKit != null)
@@ -163,11 +163,6 @@ namespace GroundConstruction
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
-        }
-
-        void draw(int windowId)
-        {
-            attach_nodes_pane();
             TooltipsAndDragWindow();
         }
 
