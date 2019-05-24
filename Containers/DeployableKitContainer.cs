@@ -348,6 +348,7 @@ namespace GroundConstruction
 
         protected override void update_deploy_hint(bool show)
         {
+            show &= kit;
             base.update_deploy_hint(show);
             update_kit_hull_mesh(get_deploy_transform(), get_deployed_offset(), show);
         }
