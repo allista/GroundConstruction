@@ -270,7 +270,9 @@ namespace GroundConstruction
             ShowDeployHint = true;
         }
 
-        [KSPEvent(guiName = "Rotate launch direction", guiActive = true, guiActiveEditor = true, active = true)]
+        [KSPEvent(guiName = "Rotate launch direction",
+                  guiActiveUnfocused = true, unfocusedRange = 10,
+                  guiActive = true, guiActiveEditor = true, active = true)]
         public void RotateSpawnOrientation()
         {
             if(kit && state == DeplyomentState.IDLE)

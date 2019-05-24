@@ -240,7 +240,9 @@ namespace GroundConstruction
             GUILayout.EndVertical();
         }
 
-        [KSPEvent(guiName = "After construction", guiActive = true, guiActiveEditor = true)]
+        [KSPEvent(guiName = "After construction",
+                  guiActiveUnfocused = true, unfocusedRange = 10,
+                  guiActive = true, guiActiveEditor = true)]
         public void ToggleDockedConstruction()
         {
             if(state == DeplyomentState.IDLE && IsConfigurable)
