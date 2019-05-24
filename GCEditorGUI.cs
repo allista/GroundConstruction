@@ -18,7 +18,7 @@ namespace GroundConstruction
     public class GCEditorGUI : AddonWindowBase<GCEditorGUI>
     {
         DockingNodeList DockingNodes = new DockingNodeList();
-        bool update_nodes;
+        bool update;
 
         bool highlight_all;
         ConstructDockingNode highlight_node = null;
@@ -51,34 +51,34 @@ namespace GroundConstruction
 
         void Started()
         {
-            update_nodes = true;
+            update = true;
         }
 
         void Restart()
         {
-            update_nodes = true;
+            update = true;
         }
 
         void OnShipLoad(ShipConstruct ship, CraftBrowserDialog.LoadType load_type)
         {
-            update_nodes = true;
+            update = true;
         }
 
         void OnShipModified(ShipConstruct ship)
         {
-            update_nodes = true;
+            update = true;
         }
 
         void Update()
         {
             var ship = EditorLogic.fetch?.ship;
-            if(update_nodes)
+            if(update)
             {
                 highlight_all = all_highlighted;
                 disable_highlights();
                 if(ship != null)
                     DockingNodes = VesselKit.FindDockingNodes(ship);
-                update_nodes = false;
+                update = false;
             }
             if(highlight_node != null)
             {
