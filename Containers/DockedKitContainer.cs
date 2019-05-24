@@ -414,26 +414,5 @@ namespace GroundConstruction
             }
             base.Launch();
         }
-
-#if DEBUG
-        void OnRenderObject()
-        {
-            if(vessel == null) return;
-            var T = get_deploy_transform();
-            if(T != null)
-            {
-                var pos = T.position + T.TransformDirection(get_deployed_offset());
-                Utils.GLVec(pos, T.up, Color.green);
-                Utils.GLVec(pos, T.forward, Color.blue);
-                Utils.GLVec(pos, T.right, Color.red);
-            }
-            if(part.attachJoint != null)
-            {
-                var j = part.attachJoint;
-                if(j.Host != null)
-                    Utils.GLDrawPoint(j.Host.transform.TransformPoint(j.HostAnchor), Color.magenta);
-            }
-        }
-#endif
     }
 }
