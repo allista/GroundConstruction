@@ -199,6 +199,12 @@ namespace GroundConstruction
             construct_loader.SelectSubassembly();
         }
 
+        [KSPEvent(guiName = "Select Part", guiActive = false, guiActiveEditor = true, active = true)]
+        public void SelectPart()
+        {
+            construct_loader.SelectPart(part.flagURL);
+        }
+
         protected virtual void store_construct(ShipConstruct construct)
         {
             Facility = construct.shipFacility;
