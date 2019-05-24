@@ -288,7 +288,13 @@ namespace GroundConstruction
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
-            var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
+            var total_work = stage < StagesCount 
+                ? Jobs.Sum(j => 
+                {
+                    var cur_stage = j.CurrentStage;
+                    return cur_stage != null ? cur_stage.TotalWork : j.TotalWork;
+                }) 
+                : 1;
             return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible ? "(D)" : null);
         }
 
