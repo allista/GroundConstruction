@@ -235,9 +235,6 @@ namespace GroundConstruction
             update_size(slow);
             create_deploy_hint_mesh();
             update_deploy_hint();
-            if(HighLogic.LoadedSceneIsEditor ||
-               !GroundConstructionScenario.ShowDeployHint)
-                deploy_hint_mesh.gameObject.SetActive(false);
         }
 
         public void StoreKit(VesselKit kit, bool slow = false)
