@@ -185,19 +185,5 @@ namespace GroundConstruction
                                                            GLB.EasingFrames));
         }
         #endregion
-
-#if DEBUG
-        void OnRenderObject()
-        {
-            if(vessel == null || spawn_transforms == null) return;
-            var T = get_deploy_transform();
-            if(T != null)
-            {
-                Utils.GLVec(T.position, T.up, Color.green);
-                Utils.GLVec(T.position, T.forward, Color.blue);
-                Utils.GLVec(T.position, T.right, Color.red);
-            }
-        }
-#endif
     }
 }
