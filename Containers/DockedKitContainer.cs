@@ -333,7 +333,7 @@ namespace GroundConstruction
                 }
                 FXMonger.Explode(part, construction_node_pos, 0);
                 var docking_part = docking_node.owner;
-                this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());//debug
+                this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());
                 var old_vessel = construction_part.vessel;
                 // vessels' position and rotation
                 construction_part.vessel.SetPosition(construction_part.vessel.transform.position, true);
@@ -378,7 +378,8 @@ namespace GroundConstruction
                 FlightInputHandler.SetNeutralControls();
                 GameEvents.onVesselWasModified.Fire(construction_part.vessel);
                 recipient_node = null;
-                this.Log("Docked {} to {}, new vessel {}", docking_part, construction_part, construction_part.vessel.GetID());//debug
+                this.Log("Docked {} to {}, new vessel {}", 
+                         docking_part, construction_part, construction_part.vessel.GetID());
             }
         }
 
