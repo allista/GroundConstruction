@@ -19,10 +19,9 @@ namespace GroundConstruction
 
         ATGroundAnchor anchor;
 
-        public override void OnStart(StartState state)
+        public override void OnAwake()
         {
-            base.OnStart(state);
-            anchor = part.FindModuleImplementing<ATGroundAnchor>();
+            base.OnAwake();
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
@@ -35,23 +34,32 @@ namespace GroundConstruction
             }
         }
 
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            anchor = part.FindModuleImplementing<ATGroundAnchor>();
+        }
+
         #region Deployment
         protected override Transform get_deploy_transform_unrotated()
         {
             Transform minT = null;
-            var alt = double.MaxValue;
-            for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
+            if(spawn_transforms != null)
             {
-                var T = spawn_transforms[i];
-                double t_alt;
-                if(vessel != null)
-                    t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
-                else
-                    t_alt = T.position.y;
-                if(t_alt < alt)
+                var alt = double.MaxValue;
+                for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
                 {
-                    alt = t_alt;
-                    minT = T;
+                    var T = spawn_transforms[i];
+                    double t_alt;
+                    if(vessel != null)
+                        t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
+                    else
+                        t_alt = T.position.y;
+                    if(t_alt < alt)
+                    {
+                        alt = t_alt;
+                        minT = T;
+                    }
                 }
             }
             return minT ?? part.transform;
