@@ -79,10 +79,10 @@ namespace GroundConstruction
             }));
         }
 
-        public static DockingNodeList FindDockingNodes(IShipconstruct ship)
+        public static DockingNodeList FindDockingNodes(IShipconstruct ship, Metric ship_metric)
         {
             var nodes = new DockingNodeList();
-            var bounds = ship.Bounds();
+            var bounds = ship_metric.bounds;
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
             foreach(var p in ship.Parts)
             {
@@ -126,7 +126,7 @@ namespace GroundConstruction
             }
             count_kit_resources(ship);
             ShipMetric = new Metric(ship, true, true);
-            DockingNodes = FindDockingNodes(ship);
+            DockingNodes = FindDockingNodes(ship, ShipMetric);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();
