@@ -1,10 +1,21 @@
 #Ground Construction ChangeLog
 
-* **v2.3.2**
+* **v2.4 -- Incremental Station Construction**
+    * Vessels constructed inside Orbital Kit Container **can be docked to the main vessel instead of the container** when launched.
+    * **Orientation of deployment/spawning can be changed** (_in 90 degrees steps around Up axis_) from the container's part menu and from the workshop UI.
+    * **Added in-editor information window** that shows assembly/construction requirements for the current ship, and shows bottom-most attach nodes available for docked construction.
+    * **Deployment hint shows silhouette** of the vessel that will be constructed in addition to the size of the deployed container.
+    *  **Deployment hint may be shown/hidden per container.**
+    * Added part menu button to add a single part to the container in editor.
+    * Added warnings that prevent accidental deployment.
+    * Corrected Vessel/PartKit requirements calculations. Now resources that are not stripped away when a kit is created do not contribute to complexity and construction resource requirements.
+    * A PartKit costs at least dry-part-cost*0.1.
+    * Fixed kit resizing on kit creation/deployment in flight.
+
+* v2.3.2
     * Made docked deployment compatible with **auto struts** and **Kerbal Joint Reinforcement Next >=4.0.1**
     * Added ability to change UI color scheme at runtime
         * To access the Color Scheme dialog, **right-click the GC toolbar button**
-
 
 * v2.3.1
     * Excluded some pure-technical part modules (like ModuleTestSubject and ModuleOverheatDisplay) from DIY kit complexity calculation, which decreases both SpecializedParts and SKH build costs of many kits. _**Note** for modders: the excluded part modules are listed in the IgnoreModules.cfg and could be added/changed using MM._
