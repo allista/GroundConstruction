@@ -5,7 +5,6 @@
 //
 //  Copyright (c) 2016 Allis Tauri
 
-using System;
 using UnityEngine;
 using AT_Utils;
 
@@ -27,16 +26,13 @@ namespace GroundConstruction
             Name = part.partInfo.title;
             craftID = part.craftID;
             var is_DIY_Kit = part.Modules.Contains<DeployableKitContainer>();
-            var res_mass = part.GetResourceMass();
             var dry_cost = Mathf.Max(part.DryCost(), 0);
-            var part_mass = part.mass + res_mass;
-            var part_cost = dry_cost + part.ResourcesCost();
-            Mass.Add(1, part_mass);
-            Cost.Add(1, part_cost);
+            Mass.Add(1, part.mass);
+            Cost.Add(1, dry_cost);
             if(is_DIY_Kit)
             {
                 Complexity = 1;
-                Assembly.TotalWork = total_work(Assembly, part_mass);
+                Assembly.TotalWork = total_work(Assembly, part.mass);
                 Construction.TotalWork = 0;
                 update_total_work();
                 if(assembled)
@@ -44,24 +40,25 @@ namespace GroundConstruction
             }
             else
             {
-                Complexity = 1 - 1 / ((dry_cost / part.mass + GLB.IgnoreModules.SizeOfDifference(part.Modules) * 1000) * GLB.ComplexityFactor + 1);
-                var structure_mass = part.mass * (1 - Complexity);
-                var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost);
-                var kit_mass = part_mass - structure_mass;
-                var kit_cost = part_cost - structure_cost;
+                Complexity = Mathf.Clamp01(1 - 1 / ((dry_cost / part.mass + GLB.IgnoreModules.SizeOfDifference(part.Modules) * 1000) * GLB.ComplexityFactor + 1));
+                var structure_mass = part.mass * Mathf.Clamp01(1 - Complexity);
+                var structure_cost = Mathf.Min(structure_mass / GLB.ConstructionResource.def.density * GLB.ConstructionResource.def.unitCost, dry_cost*0.9f);
+                var kit_mass = part.mass - structure_mass;
+                var kit_cost = dry_cost - structure_cost;
                 Construction.TotalWork = total_work(Construction, structure_mass);
                 Assembly.TotalWork = total_work(Assembly, kit_mass);
                 update_total_work();
                 var frac = (float)(Assembly.TotalWork / TotalWork);
-                //Utils.Log("frac {}, kit_mass {}, kit_cost {}", frac, kit_mass, kit_cost);//debug
+                //Utils.Log("{}: C {}, frac {}, kit_mass {}, kit_cost {}", 
+                          //Complexity, Name, frac, kit_mass, kit_cost);//debug
                 Mass.Add(frac, kit_mass);
                 Cost.Add(frac, kit_cost);
-                SetStageComplete(ASSEMBLY, true);
+                SetStageComplete(ASSEMBLY, assembled);
             }
         }
 
         double total_work(JobStage task, double end_mass) =>
-        (Complexity * task.Resource.ComplexityWork + Construction.Resource.WorkPerMass) * end_mass * 3600;
+        (Complexity * task.Resource.ComplexityWork + task.Resource.WorkPerMass) * end_mass * 3600;
 
         //deprecated config conversion
         public override void Load(ConfigNode node)

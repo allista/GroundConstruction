@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 using AT_Utils;
 
 namespace GroundConstruction
@@ -21,6 +22,17 @@ namespace GroundConstruction
         [Persistent] public ConfigNode Blueprint;
         [Persistent] public Metric ShipMetric;
 
+        [Persistent] public DockingNodeList DockingNodes = new DockingNodeList();
+
+        public bool DockingPossible => DockingNodes.Count > 0;
+
+        public AttachNode GetDockingNode(Vessel vsl, int node_idx) =>
+        node_idx >= 0 && node_idx < DockingNodes.Count
+            ? DockingNodes[node_idx].GetDockingNode(vsl)
+            : null;
+
+        [Persistent] public float KitResourcesMass;
+        [Persistent] public float KitResourcesCost;
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
         [Persistent] public bool HasLaunchClamps;
@@ -48,18 +60,73 @@ namespace GroundConstruction
             }));
             else
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(r => AdditionalResources.Strip(r)));
+                                   p.Resources.ForEach(AdditionalResources.Strip));
         }
 
+        void count_kit_resources(IShipconstruct ship)
+        {
+            KitResourcesCost = KitResourcesMass = 0f;
+            ship.Parts.ForEach(p =>
+                               p.Resources.ForEach(res =>
+            {
+                var amount = (float)res.amount;
+                var info = res.info;
+                if(info != null)
+                {
+                    KitResourcesMass += amount * info.density;
+                    KitResourcesCost += amount * info.unitCost;
+                }
+            }));
+        }
+
+        public static DockingNodeList FindDockingNodes(IShipconstruct ship, Metric ship_metric)
+        {
+            var nodes = new DockingNodeList();
+            var bounds = ship_metric.bounds;
+            var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
+            foreach(var p in ship.Parts)
+            {
+                foreach(var n in p.attachNodes)
+                {
+                    if(n.attachedPart != null) continue;
+                    var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
+                    if(Vector3.Dot(Vector3.down, orientation) > GLB.MaxDockingCos)
+                    {
+                        var delta = p.partTransform.TransformPoint(n.position) - bottom_center;
+                        if(delta.y < GLB.MaxDockingDist)
+                        {
+                            nodes.Add(new ConstructDockingNode
+                            {
+                                Name = string.Format("{0} {1:X} ({2})", p.Title(), p.craftID, n.id),
+                                PartId = p.craftID,
+                                NodeId = n.id,
+                                DockingOffset = delta
+                            });
+                        }
+                    }
+                }
+            }
+            return nodes;
+        }
+
+        public Bounds GetBoundsForDocking(int node_idx) =>
+        new Bounds(ShipMetric.bounds.center,
+                   ShipMetric.bounds.size + DockingNodes[node_idx].DockingOffset.AbsComponents());
+
         public VesselKit() { id = Guid.NewGuid(); }
-        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true)
+        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true, bool simulate = false)
             : this()
         {
             Host = host;
-            Name = ship.shipName;
-            strip_resources(ship, assembled);
-            Blueprint = ship.SaveShip();
+            Name = Localizer.Format(ship.shipName);
+            if(!simulate)
+            {
+                strip_resources(ship, assembled);
+                Blueprint = ship.SaveShip();
+            }
+            count_kit_resources(ship);
             ShipMetric = new Metric(ship, true, true);
+            DockingNodes = FindDockingNodes(ship, ShipMetric);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();
@@ -74,7 +141,7 @@ namespace GroundConstruction
             {
                 var parts = 0f;
                 Jobs.ForEach(p => parts += p.Mass);
-                return ResourcesMass + parts;
+                return KitResourcesMass + ResourcesMass + parts;
             }
         }
 
@@ -84,7 +151,7 @@ namespace GroundConstruction
             {
                 var parts = 0f;
                 Jobs.ForEach(p => parts += p.Cost);
-                return ResourcesCost + parts;
+                return KitResourcesCost + ResourcesCost + parts;
             }
         }
 
@@ -92,14 +159,14 @@ namespace GroundConstruction
         {
             var parts = 0f;
             Jobs.ForEach(p => parts += p.MassAtStage(stage));
-            return parts;
+            return KitResourcesMass + parts;
         }
 
         public float CostAtStage(int stage)
         {
             var parts = 0f;
             Jobs.ForEach(p => parts += p.CostAtStage(stage));
-            return parts;
+            return KitResourcesCost + parts;
         }
 
         public double CurrentTaskETA
@@ -224,8 +291,14 @@ namespace GroundConstruction
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
-            var total_work = stage < StagesCount ? Jobs.Sum(j => j.CurrentStage.TotalWork) : 1;
-            return DIYKit.Draw(Name, stage, total_work, rem, style);
+            var total_work = stage < StagesCount 
+                ? Jobs.Sum(j => 
+                {
+                    var cur_stage = j.CurrentStage;
+                    return cur_stage != null ? cur_stage.TotalWork : j.TotalWork;
+                }) 
+                : 1;
+            return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible ? "(D)" : null);
         }
 
         public Part CreatePart(string part_name, string flag_url, bool set_host)
@@ -294,6 +367,27 @@ namespace GroundConstruction
         }
 
         public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
+    }
+
+    public class ConstructDockingNode : ConfigNodeObject
+    {
+        [Persistent] public string Name;
+        [Persistent] public uint PartId;
+        [Persistent] public string NodeId;
+        [Persistent] public Vector3 DockingOffset;
+
+        public Part GetDockingPart(Vessel vsl) =>
+        vsl.Parts.GetPartByCraftID(PartId);
+
+        public AttachNode GetDockingNode(Vessel vsl) =>
+        vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
+
+        public override string ToString() => Name;
+    }
+
+    public class DockingNodeList : PersistentList<ConstructDockingNode>
+    {
+
     }
 
     public class ConstructResourceInfo : ResourceInfo

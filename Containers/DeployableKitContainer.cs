@@ -13,16 +13,26 @@ using System.Collections;
 
 namespace GroundConstruction
 {
-    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IControllable, IAssemblySpace
+    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IAssemblySpace, IControllable, IConfigurable
     {
-        [KSPField(isPersistant = true)] public EditorFacility Facility;
+        public enum YRotation { Forward, Left, Backward, Right };
+
+        [KSPField(isPersistant = true)]
+        public YRotation yRotation = YRotation.Forward;
+
+        [KSPField(isPersistant = true)]
+        public EditorFacility Facility;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
+
         protected SimpleTextEntry kitname_editor;
         protected SimpleScrollView resource_manifest_view;
         protected ShipConstructLoader construct_loader;
         protected VesselSpawner vessel_spawner;
+
+        protected MeshFilter kit_hull_mesh;
+        static readonly Color kit_hull_color = new Color { r = 0, g = 1, b = 1, a = 0.25f };
 
         [KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
         public float KitMass;
@@ -36,13 +46,14 @@ namespace GroundConstruction
         [KSPField(guiName = "Resources required", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
         public float KitRes;
 
-        [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
+        [KSPField(isPersistant = true)]
+        public VesselKit kit = new VesselKit();
 
         public VesselKit GetKit(Guid id) { return kit.id == id ? kit : null; }
 
         public List<VesselKit> GetKits() { return new List<VesselKit> { kit }; }
 
-        void update_part_info()
+        protected virtual void update_part_info()
         {
             if(Empty)
             {
@@ -61,6 +72,7 @@ namespace GroundConstruction
                 KitWork = (float)rem.work / 3600;
                 KitRes = (float)rem.resource_amount;
             }
+            update_part_events();
         }
 
         public override void OnAwake()
@@ -68,10 +80,19 @@ namespace GroundConstruction
             base.OnAwake();
             //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
+            kitname_editor.yesCallback = () => { if(kit) KitName = kit.Name = kitname_editor.Text; };
             resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
-            resource_manifest_view.Show(false);
+            //add kit hull mesh
+            var obj = new GameObject("KitHullMesh", typeof(MeshFilter), typeof(MeshRenderer));
+            obj.transform.SetParent(gameObject.transform);
+            kit_hull_mesh = obj.GetComponent<MeshFilter>();
+            var renderer = obj.GetComponent<MeshRenderer>();
+            renderer.material = Utils.no_z_material;
+            renderer.material.color = kit_hull_color;
+            renderer.enabled = true;
+            obj.SetActive(false);
         }
 
         protected override void OnDestroy()
@@ -101,7 +122,6 @@ namespace GroundConstruction
             update_part_info();
             if(KitName == "None")
                 KitName = kit.Name;
-            update_resources_view();
         }
 
         #region IAssemblySpace
@@ -126,7 +146,7 @@ namespace GroundConstruction
                 kit.Host = this;
             }
             else
-                kit = new VesselKit();
+                RemoveKit(true);
         }
 
         public void SpawnKit()
@@ -145,8 +165,11 @@ namespace GroundConstruction
                   active = true)]
         public void EditName()
         {
-            kitname_editor.Text = KitName;
-            kitname_editor.Toggle();
+            if(kit)
+            {
+                kitname_editor.Text = kit.Name;
+                kitname_editor.Toggle();
+            }
         }
 
         [KSPEvent(guiName = "Show Required Resources", guiActive = true, guiActiveEditor = true,
@@ -154,7 +177,11 @@ namespace GroundConstruction
                   active = false)]
         public void ShowResources()
         {
-            resource_manifest_view.Toggle();
+            if(kit && kit.AdditionalResources.Count > 0)
+            {
+                resource_manifest_view.Title = kit.Name + " requires";
+                resource_manifest_view.Toggle();
+            }
         }
 
         #region Select Ship Construct
@@ -172,15 +199,22 @@ namespace GroundConstruction
             construct_loader.SelectSubassembly();
         }
 
+        [KSPEvent(guiName = "Select Part", guiActive = false, guiActiveEditor = true, active = true)]
+        public void SelectPart()
+        {
+            construct_loader.SelectPart(part.flagURL);
+        }
+
         protected virtual void store_construct(ShipConstruct construct)
         {
             Facility = construct.shipFacility;
             StoreKit(new VesselKit(this, construct));
             construct.Unload();
-            resource_manifest_view.Show(true);
+            if(kit.AdditionalResources.Count > 0)
+                resource_manifest_view.Show(true);
         }
 
-        void update_resources_view()
+        protected virtual void update_part_events()
         {
             if(kit && kit.AdditionalResources.Count > 0)
             {
@@ -194,28 +228,78 @@ namespace GroundConstruction
             }
         }
 
+        protected void on_kit_changed(bool slow)
+        {
+            update_part_info();
+            update_constraint_controls();
+            update_size(slow);
+            create_deploy_hint_mesh();
+            update_deploy_hint();
+        }
+
         public void StoreKit(VesselKit kit, bool slow = false)
         {
             if(CanConstruct(kit))
             {
                 this.kit = kit;
-                update_part_info();
-                update_constraint_controls();
-                update_size(slow);
-                create_deploy_hint_mesh();
-                update_deploy_hint();
-                update_resources_view();
-                if(HighLogic.LoadedSceneIsEditor ||
-                   !GroundConstructionScenario.ShowDeployHint)
-                    deploy_hint_mesh.gameObject.SetActive(false);
+                on_kit_changed(slow);
             }
             else
                 Utils.Message("This kit cannot be constructed inside this container");
         }
+
+        public void RemoveKit(bool slow = false)
+        {
+            if(kit)
+            {
+                kit = new VesselKit();
+                on_kit_changed(slow);
+            }
+        }
         #endregion
 
         #region Deployment
+        protected void shift_Y_rotation(int delta)
+        {
+            yRotation = (YRotation)(((int)yRotation + delta) % Enum.GetNames(typeof(YRotation)).Length);
+            if(yRotation < 0) yRotation = 0;
+            create_deploy_hint_mesh();
+            ShowDeployHint = true;
+        }
+
+        [KSPEvent(guiName = "Rotate launch direction",
+                  guiActiveUnfocused = true, unfocusedRange = 10,
+                  guiActive = true, guiActiveEditor = true, active = true)]
+        public void RotateSpawnOrientation()
+        {
+            if(kit && state == DeplyomentState.IDLE)
+                shift_Y_rotation(1);
+        }
+
+        protected Quaternion get_Y_rotation() => Quaternion.AngleAxis((int)yRotation * 90f, Vector3.up);
+
         protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+
+        protected abstract Transform get_deploy_transform_unrotated();
+
+        protected override Transform get_deploy_transform()
+        {
+            var T = get_deploy_transform_unrotated();
+            if(yRotation > 0 && T != null)
+            {
+                var rT = T.Find("__SPAWN_TRANSFORM_ROTATED");
+                if(rT == null)
+                {
+                    var empty = new GameObject("__SPAWN_TRANSFORM_ROTATED");
+                    empty.transform.SetParent(T, false);
+                    rT = empty.transform;
+                }
+                rT.localPosition = Vector3.zero;
+                rT.localRotation = get_Y_rotation();
+                return rT;
+            }
+            return T;
+        }
 
         protected override bool can_deploy()
         {
@@ -230,6 +314,39 @@ namespace GroundConstruction
                 return false;
             }
             return true;
+        }
+
+        protected override void create_deploy_hint_mesh()
+        {
+            base.create_deploy_hint_mesh();
+            if(kit)
+            {
+                var mesh = kit.ShipMetric.hull_mesh;
+                if(mesh != null)
+                    kit_hull_mesh.mesh = mesh;
+            }
+        }
+
+        protected virtual void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        {
+            if(show && deployT != null)
+            {
+                var T = kit_hull_mesh.gameObject.transform;
+                offset -= kit.ShipMetric.center;
+                offset += new Vector3(0, kit.ShipMetric.bounds.extents.y, 0);
+                T.position = deployT.position + deployT.TransformDirection(offset);
+                T.rotation = deployT.rotation;
+                kit_hull_mesh.gameObject.SetActive(true);
+            }
+            else
+                kit_hull_mesh.gameObject.SetActive(false);
+        }
+
+        protected override void update_deploy_hint(bool show)
+        {
+            show &= kit;
+            base.update_deploy_hint(show);
+            update_kit_hull_mesh(get_deploy_transform(), get_deployed_offset(), show);
         }
 
         protected override IEnumerable prepare_deployment()
@@ -274,7 +391,7 @@ namespace GroundConstruction
                   guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
         public void LaunchEvent() => Launch();
 
-        public void EnableControls(bool enable = true)
+        public virtual void EnableControls(bool enable = true)
         {
             Events["LaunchEvent"].active = enable;
         }
@@ -309,10 +426,8 @@ namespace GroundConstruction
         protected virtual void on_vessel_loaded(Vessel vsl) =>
         FXMonger.Explode(part, part.partTransform.position, 0);
 
-        protected virtual void on_vessel_launched(Vessel vsl)
-        {
-            kit.TransferCrewToKit(vsl);
-        }
+        protected virtual void on_vessel_launched(Vessel vsl) =>
+        kit.TransferCrewToKit(vsl);
 
         protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
 
@@ -340,6 +455,7 @@ namespace GroundConstruction
                 yield break;
             }
             model.gameObject.SetActive(false);
+            FXMonger.Explode(part, part.partTransform.position, 0);
             yield return StartCoroutine(launch(construct));
             GameEvents.onShowUI.Fire();
             part.Die();
@@ -353,22 +469,13 @@ namespace GroundConstruction
                Event.current.type != EventType.Repaint) return;
             Styles.Init();
             if(vessel_spawner.LaunchInProgress)
-                GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
-                          "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
-                          Styles.rich_label);
-            else
             {
-                //load ship construct
-                construct_loader.Draw();
-                if(kit)
-                {
-                    //rename the kit
-                    if(kitname_editor.Draw("Rename Kit") == SimpleDialog.Answer.Yes)
-                        KitName = kit.Name = kitname_editor.Text;
-                    //additinal kit resources
-                    resource_manifest_view.Draw(kit.Name + " requires");
-                }
+                GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
+                              "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
+                              Styles.rich_label);
+                return;
             }
+            construct_loader.Draw();
         }
         #endregion
 
@@ -385,5 +492,47 @@ namespace GroundConstruction
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
+
+        #region IConfigurable implementation
+        public virtual bool IsConfigurable => kit;
+
+        public virtual void DrawOptions()
+        {
+            GUILayout.BeginHorizontal(Styles.white);
+            GUILayout.Label("Launch orientation:");
+            GUILayout.FlexibleSpace();
+            Utils.ButtonSwitch("Show", ref ShowDeployHint);
+            if(state == DeplyomentState.IDLE)
+            {
+                var choice = Utils.LeftRightChooser(yRotation.ToString(), width: 160);
+                if(choice != 0)
+                    shift_Y_rotation(choice);
+            }
+            else
+                GUILayout.Label(yRotation.ToString(),
+                                Styles.enabled, GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
+        }
+        #endregion
+
+#if DEBUG
+        void OnRenderObject()
+        {
+            var T = get_deploy_transform();
+            if(T != null)
+            {
+                var pos = T.position + T.TransformDirection(get_deployed_offset());
+                Utils.GLVec(pos, T.up, Color.green);
+                Utils.GLVec(pos, T.forward, Color.blue);
+                Utils.GLVec(pos, T.right, Color.red);
+            }
+            if(part.attachJoint != null)
+            {
+                var j = part.attachJoint;
+                if(j.Host != null)
+                    Utils.GLDrawPoint(j.Host.transform.TransformPoint(j.HostAnchor), Color.magenta);
+            }
+        }
+#endif
     }
 }

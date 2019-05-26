@@ -92,6 +92,7 @@
     <Compile Include="Workshops\SingleVesselConstructionWorkshop.cs" />
     <Compile Include="Workshops\GroundAssemblyWorkshop.cs" />
     <Compile Include="Containers\AssemblySpace.cs" />
+    <Compile Include="GCEditorGUI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -137,5 +138,6 @@
     <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg" />
     <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg" />
     <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg" />
+    <None Include="GameData\GroundConstruction\Plugins\PluginData\GroundConstruction\GroundConstruction.glob" />
   </ItemGroup>
 </Project>

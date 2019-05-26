@@ -18,10 +18,11 @@ namespace GroundConstruction
 
         protected override ApplicationLauncher.AppScenes AL_SCENES =>
         ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW |
-            ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.SPACECENTER;
+            ApplicationLauncher.AppScenes.TRACKSTATION | ApplicationLauncher.AppScenes.SPACECENTER |
+            ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB;
 
         protected override GameScenes[] TB_SCENES =>
-        new[] { GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER };
+        new[] { GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER, GameScenes.CREDITS };
 
         protected override string button_tooltip => "Global Construction";
 
@@ -29,7 +30,10 @@ namespace GroundConstruction
 
         protected override void onLeftClick()
         {
-            GroundConstructionScenario.ToggleWindow();
+            if(HighLogic.LoadedSceneIsEditor)
+                GCEditorGUI.ToggleWithButton(ALButton);
+            else
+                GroundConstructionScenario.ToggleWindow();
         }
     }
 }

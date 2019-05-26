@@ -35,9 +35,6 @@ namespace GroundConstruction
 
         [Persistent] public float ComplexityFactor = 1e-4f;
 
-        [Persistent] public float ComplexityWeight = 110;
-        [Persistent] public float MetalworkWeight = 100;
-
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
         [Persistent] public float MinKitVolume = 0.02f; //m3
 
@@ -47,6 +44,9 @@ namespace GroundConstruction
         [Persistent] public float MinDeploymentTime = 3;    //s
 
         [Persistent] public int EasingFrames = 120;
+        
+        [Persistent] public float MaxDockingCos = 0.999f;
+        [Persistent] public float MaxDockingDist = 0.2f;
     }
 
     public class ResourceUsageInfo : ResourceInfo

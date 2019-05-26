@@ -130,29 +130,28 @@ namespace GroundConstruction
             {
                 GUILayout.BeginHorizontal();
                 draw_task(info);
-                var depl = info.ConstructionSpace as IDeployable;
-                if(depl != null)
+                if(info.ConstructionSpace is IDeployable depl)
                 {
                     if(depl.State == DeplyomentState.DEPLOYED)
                     {
                         if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                            Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                            Styles.enabled_button, GUILayout.ExpandWidth(false),
                                             GUILayout.ExpandHeight(true)))
                             add = info;
                     }
                     else if(depl.State != DeplyomentState.DEPLOYING)
                     {
                         if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-                                            Styles.active_button, GUILayout.ExpandWidth(false), 
+                                            Styles.active_button, GUILayout.ExpandWidth(false),
                                             GUILayout.ExpandHeight(true)))
                             deploy = depl;
                     }
                     else
-                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label, 
+                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label,
                                         GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                 }
                 else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                         Styles.enabled_button, GUILayout.ExpandWidth(false), 
+                                         Styles.enabled_button, GUILayout.ExpandWidth(false),
                                          GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();
@@ -177,7 +176,7 @@ namespace GroundConstruction
             foreach(var info in built_kits)
             {
                 GUILayout.BeginHorizontal();
-                info.Draw();
+                draw_task(info);
                 set_highlighted_task(info);
                 if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
                                     Styles.active_button, GUILayout.ExpandWidth(false)))

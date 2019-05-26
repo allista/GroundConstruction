@@ -26,6 +26,7 @@ namespace GroundConstruction
 
         public IKitContainer Container => Kit.Host as IKitContainer;
         public IControllable Controllable => Kit.Host as IControllable;
+        public IConfigurable Configurator => Kit.Host as IConfigurable;
 
         public bool Recheck()
         {
