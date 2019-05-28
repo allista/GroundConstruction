@@ -45,6 +45,12 @@ namespace GroundConstruction
         void Deploy();
     }
 
+    public interface IConfigurable
+    {
+        bool IsConfigurable { get; }
+        void DrawOptions();
+    }
+
     public interface IControllable
     {
         void ShowUI(bool enable = true);

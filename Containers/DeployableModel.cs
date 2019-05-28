@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -38,6 +39,7 @@ namespace GroundConstruction
         protected MeshFilter deploy_hint_mesh;
         protected static readonly Color deploy_hint_color = new Color(0, 1, 0, 0.25f);
 
+        public abstract string Name { get; }
         [KSPField] public string MetricMesh = string.Empty;
         [KSPField] public Vector3 MinSize = new Vector3(0.5f, 0.5f, 0.5f);
 
@@ -47,7 +49,10 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public Vector3 Size;
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
         [KSPField(isPersistant = true)] public DeplyomentState state;
+        [KSPField(isPersistant = true)] public bool ShowDeployHint;
         bool just_started;
+
+        protected SimpleWarning warning;
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
@@ -128,6 +133,7 @@ namespace GroundConstruction
             model.localScale = local_scale;
             model.hasChanged = true;
             part.transform.hasChanged = true;
+            create_deploy_hint_mesh();
             //update attach nodes
             var updated_parts = new HashSet<Part>();
             var scale_quad = rel_scale.sqrMagnitude;
@@ -164,6 +170,12 @@ namespace GroundConstruction
             return StartCoroutine(resize_coro);
         }
 
+        protected virtual IEnumerable<YieldInstruction> prepare_resize()
+        {
+            part.BreakConnectedCompoundParts();
+            yield return null;
+        }
+
         static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
         bool resizing;
         IEnumerator<YieldInstruction> resize_coro;
@@ -171,6 +183,8 @@ namespace GroundConstruction
         {
             if(Size == TargetSize)
                 yield break;
+            foreach(var i in prepare_resize())
+                yield return i;
             var start = Size;
             var time = 0f;
             var speed = Mathf.Min(GLB.MaxDeploymentMomentum
@@ -228,6 +242,9 @@ namespace GroundConstruction
         public override void OnAwake()
         {
             base.OnAwake();
+            warning = gameObject.AddComponent<SimpleWarning>();
+            warning.Message = "Deployment cannot be undone.\nAre you sure?";
+            warning.yesCallback = start_deployment;
             model = part.transform.Find("model");
             //add deploy hints
             var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
@@ -244,13 +261,14 @@ namespace GroundConstruction
         protected virtual void OnDestroy()
         {
             Destroy(deploy_hint_mesh.gameObject);
+            Destroy(warning);
         }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
             just_started = true;
-            create_deploy_hint_mesh();
+            StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
             if(State == DeplyomentState.DEPLOYING)
                 StartCoroutine(deploy());
         }
@@ -305,77 +323,121 @@ namespace GroundConstruction
                     just_started = false;
                 }
             }
-            if(GroundConstructionScenario.ShowDeployHint)
-                update_deploy_hint();
-            else
-                deploy_hint_mesh.gameObject.SetActive(false);
+            update_deploy_hint();
         }
 
         [KSPEvent(guiName = "Show Deployment Hint", guiActive = true, guiActiveEditor = true,
                   guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
                   active = true)]
-        public void ShowDeploymentHint() =>
-        GroundConstructionScenario.ShowDeployHint = !GroundConstructionScenario.ShowDeployHint;
+        public void ShowDeploymentHintEvent() => ShowDeployHint = !ShowDeployHint;
 
         #region Deployment
         protected abstract Vector3 get_deployed_size();
         protected abstract Vector3 get_deployed_offset();
         protected abstract Transform get_deploy_transform();
 
-        protected virtual void update_deploy_hint()
+        protected virtual void update_deploy_hint(bool show)
+        {
+            var deployT = get_deploy_transform();
+            if(show && deployT != null)
+            {
+                var T = deploy_hint_mesh.gameObject.transform;
+                T.position = model.position;
+                T.rotation = deployT.rotation;
+                deploy_hint_mesh.gameObject.SetActive(true);
+            }
+            else
+                deploy_hint_mesh.gameObject.SetActive(false);
+        }
+        protected void update_deploy_hint() =>
+        update_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
+
+        protected Vector3 metric_to_part_scale =>
+        Vector3.Scale(OrigPartSize, OrigSize.Inverse());
+
+        protected Vector3 get_deployed_part_size() =>
+        Vector3.Scale(get_deployed_size(), metric_to_part_scale);
+
+        protected Bounds get_deployed_part_bounds(bool to_model_space)
         {
             var T = get_deploy_transform();
             if(T != null)
             {
-                var fwd_T = deploy_hint_mesh.gameObject.transform;
-                fwd_T.position = T.position + T.TransformDirection(get_deployed_offset());
-                fwd_T.rotation = T.rotation;
-                deploy_hint_mesh.gameObject.SetActive(true);
+                var depl_size = get_deployed_part_size();
+                var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
+                var center = new Vector3(0, (depl_size.y - part_size.y) / 2, 0);
+                if(to_model_space)
+                    return new Bounds(center.Local2LocalDir(T, model),
+                                      depl_size.Local2LocalDir(T, model).AbsComponents());
+                return new Bounds(center, depl_size);
             }
+            return default(Bounds);
         }
 
         protected virtual void create_deploy_hint_mesh()
         {
-            var scale = Vector3.Scale(OrigPartSize, OrigSize.Inverse());
-            var size = Vector3.Scale(get_deployed_size(), scale) / 2;
+            var bounds = get_deployed_part_bounds(false);
+            if(bounds.size.IsZero()) return;
+            var corners = Utils.BoundCorners(bounds);
+            var size = bounds.size;
             var mesh = deploy_hint_mesh.mesh;
             mesh.vertices = new[]{
-                // bottom
-                -Vector3.right*size.x-Vector3.forward*size.z, // 0 - lb
-                -Vector3.right*size.x+Vector3.forward*size.z, // 1 - lf
-                Vector3.right*size.x+Vector3.forward*size.z,  // 2 - rf
-                Vector3.right*size.x-Vector3.forward*size.z,  // 3 - rb
+                corners[0], //left-bottom-back
+                corners[1], //left-bottom-front
+                corners[2], //left-top-back
+                corners[3], //left-top-front
+                corners[4], //right-bottom-back
+                corners[5], //right-bottom-front
+                corners[6], //right-top-back
+                corners[7], //right-top-front
                 // front arrow
-                -Vector3.right*size.x/4+Vector3.forward*size.z,
-                Vector3.forward*size.z*1.5f,
-                Vector3.right*size.x/4+Vector3.forward*size.z,
-                // top
-                -Vector3.right*size.x-Vector3.forward*size.z+Vector3.up*size.y*2, // 7  - lbt
-                -Vector3.right*size.x+Vector3.forward*size.z+Vector3.up*size.y*2, // 8  - lft
-                Vector3.right*size.x+Vector3.forward*size.z+Vector3.up*size.y*2,  // 9  - rft
-                Vector3.right*size.x-Vector3.forward*size.z+Vector3.up*size.y*2   // 10 - rbt
+                corners[1]+Vector3.right*size.x/4,
+                corners[1]+Vector3.right*size.x/2+Vector3.forward*size.z/2,
+                corners[5]-Vector3.right*size.x/4,
             };
             mesh.triangles = new[] {
-                0, 1, 2, 2, 3, 0,
-                4, 5, 6,
-                0, 7, 1, 1, 7, 8,
-                1, 8, 2, 2, 8, 9,
-                2, 9, 3, 3, 9, 10,
-                3, 10, 0, 0, 10, 7,
-                7, 8, 9, 9, 10, 7
+                0, 1, 2, 2, 1, 3, //left
+                3, 1, 7, 7, 1, 5, //front
+                5, 4, 7, 7, 4, 6, //right
+                6, 4, 2, 2, 4, 0, //back
+                2, 6, 3, 3, 6, 7, //top
+                0, 4, 1, 1, 4, 5, //bottom
+                8, 9, 10 //arrow
             };
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
         }
 
-        public abstract string Name { get; }
-
         protected abstract bool can_deploy();
+
+        bool same_vessel_collision_if_deployed()
+        {
+            var B = get_deployed_part_bounds(true);
+            for(int i = 0, vesselPartsCount = vessel.Parts.Count; i < vesselPartsCount; i++)
+            {
+                var p = vessel.Parts[i];
+                if(p == part) continue;
+                if(p.parent == part || part.parent == p) continue;
+                var pM = new Metric(p, true, true);
+                for(int j = 0, pMhullPointsCount = pM.hull.Points.Count; j < pMhullPointsCount; j++)
+                {
+                    var c = pM.hull.Points[j];
+                    var lc = model.InverseTransformDirection(c - model.position);
+                    if(B.Contains(lc))
+                    {
+                        p.HighlightAlways(Colors.Danger.color);
+                        StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
+                        ShowDeployHint = true;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         protected virtual IEnumerable prepare_deployment()
         {
-            part.BreakConnectedCompoundParts();
             yield return null;
         }
 
@@ -392,12 +454,28 @@ namespace GroundConstruction
             state = DeplyomentState.DEPLOYED;
         }
 
-        public virtual void Deploy()
+        protected void start_deployment()
         {
-            if(!can_deploy()) return;
             Utils.SaveGame(Name + "-before_deployment");
             state = DeplyomentState.DEPLOYING;
             StartCoroutine(deploy());
+        }
+
+        public virtual void Deploy()
+        {
+            if(can_deploy())
+            {
+                if(same_vessel_collision_if_deployed())
+                {
+                    warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
+                        "if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
+                        "will not collide with anything when launched.\n" +
+                        Colors.Danger.Tag("Start the deployment?"),
+                    () => warning.Show(true));
+                }
+                else
+                    warning.Show(true);
+            }
         }
         #endregion
 

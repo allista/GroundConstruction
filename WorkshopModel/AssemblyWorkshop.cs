@@ -253,31 +253,6 @@ namespace GroundConstruction
             GUILayout.EndVertical();
         }
 
-        protected override void queue_pane()
-        {
-            if(kit_parts.Count > 1)
-            {
-                GUILayout.BeginHorizontal();
-                SelectedPart = Utils.LeftRightChooser(SelectedPart, kit_parts, "Select container type to use");
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.BeginHorizontal();
-            if(GUILayout.Button(new GUIContent("Add Vessel",
-                                               "Add a vessel from VAB/SPH to construction queue"),
-                                Styles.active_button, GUILayout.ExpandWidth(true)))
-                construct_loader.SelectVessel();
-            if(GUILayout.Button(new GUIContent("Add Subassembly",
-                                               "Add a subassembly to construction queue"),
-                                Styles.active_button, GUILayout.ExpandWidth(true)))
-                construct_loader.SelectSubassembly();
-            if(GUILayout.Button(new GUIContent("Add Part",
-                                               "Add a single part to construction queue"),
-                                Styles.active_button, GUILayout.ExpandWidth(true)))
-                construct_loader.SelectPart(part.flagURL);
-            GUILayout.EndHorizontal();
-            base.queue_pane();
-        }
-
         protected override void built_kits_pane()
         {
             if(built_kits.Count == 0) return;
@@ -364,6 +339,26 @@ namespace GroundConstruction
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();
+            if(kit_parts.Count > 1)
+            {
+                GUILayout.BeginHorizontal();
+                SelectedPart = Utils.LeftRightChooser(SelectedPart, kit_parts, "Select container type to use");
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.BeginHorizontal();
+            if(GUILayout.Button(new GUIContent("Add Vessel",
+                                               "Add a vessel from VAB/SPH to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectVessel();
+            if(GUILayout.Button(new GUIContent("Add Subassembly",
+                                               "Add a subassembly to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectSubassembly();
+            if(GUILayout.Button(new GUIContent("Add Part",
+                                               "Add a single part to construction queue"),
+                                Styles.active_button, GUILayout.ExpandWidth(true)))
+                construct_loader.SelectPart(part.flagURL);
+            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
         }
 

@@ -19,25 +19,9 @@ namespace GroundConstruction
 
         ATGroundAnchor anchor;
 
-        Transform get_spawn_transform()
+        public override void OnAwake()
         {
-            Transform minT = null;
-            if(vessel != null)
-            {
-                var alt = double.MaxValue;
-                foreach(var T in spawn_transforms)
-                {
-                    var t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
-                    if(t_alt < alt) { alt = t_alt; minT = T; }
-                }
-            }
-            return minT;
-        }
-
-        public override void OnStart(StartState state)
-        {
-            base.OnStart(state);
-            anchor = part.FindModuleImplementing<ATGroundAnchor>();
+            base.OnAwake();
             spawn_transforms = new List<Transform>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
@@ -50,16 +34,43 @@ namespace GroundConstruction
             }
         }
 
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            anchor = part.FindModuleImplementing<ATGroundAnchor>();
+        }
+
         #region Deployment
-        protected override Transform get_deploy_transform() =>
-        get_spawn_transform() ?? part.transform;
+        protected override Transform get_deploy_transform_unrotated()
+        {
+            Transform minT = null;
+            if(spawn_transforms != null)
+            {
+                var alt = double.MaxValue;
+                for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
+                {
+                    var T = spawn_transforms[i];
+                    double t_alt;
+                    if(vessel != null)
+                        t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
+                    else
+                        t_alt = T.position.y;
+                    if(t_alt < alt)
+                    {
+                        alt = t_alt;
+                        minT = T;
+                    }
+                }
+            }
+            return minT ?? part.transform;
+        }
 
         protected override Vector3 get_deployed_offset() => Vector3.zero;
 
         protected override Vector3 get_deployed_size()
         {
             var size = kit.ShipMetric.size;
-            if(Facility == EditorFacility.SPH) 
+            if(Facility == EditorFacility.SPH)
                 size = new Vector3(size.x, size.z, size.y);
             return size;
         }
@@ -137,7 +148,7 @@ namespace GroundConstruction
             Utils.Message(6, "{0} is deployed and fixed to the ground.", vessel.vesselName);
         }
         #endregion
-        
+
         #region Launching
         protected override bool can_launch()
         {
@@ -163,30 +174,16 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var launch_transform = get_spawn_transform();
-            yield return 
+            var launch_transform = get_deploy_transform();
+            yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
-                                                           null, 
+                                                           null,
                                                            on_vessel_loaded,
                                                            null,
                                                            on_vessel_launched,
                                                            GLB.EasingFrames));
         }
         #endregion
-
-        #if DEBUG
-        void OnRenderObject()
-        {
-            if(vessel == null || spawn_transforms == null) return;
-            var T = get_spawn_transform();
-            if(T != null)
-            {
-                Utils.GLVec(T.position, T.up, Color.green);
-                Utils.GLVec(T.position, T.forward, Color.blue);
-                Utils.GLVec(T.position, T.right, Color.red);
-            }
-        }
-        #endif
     }
 }
