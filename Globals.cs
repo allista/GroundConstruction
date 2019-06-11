@@ -17,6 +17,7 @@ namespace GroundConstruction
         [Persistent] public ResourceUsageInfo ConstructionResource = new ResourceUsageInfo("MaterialKits");
 
         public ResourceIdSet KeepResourcesIDs = new ResourceIdSet("GC_KIT_RESOURCES");
+        public ResourceIdSet AssembleResources = new ResourceIdSet("GC_ASSEMBLE_RESOURCES");
         #endregion
 
         public ModuleNamesSet IgnoreModules = new ModuleNamesSet("GC_IGNORE_MODULES");
