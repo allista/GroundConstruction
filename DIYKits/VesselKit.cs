@@ -397,6 +397,9 @@ namespace GroundConstruction
         public ConstructResourceInfo() { }
         public ConstructResourceInfo(string name) : base(name) { }
 
+        public float mass => (float)amount * def.density;
+        public float cost => (float)amount * def.unitCost;
+
         public void Add(double a)
         {
             amount += a;
