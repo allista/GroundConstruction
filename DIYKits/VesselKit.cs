@@ -51,13 +51,13 @@ namespace GroundConstruction
             if(assembled)
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(r =>
-            {
-                if(r.info.isTweakable &&
-                   r.info.density > 0 &&
-                   r.info.id != Utils.ElectricCharge.id &&
-                   !GLB.KeepResourcesIDs.Values.Contains(r.info.id))
-                    AdditionalResources.Strip(r);
-            }));
+                {
+                    if(r.info.isTweakable &&
+                       r.info.density > 0 &&
+                       r.info.id != Utils.ElectricCharge.id &&
+                       !GLB.KeepResourcesIDs.Values.Contains(r.info.id))
+                        AdditionalResources.Strip(r);
+                }));
             else
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(r =>
@@ -301,12 +301,12 @@ namespace GroundConstruction
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
-            var total_work = stage < StagesCount 
-                ? Jobs.Sum(j => 
+            var total_work = stage < StagesCount
+                ? Jobs.Sum(j =>
                 {
                     var cur_stage = j.CurrentStage;
                     return cur_stage != null ? cur_stage.TotalWork : j.TotalWork;
-                }) 
+                })
                 : 1;
             return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible ? "(D)" : null);
         }
