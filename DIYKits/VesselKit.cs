@@ -51,32 +51,39 @@ namespace GroundConstruction
             if(assembled)
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(r =>
-            {
-                if(r.info.isTweakable &&
-                   r.info.density > 0 &&
-                   r.info.id != Utils.ElectricCharge.id &&
-                   !GLB.KeepResourcesIDs.Values.Contains(r.info.id))
-                    AdditionalResources.Strip(r);
-            }));
+                {
+                    if(r.info.isTweakable &&
+                       r.info.density > 0 &&
+                       r.info.id != Utils.ElectricCharge.id &&
+                       !GLB.KeepResourcesIDs.Values.Contains(r.info.id))
+                        AdditionalResources.Strip(r);
+                }));
             else
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(AdditionalResources.Strip));
+                                   p.Resources.ForEach(r =>
+                {
+                    if(!GLB.AssembleResources.Values.Contains(r.info.id))
+                        AdditionalResources.Strip(r);
+                }));
         }
 
-        void count_kit_resources(IShipconstruct ship)
+        ConstructResources count_kit_resources(IShipconstruct ship, bool assembled)
         {
+            var resouces_to_assemble = new ConstructResources();
             KitResourcesCost = KitResourcesMass = 0f;
             ship.Parts.ForEach(p =>
                                p.Resources.ForEach(res =>
             {
-                var amount = (float)res.amount;
-                var info = res.info;
-                if(info != null)
+                if(!assembled && GLB.AssembleResources.Values.Contains(res.info.id))
+                    resouces_to_assemble.Keep(res);
+                else
                 {
-                    KitResourcesMass += amount * info.density;
-                    KitResourcesCost += amount * info.unitCost;
+                    var amount = (float)res.amount;
+                    KitResourcesMass += amount * res.info.density;
+                    KitResourcesCost += amount * res.info.unitCost;
                 }
             }));
+            return resouces_to_assemble;
         }
 
         public static DockingNodeList FindDockingNodes(IShipconstruct ship, Metric ship_metric)
@@ -124,10 +131,13 @@ namespace GroundConstruction
                 strip_resources(ship, assembled);
                 Blueprint = ship.SaveShip();
             }
-            count_kit_resources(ship);
+            var resources_to_assemble = count_kit_resources(ship, assembled);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
+            if(!assembled)
+                resources_to_assemble.ForEach(r =>
+                    Jobs.Add(new PartKit(r.Value.name, r.Value.mass, r.Value.cost, assembled)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();
             CurrentIndex = 0;
@@ -291,12 +301,12 @@ namespace GroundConstruction
         {
             var rem = RemainingRequirements();
             var stage = CurrentStageIndex;
-            var total_work = stage < StagesCount 
-                ? Jobs.Sum(j => 
+            var total_work = stage < StagesCount
+                ? Jobs.Sum(j =>
                 {
                     var cur_stage = j.CurrentStage;
                     return cur_stage != null ? cur_stage.TotalWork : j.TotalWork;
-                }) 
+                })
                 : 1;
             return DIYKit.Draw(Name, stage, total_work, rem, style, DockingPossible ? "(D)" : null);
         }
@@ -397,6 +407,9 @@ namespace GroundConstruction
         public ConstructResourceInfo() { }
         public ConstructResourceInfo(string name) : base(name) { }
 
+        public float mass => (float)amount * def.density;
+        public float cost => (float)amount * def.unitCost;
+
         public void Add(double a)
         {
             amount += a;
@@ -409,6 +422,12 @@ namespace GroundConstruction
     {
         public void Strip(PartResource res)
         {
+            Keep(res);
+            res.amount = 0;
+        }
+
+        public void Keep(PartResource res)
+        {
             if(res.amount > 0)
             {
                 ConstructResourceInfo info;
@@ -418,7 +437,6 @@ namespace GroundConstruction
                     Add(info.name, info);
                 }
                 info.Add(res.amount);
-                res.amount = 0;
             }
         }
 
