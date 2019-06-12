@@ -29,12 +29,21 @@ namespace GroundConstruction
             PseudoPart = true;
             Mass.Add(1, mass);
             Cost.Add(1, cost);
-            Complexity = 1;
-            Assembly.TotalWork = total_work(Assembly, mass);
-            Construction.TotalWork = 0;
-            update_total_work();
             if(assembled)
+            {
+                Complexity = 0;
+                Construction.TotalWork = total_work(Construction, mass);
+                Assembly.TotalWork = 0;
+                update_total_work();
                 SetComplete(assembled);
+            }
+            else
+            {
+                Complexity = 1;
+                Assembly.TotalWork = total_work(Assembly, mass);
+                Construction.TotalWork = 0;
+                update_total_work();
+            }
         }
 
         public PartKit(Part part, bool assembled = true)

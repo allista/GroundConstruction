@@ -36,7 +36,7 @@ namespace GroundConstruction
         [Persistent] public float ResourcesMass;
         [Persistent] public float ResourcesCost;
         [Persistent] public bool HasLaunchClamps;
-        [Persistent] public ConstructResources AdditionalResources = new ConstructResources();
+        [Persistent] public KitResourcesList AdditionalResources = new KitResourcesList();
 
         public PartModule Host;
         public Vessel CrewSource;
@@ -55,27 +55,30 @@ namespace GroundConstruction
                     if(r.info.isTweakable &&
                        r.info.density > 0 &&
                        r.info.id != Utils.ElectricCharge.id &&
-                       !GLB.KeepResourcesIDs.Values.Contains(r.info.id))
+                       !GLB.KeepResources.Values.Contains(r.info.id))
                         AdditionalResources.Strip(r);
                 }));
             else
                 ship.Parts.ForEach(p =>
                                    p.Resources.ForEach(r =>
                 {
-                    if(!GLB.AssembleResources.Values.Contains(r.info.id))
+                    if(!GLB.AssembleResources.Values.Contains(r.info.id) &&
+                       !GLB.ConstructResources.Values.Contains(r.info.id))
                         AdditionalResources.Strip(r);
                 }));
         }
 
-        ConstructResources count_kit_resources(IShipconstruct ship, bool assembled)
+        KitResourcesList count_kit_resources(IShipconstruct ship, bool assembled)
         {
-            var resouces_to_assemble = new ConstructResources();
+            var resouces_to_assemble = new KitResourcesList();
             KitResourcesCost = KitResourcesMass = 0f;
             ship.Parts.ForEach(p =>
                                p.Resources.ForEach(res =>
             {
                 if(!assembled && GLB.AssembleResources.Values.Contains(res.info.id))
-                    resouces_to_assemble.Keep(res);
+                    resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.ASSEMBLED);
+                else if(!assembled && GLB.ConstructResources.Values.Contains(res.info.id))
+                    resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.CONSTRUCTED);
                 else
                 {
                     var amount = (float)res.amount;
@@ -131,13 +134,13 @@ namespace GroundConstruction
                 strip_resources(ship, assembled);
                 Blueprint = ship.SaveShip();
             }
-            var resources_to_assemble = count_kit_resources(ship, assembled);
+            var create_resources = count_kit_resources(ship, assembled);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
             Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
-            if(!assembled)
-                resources_to_assemble.ForEach(r =>
-                    Jobs.Add(new PartKit(r.Value.name, r.Value.mass, r.Value.cost, assembled)));
+            create_resources.ForEach(r =>
+                Jobs.Add(new PartKit(r.Value.name, r.Value.mass, r.Value.cost,
+                                     r.Value.type == KitResourceInfo.ResourceType.CONSTRUCTED)));
             SetStageComplete(DIYKit.ASSEMBLY, assembled);
             HasLaunchClamps = ship.HasLaunchClamp();
             CurrentIndex = 0;
@@ -400,12 +403,16 @@ namespace GroundConstruction
 
     }
 
-    public class ConstructResourceInfo : ResourceInfo
+    public class KitResourceInfo : ResourceInfo
     {
+        public enum ResourceType { STRIPPED, ASSEMBLED, CONSTRUCTED };
+        public ResourceType type;
+
         [Persistent] public double amount;
 
-        public ConstructResourceInfo() { }
-        public ConstructResourceInfo(string name) : base(name) { }
+        public KitResourceInfo() { }
+        public KitResourceInfo(string name, ResourceType type)
+        : base(name) { this.type = type; }
 
         public float mass => (float)amount * def.density;
         public float cost => (float)amount * def.unitCost;
@@ -418,22 +425,22 @@ namespace GroundConstruction
         }
     }
 
-    public class ConstructResources : SortedList<string, ConstructResourceInfo>, IConfigNode
+    public class KitResourcesList : SortedList<string, KitResourceInfo>, IConfigNode
     {
         public void Strip(PartResource res)
         {
-            Keep(res);
+            Keep(res, KitResourceInfo.ResourceType.STRIPPED);
             res.amount = 0;
         }
 
-        public void Keep(PartResource res)
+        public void Keep(PartResource res, KitResourceInfo.ResourceType type)
         {
             if(res.amount > 0)
             {
-                ConstructResourceInfo info;
+                KitResourceInfo info;
                 if(!TryGetValue(res.resourceName, out info))
                 {
-                    info = new ConstructResourceInfo(res.resourceName);
+                    info = new KitResourceInfo(res.resourceName, type);
                     Add(info.name, info);
                 }
                 info.Add(res.amount);
@@ -460,7 +467,7 @@ namespace GroundConstruction
             Clear();
             foreach(var n in node.GetNodes())
             {
-                var item = ConfigNodeObject.FromConfig<ConstructResourceInfo>(n);
+                var item = ConfigNodeObject.FromConfig<KitResourceInfo>(n);
                 if(item != null)
                     Add(item.name, item);
             }
