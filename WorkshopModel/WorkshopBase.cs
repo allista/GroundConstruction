@@ -299,6 +299,8 @@ namespace GroundConstruction
 
         protected void reset_current_task() => CurrentTask = new T();
 
+        protected Type worker_effect => typeof(E);
+
         protected virtual void update_workforce() => update_workforce<E>();
 
         protected void update_and_checkin(Vessel vsl)

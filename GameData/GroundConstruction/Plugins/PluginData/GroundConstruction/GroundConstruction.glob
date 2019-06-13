@@ -6,6 +6,7 @@ AssemblyResource
     WorkPerMass = 15
     EnergyPerMass = 1000
     ComplexityWork = 17
+    MaxRecycleRatio = 0.3
 }
 
 
@@ -15,6 +16,7 @@ ConstructionResource
     WorkPerMass = 10
     EnergyPerMass = 10000
     ComplexityWork = 13
+    MaxRecycleRatio = 0.5
 }
 
 WorkshopShutdownThreshold = 0.99
@@ -41,5 +43,7 @@ EasingFrames = 120
         
 MaxDockingCos = 0.999
 MaxDockingDist = 0.2
+
+RecycleRate = 1
 
 //:mode=c#:

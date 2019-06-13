@@ -7,6 +7,7 @@
 using System.Linq;
 using UnityEngine;
 using AT_Utils;
+using System.Collections.Generic;
 
 namespace GroundConstruction
 {
@@ -75,6 +76,16 @@ namespace GroundConstruction
                        (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
                         sort_task(new ConstructionKitInfo(vsl_kit));
                 }
+            }
+        }
+
+        protected override IEnumerable<Vessel> get_recyclable_vessels()
+        {
+            foreach(var vsl in FlightGlobals.Vessels)
+            {
+                if(vsl.loaded
+                   && (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                    yield return vsl;
             }
         }
 

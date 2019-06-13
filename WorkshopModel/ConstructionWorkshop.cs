@@ -7,6 +7,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
+using System;
+using System.Collections;
 
 namespace GroundConstruction
 {
@@ -112,6 +114,137 @@ namespace GroundConstruction
             base.unlock();
             resources_window.UnlockControls();
             crew_window.UnlockControls();
+        }
+        #endregion
+
+        #region Recycling
+        protected abstract IEnumerable<Vessel> get_recyclable_vessels();
+
+        HashSet<uint> get_parts_to_skip(Vessel vsl)
+        {
+            HashSet<uint> skip_parts = null;
+            if(vsl == vessel)
+            {
+                skip_parts.Add(vessel.rootPart.craftID);
+                skip_parts.Add(part.craftID);
+            }
+            return skip_parts;
+        }
+
+        protected IEnumerator recycle(Vessel vsl, bool discard_excess_resources)
+        {
+            foreach(var result in recycle(vsl.rootPart,
+                                          get_recycle_experience_mod(),
+                                          discard_excess_resources,
+                                          get_parts_to_skip(vsl)))
+                yield return result;
+        }
+
+        protected IEnumerator recycle(Part p, bool discard_excess_resources)
+        {
+            foreach(var result in recycle(p,
+                                          get_recycle_experience_mod(),
+                                          discard_excess_resources,
+                                          get_parts_to_skip(p.vessel)))
+                yield return result;
+        }
+
+        class SkipPart : CustomYieldInstruction
+        {
+            public override bool keepWaiting => false;
+        }
+
+        IEnumerable recycle(Part p, float efficiency, bool discard_excess_resources, HashSet<uint> skip_craftIDs = null)
+        {
+            // first handle children
+            var skip = false;
+            if(p.children.Count > 0)
+            {
+                foreach(var child in p.children)
+                {
+                    foreach(var child_result in recycle(child, efficiency, discard_excess_resources, skip_craftIDs))
+                    {
+                        if(child_result is SkipPart)
+                            skip = true;
+                        else
+                        {
+                            yield return child_result;
+                            if(child_result == null)
+                                yield break;
+                        }
+                    }
+                }
+            }
+            // decide if we have to skip this part (and thus all the parents)
+            skip |= part.protoModuleCrew.Count > 0;
+            skip |= skip_craftIDs != null && skip_craftIDs.Contains(p.craftID);
+            if(!skip)
+            {
+                // if not, collect its resources if we can, else skip it anyway
+                foreach(var res in p.Resources)
+                {
+                    if(res.amount > 0)
+                    {
+                        if(!transfer_resource(res.info.id, res.amount, discard_excess_resources))
+                            skip = true;
+                    }
+                }
+            }
+            if(skip)
+            {
+                yield return new SkipPart();
+                yield break;
+            }
+            // recycle the part that is now empty
+            var result = true;
+            var kit = new PartKit(p, false);
+            result &= recycle_resource(kit.RemainingRequirements(), efficiency, discard_excess_resources);
+            kit.SetStageComplete(DIYKit.ASSEMBLY, true);
+            result &= recycle_resource(kit.RemainingRequirements(), efficiency, discard_excess_resources);
+            FXMonger.Explode(p, p.transform.position, 0);
+            p.Die();
+            // wait for some time before recycle next one, or break the recycling if recyclement faild
+            yield return result ? new WaitForSeconds(GLB.RecycleRate) : null;
+        }
+
+        bool transfer_resource(int id, double amount, bool discard_excess_resources)
+        {
+            var transferred = part.RequestResource(id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE);
+            return discard_excess_resources || Math.Abs(transferred - amount) < 1e-5;
+        }
+
+        bool recycle_resource(DIYKit.Requirements req, float efficiency, bool discard_excess_resources)
+        {
+            var result = true;
+            if(req.energy > 0)
+            {
+                var ec = part.RequestResource(Utils.ElectricCharge.id, req.energy);
+                if(ec < req.energy)
+                {
+                    result = false;
+                    efficiency *= (float)(ec / req.energy);
+                }
+            }
+            result &= transfer_resource(req.resource.id,
+                                        req.resource_amount * req.resource.MaxRecycleRatio * efficiency,
+                                        discard_excess_resources);
+            return result;
+        }
+
+        float get_recycle_experience_mod()
+        {
+            var experience = 0;
+            foreach(var kerbal in part.protoModuleCrew)
+            {
+                var trait = kerbal.experienceTrait;
+                for(int i = 0, traitEffectsCount = trait.Effects.Count; i < traitEffectsCount; i++)
+                    if(worker_effect.IsInstanceOfType(trait.Effects[i]))
+                    {
+                        experience = Math.Max(experience, trait.CrewMemberExperienceLevel());
+                        break;
+                    }
+            }
+            return Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel();
         }
         #endregion
 

@@ -4,6 +4,7 @@
 //       Allis Tauri allista@gmail.com
 //
 //  Copyright (c) 2018 Allis Tauri
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GroundConstruction
@@ -33,5 +34,10 @@ namespace GroundConstruction
         protected override bool init_task(ConstructionKitInfo task) => true;
         protected override bool check_host(ConstructionKitInfo task) =>
         base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
+
+        protected override IEnumerable<Vessel> get_recyclable_vessels()
+        {
+            yield return vessel;
+        }
     }
 }

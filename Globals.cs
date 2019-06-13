@@ -49,6 +49,8 @@ namespace GroundConstruction
         
         [Persistent] public float MaxDockingCos = 0.999f;
         [Persistent] public float MaxDockingDist = 0.2f;
+
+        [Persistent] public float RecycleRate = 1f;
     }
 
     public class ResourceUsageInfo : ResourceInfo
@@ -56,6 +58,7 @@ namespace GroundConstruction
         [Persistent] public float ComplexityWork = 0;
         [Persistent] public float EnergyPerMass = 0;
         [Persistent] public float WorkPerMass = 0;
+        [Persistent] public float MaxRecycleRatio = 0;
 
         public ResourceUsageInfo(string name = "") : base(name) { }
     }
