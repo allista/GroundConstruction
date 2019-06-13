@@ -110,7 +110,7 @@ namespace GroundConstruction
         }
 
         protected virtual void update_max_workforce() =>
-        max_workforce = part.CrewCapacity * 5;
+        max_workforce = part.CrewCapacity * KerbalRoster.GetExperienceMaxLevel();
 
         protected virtual void update_workforce<E>()
             where E : ExperienceEffect
