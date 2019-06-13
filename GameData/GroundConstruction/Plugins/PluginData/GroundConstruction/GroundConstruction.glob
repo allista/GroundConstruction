@@ -37,4 +37,9 @@ DeployMaxAV      = 1E-03
 MaxDeploymentMomentum = 0.5
 MinDeploymentTime = 5
 
+EasingFrames = 120
+        
+MaxDockingCos = 0.999
+MaxDockingDist = 0.2
+
 //:mode=c#:
