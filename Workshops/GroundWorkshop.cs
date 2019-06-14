@@ -84,6 +84,7 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(vsl.loaded
+                   && (vsl != vessel || vsl.Parts.Count > 1)
                    && (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
                     yield return vsl;
             }
