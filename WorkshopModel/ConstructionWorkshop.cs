@@ -333,6 +333,34 @@ namespace GroundConstruction
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
+
+        Vector2 recycle_vessels_scroll;
+        void draw_recycle_pane()
+        {
+            recycle_vessels_scroll = GUILayout.BeginScrollView(recycle_vessels_scroll, Styles.white, GUILayout.Height(100));
+            foreach(var vsl in get_recyclable_vessels())
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(vsl.GetDisplayName(), Styles.boxed_label, GUILayout.ExpandWidth(true));
+                if(vsl == recycling)
+                    GUILayout.Label("Recycling in progress...", Styles.boxed_label, GUILayout.ExpandWidth(true));
+                else
+                {
+                    if(GUILayout.Button("Recycle", Styles.danger_button, GUILayout.ExpandWidth(false)))
+                        StartCoroutine(recycle(vsl, false));
+                    if(GUILayout.Button("Recycle (discard resources)", Styles.danger_button, GUILayout.ExpandWidth(false)))
+                        StartCoroutine(recycle(vsl, true));
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndScrollView();
+        }
+
+        protected override void draw_panes()
+        {
+            base.draw_panes();
+            draw_recycle_pane();
+        }
         #endregion
     }
 }
