@@ -125,8 +125,11 @@ namespace GroundConstruction
             HashSet<uint> skip_parts = null;
             if(vsl == vessel)
             {
-                skip_parts.Add(vessel.rootPart.craftID);
-                skip_parts.Add(part.craftID);
+                skip_parts = new HashSet<uint>
+                {
+                    vessel.rootPart.craftID,
+                    part.craftID
+                };
             }
             return skip_parts;
         }

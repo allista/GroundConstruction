@@ -37,6 +37,13 @@ namespace GroundConstruction
             public double resource_mass;
             public bool Valid => resource != null;
 
+            public Requirements Copy()
+            {
+                var newCopy = new Requirements();
+                newCopy.Update(this);
+                return newCopy;
+            }
+
             public void Update(Requirements other)
             {
                 if(!other) return;
