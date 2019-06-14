@@ -173,7 +173,7 @@ namespace GroundConstruction
                 }
             }
             // decide if we have to skip this part (and thus all the parents)
-            skip |= part.protoModuleCrew.Count > 0;
+            skip |= p.protoModuleCrew.Count > 0;
             skip |= skip_craftIDs != null && skip_craftIDs.Contains(p.craftID);
             if(!skip)
             {
