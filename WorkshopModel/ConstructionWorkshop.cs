@@ -118,6 +118,8 @@ namespace GroundConstruction
         #endregion
 
         #region Recycling
+        Part recycling;
+
         protected abstract IEnumerable<Vessel> get_recyclable_vessels();
 
         HashSet<uint> get_parts_to_skip(Vessel vsl)
@@ -139,11 +141,14 @@ namespace GroundConstruction
 
         protected IEnumerator recycle(Part p, bool discard_excess_resources)
         {
+            if(recycling != null) yield break;
+            recycling = p;
             foreach(var result in recycle(p,
                                           get_recycle_experience_mod(),
                                           discard_excess_resources,
                                           get_parts_to_skip(p.vessel)))
                 yield return result;
+            recycling = null;
         }
 
         class SkipPart : CustomYieldInstruction
