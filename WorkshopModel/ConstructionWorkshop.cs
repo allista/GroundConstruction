@@ -157,9 +157,9 @@ namespace GroundConstruction
             var skip = false;
             if(p.children.Count > 0)
             {
-                foreach(var child in p.children)
+                for(int i = p.children.Count-1; i >= 0; i--)
                 {
-                    foreach(var child_result in recycle(child, efficiency, discard_excess_resources, skip_craftIDs))
+                    foreach(var child_result in recycle(p.children[i], efficiency, discard_excess_resources, skip_craftIDs))
                     {
                         if(child_result is SkipPart)
                             skip = true;
