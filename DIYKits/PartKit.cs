@@ -35,7 +35,7 @@ namespace GroundConstruction
                 Construction.TotalWork = total_work(Construction, mass);
                 Assembly.TotalWork = 0;
                 update_total_work();
-                SetComplete(assembled);
+                SetStageComplete(ASSEMBLY, true);
             }
             else
             {
