@@ -300,6 +300,14 @@ namespace GroundConstruction
             workers.Clear();
         }
 
+        public override void SetStageComplete(int stage, bool complete)
+        {
+            base.SetStageComplete(stage, complete);
+            if(remainder != null)
+                remainder.Clear();
+            workers.Clear();
+        }
+
         public bool Draw(GUIStyle style = null)
         {
             var rem = RemainingRequirements();

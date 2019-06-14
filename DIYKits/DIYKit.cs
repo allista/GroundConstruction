@@ -176,6 +176,13 @@ namespace GroundConstruction
                 remainder.Clear();
         }
 
+        public override void SetStageComplete(int stage, bool complete)
+        {
+            base.SetStageComplete(stage, complete);
+            if(remainder != null)
+                remainder.Clear();
+        }
+
         //deprecated config conversion
         public override void Load(ConfigNode node)
         {
