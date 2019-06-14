@@ -37,7 +37,8 @@ namespace GroundConstruction
 
         protected override IEnumerable<Vessel> get_recyclable_vessels()
         {
-            yield return vessel;
+            if(vessel.loaded)
+                yield return vessel;
         }
     }
 }
