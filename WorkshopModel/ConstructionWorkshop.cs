@@ -135,13 +135,7 @@ namespace GroundConstruction
         }
 
         protected IEnumerator recycle(Vessel vsl, bool discard_excess_resources)
-        {
-            foreach(var result in recycle(vsl.rootPart,
-                                          get_recycle_experience_mod(),
-                                          discard_excess_resources,
-                                          get_parts_to_skip(vsl)))
-                yield return result;
-        }
+        => recycle(vsl.rootPart, discard_excess_resources);
 
         protected IEnumerator recycle(Part p, bool discard_excess_resources)
         {
