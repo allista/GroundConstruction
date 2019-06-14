@@ -187,7 +187,7 @@ namespace GroundConstruction
                 {
                     if(res.amount > 0)
                     {
-                        if(!transfer_resource(res.info.id, res.amount, discard_excess_resources))
+                        if(transfer_resource(p, res.info.id, res.amount, discard_excess_resources) != TransferState.FULL)
                             skip = true;
                     }
                 }
@@ -198,38 +198,92 @@ namespace GroundConstruction
                 yield break;
             }
             // recycle the part that is now empty
-            var result = true;
             var kit = new PartKit(p, false);
-            result &= recycle_resource(kit.RemainingRequirements(), efficiency, discard_excess_resources);
+            var req_a = kit.RemainingRequirements().Copy();
             kit.SetStageComplete(DIYKit.ASSEMBLY, true);
-            result &= recycle_resource(kit.RemainingRequirements(), efficiency, discard_excess_resources);
-            FXMonger.Explode(p, p.transform.position, 0);
-            p.Die();
-            // wait for some time before recycle next one, or break the recycling if recyclement faild
-            yield return result ? new WaitForSeconds(GLB.RecycleRate) : null;
-        }
-
-        bool transfer_resource(int id, double amount, bool discard_excess_resources)
-        {
-            var transferred = part.RequestResource(id, amount, ResourceFlowMode.ALL_VESSEL_BALANCE);
-            return discard_excess_resources || Math.Abs(transferred - amount) < 1e-5;
-        }
-
-        bool recycle_resource(DIYKit.Requirements req, float efficiency, bool discard_excess_resources)
-        {
-            var result = true;
-            if(req.energy > 0)
+            var req_c = kit.RemainingRequirements().Copy();
+            var result = recycle_part(p, efficiency, discard_excess_resources, req_a, req_c);
+            if(result > TransferState.ZERO)
             {
-                var ec = part.RequestResource(Utils.ElectricCharge.id, req.energy);
-                if(ec < req.energy)
+                FXMonger.Explode(p, p.transform.position, 0);
+                p.Die();
+            }
+            // wait for some time before recycle next one, or break the recycling if something went wrong
+            if(result == TransferState.NO_EC)
+                yield return new SkipPart();
+            else if(result == TransferState.FULL)
+                yield return new WaitForSeconds(GLB.RecycleRate);
+            else
+                yield return null;
+        }
+
+        [Flags] enum TransferState { NOOP = 0, NO_EC = 1 << 0, ZERO = 1 << 1, PARTIAL = 1 << 2, FULL = 1 << 3 }; 
+
+        TransferState transfer_resource(Part from, int id, double amount, bool discard_excess_resources)
+        {
+            if(amount.Equals(0))
+                return TransferState.FULL;
+            var remainder = amount;
+            if(from.vessel != vessel)
+                remainder += part.RequestResource(id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE);
+            else
+            {
+                foreach(var p in vessel.Parts)
                 {
-                    result = false;
-                    efficiency *= (float)(ec / req.energy);
+                    if(p != from)
+                    {
+                        var part_res = p.Resources.GetFlowing(id, false);
+                        if(part_res != null && part_res.amount < part_res.maxAmount)
+                        {
+                            remainder += part.TransferResource(part_res, amount, p);
+                            if(remainder <= 0)
+                                break;
+                        }
+                    }
                 }
             }
-            result &= transfer_resource(req.resource.id,
-                                        req.resource_amount * req.resource.MaxRecycleRatio * efficiency,
-                                        discard_excess_resources);
+            if(discard_excess_resources || Math.Abs(remainder) < 1e-6)
+                return TransferState.FULL;
+            if(remainder.Equals(amount))
+                return TransferState.ZERO;
+            return TransferState.PARTIAL;
+        }
+
+        TransferState recycle_part(Part from, float efficiency, bool discard_excess_resources, params DIYKit.Requirements[] requrements)
+        {
+            var ec = 0.0;
+            var ec_req = 0.0;
+            foreach(var req in requrements)
+            {
+                if(!req) continue;
+                ec_req = req.energy * req.resource.MaxRecycleRatio * efficiency;
+            }
+            var result = TransferState.NOOP;
+            if(ec_req > 0)
+            {
+                ec = part.RequestResource(Utils.ElectricCharge.id, ec_req);
+                if(ec < ec_req)
+                {
+                    Utils.Message("Not enougth energy to fully recycle '{0}'\n{1} of electric charge required", 
+                                  from.Title(), Utils.formatBigValue((float)ec_req, "u"));
+                    part.RequestResource(Utils.ElectricCharge.id, -ec);
+                    result = TransferState.NO_EC;
+                }
+            }
+            if(result != TransferState.NO_EC)
+            {
+                foreach(var req in requrements)
+                {
+                    if(!req) continue;
+                    result |= transfer_resource(from, req.resource.id,
+                                                req.resource_amount * req.resource.MaxRecycleRatio * efficiency,
+                                                discard_excess_resources);
+                    if(result != TransferState.FULL)
+                        Utils.Message("No space left for '{0}'", req.resource.def.name);
+                }
+                if(ec > 0 && result == TransferState.ZERO)
+                    part.RequestResource(Utils.ElectricCharge.id, -ec);
+            }
             return result;
         }
 
