@@ -111,6 +111,10 @@
       <Name>AT_Utils.UI</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="GC.UI\GC.UI.csproj">
+      <Project>{55E33136-32BD-4C5F-979D-D8AC9170E41E}</Project>
+      <Name>GC.UI</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WorkModel\" />
