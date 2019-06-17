@@ -47,8 +47,8 @@ namespace GroundConstruction
             MinKSPVersion = new Version(1, 6, 1);
             MaxKSPVersion = new Version(1, 7, 2);
 
-            VersionURL   = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
-            UpgradeURL   = "https://spacedock.info/mod/1123/Ground%20Construction";
+            VersionURL = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
+            UpgradeURL = "https://spacedock.info/mod/1123/Ground%20Construction";
             ChangeLogURL = "https://github.com/allista/GroundConstruction/blob/master/ChangeLog.md";
         }
     }
