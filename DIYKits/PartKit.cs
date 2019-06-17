@@ -16,15 +16,41 @@ namespace GroundConstruction
 
         [Persistent] public uint craftID;
         [Persistent] public float Complexity;
+        [Persistent] public bool PseudoPart;
 
         public PartKit()
         {
+        }
+
+        public PartKit(string name, float mass, float cost, bool assembled)
+        {
+            Name = name;
+            craftID = 0;
+            PseudoPart = true;
+            Mass.Add(1, mass);
+            Cost.Add(1, cost);
+            if(assembled)
+            {
+                Complexity = 0;
+                Construction.TotalWork = total_work(Construction, mass);
+                Assembly.TotalWork = 0;
+                update_total_work();
+                SetStageComplete(ASSEMBLY, true);
+            }
+            else
+            {
+                Complexity = 1;
+                Assembly.TotalWork = total_work(Assembly, mass);
+                Construction.TotalWork = 0;
+                update_total_work();
+            }
         }
 
         public PartKit(Part part, bool assembled = true)
         {
             Name = part.partInfo.title;
             craftID = part.craftID;
+            PseudoPart = false;
             var is_DIY_Kit = part.Modules.Contains<DeployableKitContainer>();
             var dry_cost = Mathf.Max(part.DryCost(), 0);
             Mass.Add(1, part.mass);

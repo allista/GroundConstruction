@@ -10,7 +10,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo> 
+    public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo>
     {
         #region Target Actions
         protected ConstructionKitInfo target_kit;
@@ -86,7 +86,7 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        protected override bool check_task(ConstructionKitInfo task) => 
+        protected override bool check_task(ConstructionKitInfo task) =>
         base.check_task(task) && task.Kit.CurrentStageIndex >= DIYKit.CONSTRUCTION;
 
         protected override bool check_host(ConstructionKitInfo task) =>
