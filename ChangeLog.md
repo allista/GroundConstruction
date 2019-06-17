@@ -3,8 +3,8 @@
 * **v2.4.1 -- Making Resources**
     * **Parts with *selected* resources are assembled and constructed with these resources**
         * By default only two such resources are supported:
-            * **Ablator** is made from MaterialKits during the contraction phase
-            * **Machinery** is mdade from SpecializedParts during the assembly phase
+            * **Ablator** is made from MaterialKits during the construction phase
+            * **Machinery** is made from SpecializedParts during the assembly phase
         * Other resources may be added by other mods:
             * Add a resource name into a ﻿GC_CONSTRUCT_RESOURCES node in any of .cfg files in your mod to make that resource from MaterialKits in GC
             * Add a resource name into a ﻿GC_ASSEMBLE_RESOURCES node in any of .cfg files in your mod to make that resource from SpecializedParts in GC
