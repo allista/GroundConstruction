@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -114,6 +114,7 @@
     <ProjectReference Include="GC.UI\GC.UI.csproj">
       <Project>{55E33136-32BD-4C5F-979D-D8AC9170E41E}</Project>
       <Name>GC.UI</Name>
+      <Private>True</Private>  
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
