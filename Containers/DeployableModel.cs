@@ -46,6 +46,7 @@ namespace GroundConstruction
         public Vector3 OrigScale;
         public Vector3 OrigSize;
         public Vector3 OrigPartSize;
+        public Vector3 PartCenter;
         [KSPField(isPersistant = true)] public Vector3 Size;
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
         [KSPField(isPersistant = true)] public DeplyomentState state;
@@ -293,6 +294,7 @@ namespace GroundConstruction
                 OrigSize = metric.size;
                 OrigScale = model.localScale;
                 OrigPartSize = part_metric.size;
+                PartCenter = part_metric.center.Local2Local(part.partTransform, model);
             }
             if(Size.IsZero())
                 Size = OrigSize;
@@ -323,7 +325,7 @@ namespace GroundConstruction
                     just_started = false;
                 }
             }
-            update_deploy_hint();
+            show_deploy_hint();
         }
 
         [KSPEvent(guiName = "Show Deployment Hint", guiActive = true, guiActiveEditor = true,
@@ -333,24 +335,34 @@ namespace GroundConstruction
 
         #region Deployment
         protected abstract Vector3 get_deployed_size();
-        protected abstract Vector3 get_deployed_offset();
-        protected abstract Transform get_deploy_transform();
+        protected abstract Transform get_deploy_transform(Vector3 size, out Vector3 spawn_offset);
 
-        protected virtual void update_deploy_hint(bool show)
+        protected virtual void update_deploy_hint(Transform deployT,
+            Vector3 deployed_size, Vector3 spawn_offset)
         {
-            var deployT = get_deploy_transform();
-            if(show && deployT != null)
+            if(deployT != null)
             {
                 var T = deploy_hint_mesh.gameObject.transform;
-                T.position = model.position;
+                T.position = deployT.position;
                 T.rotation = deployT.rotation;
-                deploy_hint_mesh.gameObject.SetActive(true);
             }
-            else
-                deploy_hint_mesh.gameObject.SetActive(false);
         }
-        protected void update_deploy_hint() =>
-        update_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
+
+        protected void update_deploy_hint()
+        {
+            var size = get_deployed_size();
+            if (!size.IsZero())
+            {
+                var deployT = get_deploy_transform(size, out var spawn_offset);
+                update_deploy_hint(deployT, size, spawn_offset);
+            }
+        }
+
+        protected virtual void show_deploy_hint(bool show) =>
+            deploy_hint_mesh.gameObject.SetActive(show);
+
+        protected void show_deploy_hint() =>
+            show_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
 
         protected Vector3 metric_to_part_scale =>
         Vector3.Scale(OrigPartSize, OrigSize.Inverse());
@@ -358,18 +370,29 @@ namespace GroundConstruction
         protected Vector3 get_deployed_part_size() =>
         Vector3.Scale(get_deployed_size(), metric_to_part_scale);
 
+        protected abstract Vector3 get_point_of_growth();
+
         protected Bounds get_deployed_part_bounds(bool to_model_space)
         {
-            var T = get_deploy_transform();
+            var T = get_deploy_transform(Vector3.zero, out _);
             if(T != null)
             {
                 var depl_size = get_deployed_part_size();
-                var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
-                var center = new Vector3(0, (depl_size.y - part_size.y) / 2, 0);
-                if(to_model_space)
-                    return new Bounds(center.Local2LocalDir(T, model),
-                                      depl_size.Local2LocalDir(T, model).AbsComponents());
-                return new Bounds(center, depl_size);
+                if (!depl_size.IsZero())
+                {
+                    var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
+                    var part_center = model.TransformPoint(PartCenter);
+                    var growth_point = get_point_of_growth();
+                    var scale = Vector3.Scale(depl_size, part_size.Inverse());
+                    var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
+                    var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
+                    this.Log("deployed bounds: size {} => {}, scale {}, growth {}, center {}",
+                        part_size, depl_size, scale, growth, center);//debug
+                    if(to_model_space)
+                        return new Bounds(center.Local2LocalDir(T, model),
+                            depl_size.Local2LocalDir(T, model).AbsComponents());
+                    return new Bounds(center, depl_size);    
+                }
             }
             return default(Bounds);
         }
@@ -407,6 +430,7 @@ namespace GroundConstruction
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
+            update_deploy_hint();
         }
 
         protected abstract bool can_deploy();
@@ -446,7 +470,8 @@ namespace GroundConstruction
         IEnumerator<YieldInstruction> deploy()
         {
             foreach(var _ in prepare_deployment()) yield return null;
-            var deployT = get_deploy_transform();
+            Vector3 spawn_offset;
+            var deployT = get_deploy_transform(out spawn_offset);
             TargetSize = get_deployed_size();
             TargetSize = TargetSize.Local2LocalDir(deployT, model).AbsComponents();
             yield return slow_resize();

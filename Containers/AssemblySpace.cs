@@ -165,11 +165,12 @@ namespace GroundConstruction
         {
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(kit_ship,
-                                                   SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds) - bounds.center,
+                                                   spawn_transform,
+                                                   offset - bounds.center,
                                                    Vector3.zero));
             Kit = new VesselKit();
             Open();
@@ -242,11 +243,12 @@ namespace GroundConstruction
                 yield break;
             }
             var bounds = new Metric(construct, world_space: true).bounds;
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
-                                                   SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds)
+                                                   spawn_transform,
+                                                   offset
                                                    - bounds.center
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,

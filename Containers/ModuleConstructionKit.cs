@@ -14,7 +14,7 @@ namespace GroundConstruction
 {
     public class ModuleConstructionKit : DeployableKitContainer
     {
-        List<Transform> spawn_transforms;
+        List<Transform> spawn_transforms = new List<Transform>();
         [KSPField] public string SpawnTransforms;
 
         ATGroundAnchor anchor;
@@ -41,10 +41,14 @@ namespace GroundConstruction
         }
 
         #region Deployment
-        protected override Transform get_deploy_transform_unrotated()
+        protected override Vector3 get_point_of_growth() =>
+            get_deploy_transform(Vector3.zero, out _).position;
+
+        protected override Transform get_deploy_transform_unrotated(Vector3 size, out Vector3 spawn_offset)
         {
-            Transform minT = null;
-            if(spawn_transforms != null)
+            var minT = part.transform;
+            spawn_offset = new Vector3(0, size.y/2, 0);
+            if(spawn_transforms.Count > 0)
             {
                 var alt = double.MaxValue;
                 for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
@@ -62,10 +66,8 @@ namespace GroundConstruction
                     }
                 }
             }
-            return minT ?? part.transform;
+            return minT;
         }
-
-        protected override Vector3 get_deployed_offset() => Vector3.zero;
 
         protected override Vector3 get_deployed_size()
         {
@@ -174,10 +176,12 @@ namespace GroundConstruction
 
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
-            var launch_transform = get_deploy_transform();
+            var launch_transform = get_deploy_transform(get_deployed_size(), out _);
             yield return
                 StartCoroutine(vessel_spawner
-                               .SpawnShipConstructToGround(construct, launch_transform, Vector3.zero,
+                               .SpawnShipConstructToGround(construct, 
+                                                           launch_transform, 
+                                                           Vector3.zero,
                                                            null,
                                                            on_vessel_loaded,
                                                            null,

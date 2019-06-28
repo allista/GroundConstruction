@@ -280,11 +280,18 @@ namespace GroundConstruction
 
         protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
 
-        protected abstract Transform get_deploy_transform_unrotated();
+        protected abstract Transform get_deploy_transform_unrotated(Vector3 size, out Vector3 spawn_offset);
 
-        protected override Transform get_deploy_transform()
+        protected override Transform get_deploy_transform(Vector3 size, out Vector3 spawn_offset)
         {
-            var T = get_deploy_transform_unrotated();
+            var localRotation = Quaternion.identity;
+            if (yRotation > 0)
+            {
+                localRotation = get_Y_rotation();
+                if(!size.IsZero())
+                    size = Quaternion.Inverse(localRotation) * ((localRotation * size).AbsComponents());
+            }
+            var T = get_deploy_transform_unrotated(size, out spawn_offset);
             if(yRotation > 0 && T != null)
             {
                 var rT = T.Find("__SPAWN_TRANSFORM_ROTATED");
@@ -295,7 +302,7 @@ namespace GroundConstruction
                     rT = empty.transform;
                 }
                 rT.localPosition = Vector3.zero;
-                rT.localRotation = get_Y_rotation();
+                rT.localRotation = localRotation;
                 return rT;
             }
             return T;
@@ -327,26 +334,35 @@ namespace GroundConstruction
             }
         }
 
-        protected virtual void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        protected virtual void update_kit_hull_mesh(Transform deployT,
+            Vector3 deployed_size, Vector3 spawn_offset)
         {
-            if(show && deployT != null)
+            if(deployT != null)
             {
+                var growth_point = get_point_of_growth();
+                var size = Size.Local2LocalDir(model, deployT).AbsComponents();
+                var scale = Vector3.Scale(deployed_size, size.Inverse());
+                var growth = Vector3.Scale(deployT.InverseTransformDirection(deployT.position - growth_point), scale);
+                this.Log("update hull: size {} => {}, scale {}, growth {}", 
+                    size, deployed_size, scale, growth);//debug
                 var T = kit_hull_mesh.gameObject.transform;
-                offset -= kit.ShipMetric.center;
-                offset += new Vector3(0, kit.ShipMetric.bounds.extents.y, 0);
-                T.position = deployT.position + deployT.TransformDirection(offset);
+                T.position = growth_point + deployT.TransformDirection(growth) + deployT.TransformDirection(spawn_offset - kit.ShipMetric.center);
                 T.rotation = deployT.rotation;
-                kit_hull_mesh.gameObject.SetActive(true);
             }
-            else
-                kit_hull_mesh.gameObject.SetActive(false);
         }
 
-        protected override void update_deploy_hint(bool show)
+        protected override void update_deploy_hint(Transform deployT,
+            Vector3 deployed_size, Vector3 spawn_offset)
+        {
+            base.update_deploy_hint(deployT, deployed_size, spawn_offset);
+            update_kit_hull_mesh(deployT, deployed_size, spawn_offset);
+        }
+
+        protected override void show_deploy_hint(bool show)
         {
             show &= kit;
-            base.update_deploy_hint(show);
-            update_kit_hull_mesh(get_deploy_transform(), get_deployed_offset(), show);
+            base.show_deploy_hint(show);
+            kit_hull_mesh.gameObject.SetActive(show);
         }
 
         protected override IEnumerable prepare_deployment()
@@ -518,10 +534,10 @@ namespace GroundConstruction
 #if DEBUG
         void OnRenderObject()
         {
-            var T = get_deploy_transform();
+            var T = get_deploy_transform(Size, out _);
             if(T != null)
             {
-                var pos = T.position + T.TransformDirection(get_deployed_offset());
+                var pos = T.position;
                 Utils.GLVec(pos, T.up, Color.green);
                 Utils.GLVec(pos, T.forward, Color.blue);
                 Utils.GLVec(pos, T.right, Color.red);
