@@ -214,7 +214,7 @@ namespace GroundConstruction
             }
             if(!Kit.BlueprintComplete())
             {
-                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+                Utils.Message("Something went wrong. Not all parts were properly constructed.");
                 return;
             }
             StartCoroutine(launch_complete_construct());
@@ -236,7 +236,7 @@ namespace GroundConstruction
                 Utils.Log("Unable to load ShipConstruct {}. " +
                           "This usually means that some parts are missing " +
                           "or some modules failed to initialize.", Kit.Name);
-                Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+                Utils.Message("Something went wrong. Constructed ship cannot be launched.");
                 vessel_spawner.AbortLaunch();
                 yield break;
             }
