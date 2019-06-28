@@ -40,7 +40,6 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             SpawnManager.Init(part);
-            SpawnManager.SetupSensor();
             if(!string.IsNullOrEmpty(ConstructionNode))
             {
                 construction_node = part.FindAttachNode(ConstructionNode);
