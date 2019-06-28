@@ -551,6 +551,7 @@ namespace GroundConstruction
                 if(j.Host != null)
                     Utils.GLDrawPoint(j.Host.transform.TransformPoint(j.HostAnchor), Color.magenta);
             }
+            Utils.GLDrawPoint(model.TransformPoint(PartCenter), Color.yellow);
         }
 #endif
     }
