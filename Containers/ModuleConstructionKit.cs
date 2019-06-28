@@ -19,10 +19,10 @@ namespace GroundConstruction
 
         ATGroundAnchor anchor;
 
-        public override void OnAwake()
+        public override void OnStart(StartState state)
         {
-            base.OnAwake();
-            spawn_transforms = new List<Transform>();
+            base.OnStart(state);
+            anchor = part.FindModuleImplementing<ATGroundAnchor>();
             if(!string.IsNullOrEmpty(SpawnTransforms))
             {
                 foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
@@ -32,12 +32,6 @@ namespace GroundConstruction
                     spawn_transforms.AddRange(transforms);
                 }
             }
-        }
-
-        public override void OnStart(StartState state)
-        {
-            base.OnStart(state);
-            anchor = part.FindModuleImplementing<ATGroundAnchor>();
         }
 
         #region Deployment
