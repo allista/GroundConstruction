@@ -56,7 +56,7 @@ namespace GroundConstruction
                     var T = spawn_transforms[i];
                     double t_alt;
                     if(vessel != null)
-                        t_alt = vessel.mainBody.GetAltitude(T.position) - vessel.mainBody.TerrainAltitude(T.position);
+                        t_alt = vessel.mainBody.GetAltitude(T.position);
                     else
                         t_alt = T.position.y;
                     if(t_alt < alt)
