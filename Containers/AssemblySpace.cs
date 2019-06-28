@@ -104,8 +104,6 @@ namespace GroundConstruction
 
         public bool Opened => animator == null || animator.State != AnimatorState.Closed;
 
-        public bool SpawnAutomatically => false;
-
         public void SpawnKit()
         {
             if(!Kit) return;

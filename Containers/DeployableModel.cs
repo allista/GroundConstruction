@@ -57,7 +57,7 @@ namespace GroundConstruction
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
-        public DeplyomentState State { get { return state; } }
+        public DeplyomentState State => state;
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
@@ -76,11 +76,7 @@ namespace GroundConstruction
                 if(d.dockedPartUId == part.flightID)
                     return d.nodeTransform.position;
             }
-            PartJoint j;
-            if(part.parent = docked)
-                j = part.attachJoint;
-            else
-                j = docked.attachJoint;
+            var j = part.parent == docked ? part.attachJoint : docked.attachJoint;
             return j.Host.transform.TransformPoint(j.HostAnchor);
         }
 
@@ -211,7 +207,7 @@ namespace GroundConstruction
             }
             resizing = true;
             if(vessel != null)
-                vessel.CycleAllAutoStrut﻿﻿();
+                vessel.CycleAllAutoStrut();
             yield return null;
             while(time < 1)
             {
@@ -229,7 +225,7 @@ namespace GroundConstruction
             }
             resizing = false;
             if(vessel != null)
-                vessel.CycleAllAutoStrut﻿﻿();
+                vessel.CycleAllAutoStrut();
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
@@ -470,8 +466,7 @@ namespace GroundConstruction
         IEnumerator<YieldInstruction> deploy()
         {
             foreach(var _ in prepare_deployment()) yield return null;
-            Vector3 spawn_offset;
-            var deployT = get_deploy_transform(out spawn_offset);
+            var deployT = get_deploy_transform(Vector3.zero, out _);
             TargetSize = get_deployed_size();
             TargetSize = TargetSize.Local2LocalDir(deployT, model).AbsComponents();
             yield return slow_resize();

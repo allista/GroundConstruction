@@ -13,7 +13,7 @@ using AT_Utils.UI;
 
 namespace GroundConstruction
 {
-    public class DockedKitContainer : DeployableKitContainer, IConstructionSpace, IConfigurable
+    public class DockedKitContainer : DeployableKitContainer
     {
         [KSPField, SerializeField]
         public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
