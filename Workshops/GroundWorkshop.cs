@@ -18,7 +18,7 @@ namespace GroundConstruction
         public float Efficiency = 1;
         float distance_mod = -1;
 
-        public override float EffectiveWorkforce { get { return workforce * distance_mod; } }
+        public override float EffectiveWorkforce => workforce * distance_mod;
 
         public override string GetInfo()
         {
@@ -27,9 +27,7 @@ namespace GroundConstruction
             if(isEnabled)
             {
                 update_max_workforce();
-                return string.Format("Efficiency: {0:P}\n" +
-                                     "Max Workforce: {1:F1} SK",
-                                     Efficiency, max_workforce);
+                return $"Efficiency: {Efficiency:P}\n" + $"Max Workforce: {max_workforce:F1} SK";
             }
             return "";
         }
@@ -50,11 +48,13 @@ namespace GroundConstruction
         void compute_part_efficiency()
         {
             Efficiency = 0;
-            if(part.CrewCapacity == 0) return;
-            var usefull_volume = (Metric.Volume(part) - part.mass) * GLB.PartVolumeFactor;
-            if(usefull_volume <= 0) return;
+            if(part.CrewCapacity == 0) 
+                return;
+            var useful_volume = (Metric.Volume(part) - part.mass) * GLB.PartVolumeFactor;
+            if(useful_volume <= 0) 
+                return;
             Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency,
-                                    Mathf.Min(usefull_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
+                                    Mathf.Min(useful_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
             if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
             if(Efficiency.Equals(0))
                 this.EnableModule(false);

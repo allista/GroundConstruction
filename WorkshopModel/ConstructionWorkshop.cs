@@ -288,7 +288,7 @@ namespace GroundConstruction
                                                 req.resource_amount * req.resource.MaxRecycleRatio * efficiency,
                                                 discard_excess_resources);
                     if(result != TransferState.FULL)
-                        Utils.Message("No space left for '{0}'", req.resource.def.name);
+                        recycle_report.Add($"No space left for '{req.resource.def.name}'.");
                 }
                 if(ec > 0 && result == TransferState.ZERO)
                     part.RequestResource(Utils.ElectricCharge.id, -ec);

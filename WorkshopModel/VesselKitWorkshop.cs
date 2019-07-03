@@ -194,8 +194,8 @@ namespace GroundConstruction
 
         protected virtual void info_pane()
         {
-            GUILayout.Label(string.Format("<color=silver>Workforce:</color> <b>{0:F1}</b>/{1:F1} SK",
-                                          workforce, max_workforce),
+            GUILayout.Label(
+                $"<color=silver>Workforce:</color> <b>{workforce:F1}</b>/{max_workforce:F1} SK",
                             Styles.boxed_label, GUILayout.ExpandWidth(true));
         }
 
