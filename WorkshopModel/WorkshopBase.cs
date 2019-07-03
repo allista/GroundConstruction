@@ -423,7 +423,13 @@ namespace GroundConstruction
 
         void FixedUpdate()
         {
-            if(!HighLogic.LoadedSceneIsFlight || !Working || workforce.Equals(0)) return;
+            if(!Working || !HighLogic.LoadedSceneIsFlight) 
+                return;
+            if(EffectiveWorkforce.Equals(0))
+            {
+                stop();
+                return;
+            }
             var deltaTime = get_delta_time();
             if(deltaTime < 0) return;
             //check current kit
