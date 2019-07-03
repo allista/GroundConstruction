@@ -63,6 +63,7 @@
     <Compile Include="GCAppToolbar.cs" />
     <Compile Include="ConstructionSkill.cs" />
     <Compile Include="GCFilterManager.cs" />
+    <Compile Include="UI\RecyclerWindow.cs" />
     <Compile Include="VesselInfo.cs" />
     <Compile Include="DIYKits\DIYKit.cs" />
     <Compile Include="DIYKits\PartKit.cs" />

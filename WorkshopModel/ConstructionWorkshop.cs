@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace GroundConstruction
 {
-    public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo>
+    public abstract class ConstructionWorkshop : VesselKitWorkshop<ConstructionKitInfo>, IRecycler
     {
         #region Target Actions
         protected ConstructionKitInfo target_kit;
@@ -74,6 +74,13 @@ namespace GroundConstruction
         #endregion
 
         #region WorkshopBase
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+            recycler_window = new RecyclerWindow(this);
+            recycler_window.LoadState();
+        }
+
         public override void OnAwake()
         {
             base.OnAwake();
@@ -83,6 +90,7 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
+            recycler_window.SaveState();
             Destroy(resources_window);
             Destroy(crew_window);
             base.OnDestroy();
@@ -118,7 +126,50 @@ namespace GroundConstruction
         #endregion
 
         #region Recycling
-        Part recycling;
+        private Part recycling_part;
+        private RecyclerWindow recycler_window;
+        private readonly List<string> recycle_report = new List<string>();
+
+        public IEnumerable<string> GetRecycleReport() => recycle_report;
+        
+        public float GetRecycleExperienceMod()
+        {
+            var experience = 0;
+            foreach(var kerbal in part.protoModuleCrew)
+            {
+                var trait = kerbal.experienceTrait;
+                for(int i = 0, traitEffectsCount = trait.Effects.Count; i < traitEffectsCount; i++)
+                    if(worker_effect.IsInstanceOfType(trait.Effects[i]))
+                    {
+                        experience = Math.Max(experience, trait.CrewMemberExperienceLevel());
+                        break;
+                    }
+            }
+            this.Log("Recycle experience modificator: {}", Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel());//debug
+            return Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel();
+        }
+        
+        public void GetRecycleInfo(
+            Part p,
+            float efficiency,
+            out DIYKit.Requirements assembly_requirements,
+            out DIYKit.Requirements construction_requirements
+        )
+        {
+            var kit = new PartKit(p, false);
+            assembly_requirements = kit.RemainingRequirements().Copy();
+            kit.SetStageComplete(DIYKit.ASSEMBLY, true);
+            construction_requirements = kit.RemainingRequirements().Copy();
+            assembly_requirements.resource_amount *= assembly_requirements.resource.MaxRecycleRatio * efficiency;
+            assembly_requirements.energy *= GLB.RecycleEnergyRatio;
+            construction_requirements.resource_amount *= construction_requirements.resource.MaxRecycleRatio * efficiency;
+            construction_requirements.energy *= GLB.RecycleEnergyRatio;
+        }
+
+        public bool IsRecycling => recycling_part != null;
+        
+        public void Recycle(Part p, bool discard_excess_resources, Action<bool> on_finished) => 
+            StartCoroutine(recycle(p, discard_excess_resources, on_finished));
 
         protected abstract IEnumerable<Vessel> get_recyclable_vessels();
 
@@ -136,19 +187,18 @@ namespace GroundConstruction
             return skip_parts;
         }
 
-        protected IEnumerator recycle(Vessel vsl, bool discard_excess_resources)
-        => recycle(vsl.rootPart, discard_excess_resources);
-
-        protected IEnumerator recycle(Part p, bool discard_excess_resources)
+        protected IEnumerator recycle(Part p, bool discard_excess_resources, Action<bool> on_finished)
         {
-            if(recycling != null) yield break;
-            recycling = p;
+            if(recycling_part != null) yield break;
+            recycle_report.Clear();
+            recycling_part = p;
             foreach(var result in recycle(p,
-                                          get_recycle_experience_mod(),
+                                          GetRecycleExperienceMod(),
                                           discard_excess_resources,
                                           get_parts_to_skip(p.vessel)))
                 yield return result;
-            recycling = null;
+            recycling_part = null;
+            on_finished(p == null || p.State == PartStates.DEAD);
         }
 
         class SkipPart : CustomYieldInstruction
@@ -179,8 +229,13 @@ namespace GroundConstruction
                 }
             }
             // decide if we have to skip this part (and thus all the parents)
-            skip |= p.protoModuleCrew.Count > 0;
-            skip |= skip_craftIDs != null && skip_craftIDs.Contains(p.craftID);
+            if(p.protoModuleCrew.Count > 0)
+            {
+                recycle_report.Add($"Skipped '{p.partInfo.title}' because the crew was inside");
+                skip = true;
+            }
+            else 
+                skip |= skip_craftIDs != null && skip_craftIDs.Contains(p.craftID);
             if(!skip)
             {
                 // if not, collect its resources if we can, else skip it anyway
@@ -200,11 +255,8 @@ namespace GroundConstruction
                 yield break;
             }
             // recycle the part that is now empty
-            var kit = new PartKit(p, false);
-            var req_a = kit.RemainingRequirements().Copy();
-            kit.SetStageComplete(DIYKit.ASSEMBLY, true);
-            var req_c = kit.RemainingRequirements().Copy();
-            var result = recycle_part(p, efficiency, discard_excess_resources, req_a, req_c);
+            GetRecycleInfo(p, efficiency, out var req_a, out var req_c);
+            var result = recycle_part(p, discard_excess_resources, req_a, req_c);
             if(result > TransferState.ZERO)
             {
                 this.Log("Recycled {}, result {}", p.GetID(), result);//debug
@@ -256,23 +308,25 @@ namespace GroundConstruction
             return TransferState.PARTIAL;
         }
 
-        TransferState recycle_part(Part from, float efficiency, bool discard_excess_resources, params DIYKit.Requirements[] requrements)
+        TransferState recycle_part(Part from, bool discard_excess_resources, params DIYKit.Requirements[] requrements)
         {
             var ec = 0.0;
             var ec_req = 0.0;
             foreach(var req in requrements)
             {
                 if(!req) continue;
-                ec_req = req.energy * req.resource.MaxRecycleRatio * efficiency;
+                ec_req += req.energy;
             }
             var result = TransferState.NOOP;
             if(ec_req > 0)
             {
                 ec = part.RequestResource(Utils.ElectricCharge.id, ec_req);
-                if(ec < ec_req)
+                this.Log("Requested {} EC, got {}", ec_req, ec);//debug
+                if(ec_req - ec > 1e-6)
                 {
-                    Utils.Message("Not enougth energy to fully recycle '{0}'\n{1} of electric charge required", 
-                                  from.Title(), Utils.formatBigValue((float)ec_req, "u"));
+                    recycle_report.Add($@"Not enough energy to fully recycle '{from.Title()
+                        }': {Utils.formatBigValue((float)ec_req, "u")
+                        } of electric charge required.");
                     part.RequestResource(Utils.ElectricCharge.id, -ec);
                     result = TransferState.NO_EC;
                 }
@@ -285,7 +339,7 @@ namespace GroundConstruction
                 {
                     if(!req) continue;
                     result |= transfer_resource(from, req.resource.id,
-                                                req.resource_amount * req.resource.MaxRecycleRatio * efficiency,
+                                                req.resource_amount,
                                                 discard_excess_resources);
                     if(result != TransferState.FULL)
                         recycle_report.Add($"No space left for '{req.resource.def.name}'.");
@@ -296,21 +350,10 @@ namespace GroundConstruction
             return result;
         }
 
-        float get_recycle_experience_mod()
+        private void LateUpdate()
         {
-            var experience = 0;
-            foreach(var kerbal in part.protoModuleCrew)
-            {
-                var trait = kerbal.experienceTrait;
-                for(int i = 0, traitEffectsCount = trait.Effects.Count; i < traitEffectsCount; i++)
-                    if(worker_effect.IsInstanceOfType(trait.Effects[i]))
-                    {
-                        experience = Math.Max(experience, trait.CrewMemberExperienceLevel());
-                        break;
-                    }
-            }
-            this.Log("Recycle experience modificator: {}", Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel());//debug
-            return Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel();
+            if(recycler_window.IsShown)
+                recycler_window.SyncVessels(get_recyclable_vessels());
         }
         #endregion
 
@@ -398,32 +441,21 @@ namespace GroundConstruction
             GUILayout.EndVertical();
         }
 
-        Vector2 recycle_vessels_scroll;
-        void draw_recycle_pane()
+        protected override void buttons_pane()
         {
-            recycle_vessels_scroll = GUILayout.BeginScrollView(recycle_vessels_scroll, Styles.white, GUILayout.Height(100));
-            foreach(var vsl in get_recyclable_vessels())
+            GUILayout.BeginHorizontal();
+            if(GUILayout.Button("Recycler", Styles.danger_button, GUILayout.ExpandWidth(false)))
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(vsl.GetDisplayName(), Styles.boxed_label, GUILayout.ExpandWidth(true));
-                if(vsl == recycling)
-                    GUILayout.Label("Recycling in progress...", Styles.boxed_label, GUILayout.ExpandWidth(true));
+                if(recycler_window.IsShown)
+                    recycler_window.Close();
                 else
                 {
-                    if(GUILayout.Button("Recycle", Styles.danger_button, GUILayout.ExpandWidth(false)))
-                        StartCoroutine(recycle(vsl, false));
-                    if(GUILayout.Button("Recycle (discard resources)", Styles.danger_button, GUILayout.ExpandWidth(false)))
-                        StartCoroutine(recycle(vsl, true));
+                    recycler_window.SetVessels(get_recyclable_vessels());
+                    recycler_window.Show(this);    
                 }
-                GUILayout.EndHorizontal();
             }
-            GUILayout.EndScrollView();
-        }
-
-        protected override void draw_panes()
-        {
-            base.draw_panes();
-            draw_recycle_pane();
+            base.buttons_pane();
+            GUILayout.EndHorizontal();
         }
         #endregion
     }

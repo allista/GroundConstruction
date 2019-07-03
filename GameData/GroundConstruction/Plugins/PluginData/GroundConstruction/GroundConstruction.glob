@@ -45,5 +45,6 @@ MaxDockingCos = 0.999
 MaxDockingDist = 0.2
 
 RecycleRate = 1
+RecycleEnergyRatio = 0.1
 
 //:mode=c#:

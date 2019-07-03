@@ -40,6 +40,7 @@ GameObject:
   - component: {fileID: 114374842159179632}
   - component: {fileID: 114251329213548530}
   - component: {fileID: 114138707886563552}
+  - component: {fileID: 114620521549722598}
   m_Layer: 5
   m_Name: output
   m_TagString: Untagged
@@ -146,6 +147,7 @@ GameObject:
   - component: {fileID: 114669287915069560}
   - component: {fileID: 114495983948074736}
   - component: {fileID: 114908694244937956}
+  - component: {fileID: 114904207941696892}
   m_Layer: 5
   m_Name: recycleButton
   m_TagString: Untagged
@@ -374,7 +376,7 @@ GameObject:
   - component: {fileID: 114847268150492680}
   - component: {fileID: 114816522924217322}
   m_Layer: 5
-  m_Name: partTreeNode
+  m_Name: recyclableTreeNode
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -442,18 +444,18 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 12
     m_FontStyle: 1
     m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 40
+    m_MinSize: 6
+    m_MaxSize: 14
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Duna lander with logn long name
+  m_Text: Duna lander with logn long long long long long long name
 --- !u!114 &114043666044191584
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1007,6 +1009,20 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 'Requires: 999.9M EC'
+--- !u!114 &114620521549722598
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1181471154217516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -382320990, guid: 23fd6eb82728348aba7ba3f92873da24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: Recources obtained after recycling
+  delay: 0.3
+  position: 0
 --- !u!114 &114630263004343866
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1208,17 +1224,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1967812924005772}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 1802263646, guid: de1d329a850c4407398aba4cc793f289, type: 3}
+  m_Script: {fileID: -1174910486, guid: de1d329a850c4407398aba4cc793f289, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 224112529116452374}
+  ui: {fileID: 0}
   subnodesToggle: {fileID: 114213229279388406}
+  nodeName: {fileID: 114028891399347242}
   assemblyResourceInfo: {fileID: 114490152304938630}
   constructionResourceInfo: {fileID: 114964701899497028}
   requirementsInfo: {fileID: 114603305621614010}
   discardExcess: {fileID: 114443699270219808}
   recycleButton: {fileID: 114669287915069560}
-  partTreeNodePrefab: {fileID: 1967812924005772}
   subnodes: {fileID: 224973455479424276}
 --- !u!114 &114835049947231866
 MonoBehaviour:
@@ -1296,6 +1313,20 @@ MonoBehaviour:
   text: {fileID: 114603305621614010}
   image: {fileID: 0}
   selectable: {fileID: 0}
+--- !u!114 &114904207941696892
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1564198230791514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -382320990, guid: 23fd6eb82728348aba7ba3f92873da24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  text: Recycle this part and all its children
+  delay: 0.3
+  position: 0
 --- !u!114 &114908694244937956
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1494,7 +1525,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 232.6, y: -541.3}
+  m_AnchoredPosition: {x: 232.1, y: -591}
   m_SizeDelta: {x: 435, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224127396013122290
