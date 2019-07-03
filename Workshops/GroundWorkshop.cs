@@ -67,8 +67,9 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl).Where(s => s.Valid);
-                if(containers == null) continue;
+                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl)?.Where(s => s.Valid);
+                if(containers == null) 
+                    continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
                     if(vsl_kit != null && vsl_kit.Valid &&
