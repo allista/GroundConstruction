@@ -308,6 +308,15 @@ namespace GroundConstruction
             }
         }
 
+        protected virtual void buttons_pane()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(false)))
+                show_window = false;
+            GUILayout.EndHorizontal();
+        }
+
         protected virtual void draw_panes()
         {
             info_pane();
@@ -317,14 +326,13 @@ namespace GroundConstruction
             built_kits_pane();
             kit_configuration();
             resources_pane();
+            buttons_pane();
         }
 
         protected virtual void main_window(int WindowID)
         {
             GUILayout.BeginVertical();
             draw_panes();
-            if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(true)))
-                show_window = false;
             GUILayout.EndVertical();
             GUIWindowBase.TooltipsAndDragWindow();
         }
