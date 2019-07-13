@@ -4,6 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
@@ -16,7 +17,9 @@ namespace GroundConstruction
     {
         #region Target Actions
         protected ConstructionKitInfo target_kit;
-        protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
+
+        protected virtual bool check_target_kit(ConstructionKitInfo target) =>
+            target.Recheck() && target.Complete;
         #endregion
 
         #region Resource Transfer
@@ -30,7 +33,8 @@ namespace GroundConstruction
             //this.Log("res: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
             if(check_target_kit(target))
                 target_kit = target;
-            else return;
+            else
+                return;
             host_resources = new VesselResources(vessel);
             kit_resources = target_kit.Kit.ConstructResources;
             transfer_list.NewTransfer(host_resources, kit_resources);
@@ -65,7 +69,8 @@ namespace GroundConstruction
             //this.Log("crew: target_kit: complete {}, check {}", target.Complete, check_target_kit(target));//debug
             if(check_target_kit(target))
                 target_kit = target;
-            if(target_kit == null) return;
+            if(target_kit == null)
+                return;
             target_kit.Kit.CrewSource = vessel;
             target_kit.Kit.KitCrew = new List<ProtoCrewMember>();
             kit_crew_capacity = target_kit.Kit.CrewCapacity();
@@ -97,17 +102,19 @@ namespace GroundConstruction
         }
 
         protected override bool check_task(ConstructionKitInfo task) =>
-        base.check_task(task) && task.Kit.CurrentStageIndex >= DIYKit.CONSTRUCTION;
+            base.check_task(task) && task.Kit.CurrentStageIndex >= DIYKit.CONSTRUCTION;
 
         protected override bool check_host(ConstructionKitInfo task) =>
-        base.check_host(task) && task.ConstructionSpace != null && task.ConstructionSpace.Valid;
+            base.check_host(task) && task.ConstructionSpace != null && task.ConstructionSpace.Valid;
 
         protected override void draw()
         {
             base.draw();
             if(target_kit != null && target_kit.Recheck())
             {
-                resources_window.Draw(string.Format("Transfer resources to {0}", target_kit.Kit.Name), transfer_list);
+                resources_window.Draw(
+                    string.Format("Transfer resources to {0}", target_kit.Kit.Name),
+                    transfer_list);
                 crew_window.Draw(vessel.GetVesselCrew(), target_kit.Kit.KitCrew, kit_crew_capacity);
             }
             else
@@ -131,7 +138,7 @@ namespace GroundConstruction
         private readonly List<string> recycle_report = new List<string>();
 
         public IEnumerable<string> GetRecycleReport() => recycle_report;
-        
+
         public float GetRecycleExperienceMod()
         {
             var experience = 0;
@@ -147,7 +154,7 @@ namespace GroundConstruction
             }
             return Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel();
         }
-        
+
         public void GetRecycleInfo(
             Part p,
             float efficiency,
@@ -159,15 +166,17 @@ namespace GroundConstruction
             assembly_requirements = kit.RemainingRequirements().Copy();
             kit.SetStageComplete(DIYKit.ASSEMBLY, true);
             construction_requirements = kit.RemainingRequirements().Copy();
-            assembly_requirements.resource_amount *= assembly_requirements.resource.MaxRecycleRatio * efficiency;
+            assembly_requirements.resource_amount *=
+                assembly_requirements.resource.MaxRecycleRatio * efficiency;
             assembly_requirements.energy *= GLB.RecycleEnergyRatio;
-            construction_requirements.resource_amount *= construction_requirements.resource.MaxRecycleRatio * efficiency;
+            construction_requirements.resource_amount *=
+                construction_requirements.resource.MaxRecycleRatio * efficiency;
             construction_requirements.energy *= GLB.RecycleEnergyRatio;
         }
 
         public bool IsRecycling => recycling_part != null;
-        
-        public void Recycle(Part p, bool discard_excess_resources, Action<bool> on_finished) => 
+
+        public void Recycle(Part p, bool discard_excess_resources, Action<bool> on_finished) =>
             StartCoroutine(recycle(p, discard_excess_resources, on_finished));
 
         protected abstract IEnumerable<Vessel> get_recyclable_vessels();
@@ -177,24 +186,25 @@ namespace GroundConstruction
             HashSet<uint> skip_parts = null;
             if(vsl == vessel)
             {
-                skip_parts = new HashSet<uint>
-                {
-                    vessel.rootPart.craftID,
-                    part.craftID
-                };
+                skip_parts = new HashSet<uint> { vessel.rootPart.craftID, part.craftID };
             }
             return skip_parts;
         }
 
-        protected IEnumerator recycle(Part p, bool discard_excess_resources, Action<bool> on_finished)
+        protected IEnumerator recycle(
+            Part p,
+            bool discard_excess_resources,
+            Action<bool> on_finished
+        )
         {
-            if(recycling_part != null) yield break;
+            if(recycling_part != null)
+                yield break;
             recycle_report.Clear();
             recycling_part = p;
             foreach(var result in recycle(p,
-                                          GetRecycleExperienceMod(),
-                                          discard_excess_resources,
-                                          get_parts_to_skip(p.vessel)))
+                GetRecycleExperienceMod(),
+                discard_excess_resources,
+                get_parts_to_skip(p.vessel)))
                 yield return result;
             recycling_part = null;
             on_finished(p == null || p.State == PartStates.DEAD);
@@ -205,15 +215,23 @@ namespace GroundConstruction
             public override bool keepWaiting => false;
         }
 
-        IEnumerable recycle(Part p, float efficiency, bool discard_excess_resources, HashSet<uint> skip_craftIDs = null)
+        IEnumerable recycle(
+            Part p,
+            float efficiency,
+            bool discard_excess_resources,
+            HashSet<uint> skip_craftIDs = null
+        )
         {
             // first handle children
             var skip = false;
             if(p.children.Count > 0)
             {
-                for(int i = p.children.Count-1; i >= 0; i--)
+                for(int i = p.children.Count - 1; i >= 0; i--)
                 {
-                    foreach(var child_result in recycle(p.children[i], efficiency, discard_excess_resources, skip_craftIDs))
+                    foreach(var child_result in recycle(p.children[i],
+                        efficiency,
+                        discard_excess_resources,
+                        skip_craftIDs))
                     {
                         if(child_result is SkipPart)
                             skip = true;
@@ -232,7 +250,7 @@ namespace GroundConstruction
                 recycle_report.Add($"Skipped '{p.partInfo.title}' because the crew was inside");
                 skip = true;
             }
-            else 
+            else
                 skip |= skip_craftIDs != null && skip_craftIDs.Contains(p.craftID);
             if(!skip)
             {
@@ -241,7 +259,8 @@ namespace GroundConstruction
                 {
                     if(res.amount > 0)
                     {
-                        if(transfer_resource(p, res.info.id, res.amount, discard_excess_resources) != TransferState.FULL)
+                        if(transfer_resource(p, res.info.id, res.amount, discard_excess_resources)
+                           != TransferState.FULL)
                             skip = true;
                     }
                 }
@@ -268,9 +287,22 @@ namespace GroundConstruction
                 yield return null;
         }
 
-        [Flags] enum TransferState { NOOP = 0, NO_EC = 1 << 0, ZERO = 1 << 1, PARTIAL = 1 << 2, FULL = 1 << 3 }; 
+        [Flags]
+        enum TransferState
+        {
+            NOOP = 0,
+            NO_EC = 1 << 0,
+            ZERO = 1 << 1,
+            PARTIAL = 1 << 2,
+            FULL = 1 << 3
+        };
 
-        TransferState transfer_resource(Part from, int id, double amount, bool discard_excess_resources)
+        TransferState transfer_resource(
+            Part from,
+            int id,
+            double amount,
+            bool discard_excess_resources
+        )
         {
             if(amount.Equals(0))
                 return TransferState.FULL;
@@ -300,13 +332,18 @@ namespace GroundConstruction
             return TransferState.PARTIAL;
         }
 
-        TransferState recycle_part(Part from, bool discard_excess_resources, params DIYKit.Requirements[] requrements)
+        TransferState recycle_part(
+            Part from,
+            bool discard_excess_resources,
+            params DIYKit.Requirements[] requrements
+        )
         {
             var ec = 0.0;
             var ec_req = 0.0;
             foreach(var req in requrements)
             {
-                if(!req) continue;
+                if(!req)
+                    continue;
                 ec_req += req.energy;
             }
             var result = TransferState.NOOP;
@@ -326,10 +363,12 @@ namespace GroundConstruction
             {
                 foreach(var req in requrements)
                 {
-                    if(!req) continue;
-                    result |= transfer_resource(from, req.resource.id,
-                                                req.resource_amount,
-                                                discard_excess_resources);
+                    if(!req)
+                        continue;
+                    result |= transfer_resource(from,
+                        req.resource.id,
+                        req.resource_amount,
+                        discard_excess_resources);
                     if(result != TransferState.FULL)
                         recycle_report.Add($"No space left for '{req.resource.def.name}'.");
                 }
@@ -351,7 +390,8 @@ namespace GroundConstruction
 
         protected override void unbuilt_kits_pane()
         {
-            if(unbuilt_kits.Count == 0) return;
+            if(unbuilt_kits.Count == 0)
+                return;
             GUILayout.Label("Available DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
             BeginScroll(unbuilt_kits.Count, ref unbuilt_scroll);
@@ -365,25 +405,33 @@ namespace GroundConstruction
                 {
                     if(depl.State == DeplyomentState.DEPLOYED)
                     {
-                        if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                            Styles.enabled_button, GUILayout.ExpandWidth(false),
-                                            GUILayout.ExpandHeight(true)))
+                        if(GUILayout.Button(
+                            new GUIContent("Add", "Add this kit to construction queue"),
+                            Styles.enabled_button,
+                            GUILayout.ExpandWidth(false),
+                            GUILayout.ExpandHeight(true)))
                             add = info;
                     }
                     else if(depl.State != DeplyomentState.DEPLOYING)
                     {
-                        if(GUILayout.Button(new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
-                                            Styles.active_button, GUILayout.ExpandWidth(false),
-                                            GUILayout.ExpandHeight(true)))
+                        if(GUILayout.Button(
+                            new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),
+                            Styles.active_button,
+                            GUILayout.ExpandWidth(false),
+                            GUILayout.ExpandHeight(true)))
                             deploy = depl;
                     }
                     else
-                        GUILayout.Label(DeployableStatus(depl), Styles.boxed_label,
-                                        GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                        GUILayout.Label(DeployableStatus(depl),
+                            Styles.boxed_label,
+                            GUILayout.ExpandWidth(true),
+                            GUILayout.ExpandHeight(true));
                 }
-                else if(GUILayout.Button(new GUIContent("Add", "Add this kit to construction queue"),
-                                         Styles.enabled_button, GUILayout.ExpandWidth(false),
-                                         GUILayout.ExpandHeight(true)))
+                else if(GUILayout.Button(
+                    new GUIContent("Add", "Add this kit to construction queue"),
+                    Styles.enabled_button,
+                    GUILayout.ExpandWidth(false),
+                    GUILayout.ExpandHeight(true)))
                     add = info;
                 GUILayout.EndHorizontal();
             }
@@ -397,7 +445,8 @@ namespace GroundConstruction
 
         protected override void built_kits_pane()
         {
-            if(built_kits.Count == 0) return;
+            if(built_kits.Count == 0)
+                return;
             GUILayout.Label("Built DIY kits:", Styles.label, GUILayout.ExpandWidth(true));
             GUILayout.BeginVertical(Styles.white);
             BeginScroll(built_kits.Count, ref built_scroll);
@@ -409,14 +458,18 @@ namespace GroundConstruction
                 GUILayout.BeginHorizontal();
                 draw_task(info);
                 set_highlighted_task(info);
-                if(GUILayout.Button(new GUIContent("Resources", "Transfer resources between the workshop and the assembled vessel"),
-                                    Styles.active_button, GUILayout.ExpandWidth(false)))
+                if(GUILayout.Button(new GUIContent("Resources",
+                        "Transfer resources between the workshop and the assembled vessel"),
+                    Styles.active_button,
+                    GUILayout.ExpandWidth(false)))
                     resources = info;
                 if(GUILayout.Button(new GUIContent("Crew", "Select crew for the assembled vessel"),
-                                    Styles.active_button, GUILayout.ExpandWidth(false)))
+                    Styles.active_button,
+                    GUILayout.ExpandWidth(false)))
                     crew = info;
                 if(GUILayout.Button(new GUIContent("Launch", "Launch assembled vessel"),
-                                    Styles.danger_button, GUILayout.ExpandWidth(false)))
+                    Styles.danger_button,
+                    GUILayout.ExpandWidth(false)))
                     launch = info;
                 GUILayout.EndHorizontal();
             }
@@ -440,7 +493,7 @@ namespace GroundConstruction
                 else
                 {
                     recycler_window.SetVessels(get_recyclable_vessels());
-                    recycler_window.Show(this);    
+                    recycler_window.Show(this);
                 }
             }
             base.buttons_pane();
