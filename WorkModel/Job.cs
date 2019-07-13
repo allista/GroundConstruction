@@ -39,8 +39,7 @@ namespace GroundConstruction
                                BindingFlags.FlattenHierarchy)
                     .Where(fi => typeof(T).IsAssignableFrom(fi.FieldType)))
             {
-                var item = fi.GetValue(this) as T;
-                if(item != null)
+                if(fi.GetValue(this) is T item)
                     collection.Add(item);
             }
         }

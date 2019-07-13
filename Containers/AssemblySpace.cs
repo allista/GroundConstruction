@@ -104,8 +104,6 @@ namespace GroundConstruction
 
         public bool Opened => animator == null || animator.State != AnimatorState.Closed;
 
-        public bool SpawnAutomatically => false;
-
         public void SpawnKit()
         {
             if(!Kit) return;
@@ -165,11 +163,12 @@ namespace GroundConstruction
         {
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(kit_ship,
-                                                   SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds) - bounds.center,
+                                                   spawn_transform,
+                                                   offset - bounds.center,
                                                    Vector3.zero));
             Kit = new VesselKit();
             Open();
@@ -215,7 +214,7 @@ namespace GroundConstruction
             }
             if(!Kit.BlueprintComplete())
             {
-                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+                Utils.Message("Something went wrong. Not all parts were properly constructed.");
                 return;
             }
             StartCoroutine(launch_complete_construct());
@@ -237,16 +236,17 @@ namespace GroundConstruction
                 Utils.Log("Unable to load ShipConstruct {}. " +
                           "This usually means that some parts are missing " +
                           "or some modules failed to initialize.", Kit.Name);
-                Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+                Utils.Message("Something went wrong. Constructed ship cannot be launched.");
                 vessel_spawner.AbortLaunch();
                 yield break;
             }
             var bounds = new Metric(construct, world_space: true).bounds;
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
-                                                   SpawnManager.GetSpawnTransform(bounds),
-                                                   SpawnManager.GetSpawnOffset(bounds)
+                                                   spawn_transform,
+                                                   offset
                                                    - bounds.center
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,

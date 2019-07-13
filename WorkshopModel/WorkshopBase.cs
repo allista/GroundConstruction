@@ -299,6 +299,8 @@ namespace GroundConstruction
 
         protected void reset_current_task() => CurrentTask = new T();
 
+        protected Type worker_effect => typeof(E);
+
         protected virtual void update_workforce() => update_workforce<E>();
 
         protected void update_and_checkin(Vessel vsl)
@@ -421,13 +423,21 @@ namespace GroundConstruction
 
         void FixedUpdate()
         {
-            if(!HighLogic.LoadedSceneIsFlight || !Working || workforce.Equals(0)) return;
+            if(!Working || !HighLogic.LoadedSceneIsFlight) 
+                return;
+            if(EffectiveWorkforce.Equals(0))
+            {
+                stop();
+                return;
+            }
             var deltaTime = get_delta_time();
-            if(deltaTime < 0) return;
+            if(deltaTime < 0) 
+                return;
             //check current kit
             //this.Log("Delta time: {}", deltaTime);//debug
             //this.Log("0 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
-            if(!check_task(CurrentTask) && !start_next_item()) return;
+            if(!check_task(CurrentTask) && !start_next_item()) 
+                return;
             var available_work = workforce * deltaTime;
             //this.Log("1 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
             //this.Log("available work: {}", available_work);//debug

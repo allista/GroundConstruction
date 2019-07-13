@@ -12,7 +12,7 @@ namespace GroundConstruction
     public class SingleVesselAssemblyWorkshop : AssemblyWorkshop
     {
         protected override List<IAssemblySpace> get_assembly_spaces() =>
-        VesselKitInfo.GetKitContainers<IAssemblySpace>(vessel).Where(s => s.Valid).ToList();
+        VesselKitInfo.GetKitContainers<IAssemblySpace>(vessel)?.Where(s => s.Valid).ToList();
 
         protected override bool check_host(AssemblyKitInfo task) =>
         base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
@@ -22,7 +22,7 @@ namespace GroundConstruction
             base.update_kits();
             if(vessel.loaded)
                 update_kits(VesselKitInfo
-                            .GetKitContainers<IAssemblySpace>(vessel).Cast<IKitContainer>());
+                            .GetKitContainers<IAssemblySpace>(vessel)?.Cast<IKitContainer>());
         }
     }
 }

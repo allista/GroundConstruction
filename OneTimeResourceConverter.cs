@@ -5,7 +5,6 @@
 //
 //  Copyright (c) 2017 Allis Tauri
 
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
@@ -39,7 +38,7 @@ namespace GroundConstruction
             base.OnStart(state);
             old_res = PartResourceLibrary.Instance.GetDefinition(ConvertFrom);
             if(!HighLogic.LoadedSceneIsFlight ||
-               old_res == null || old_res.name == Globals.Instance.StructureResource.name)
+               old_res == null || old_res.name == Globals.Instance.ConstructionResource.name)
                 this.EnableModule(false);
             else
             {
@@ -53,7 +52,7 @@ namespace GroundConstruction
         {
             yield return null;
             var GLB = Globals.Instance;
-            var ratio = old_res.density / GLB.StructureResource.density;
+            var ratio = old_res.density / GLB.ConstructionResource.def.density;
             foreach(var p in vsl.Parts)
             {
                 var res = p.Resources.Get(old_res.id);
@@ -65,7 +64,7 @@ namespace GroundConstruction
                     var new_amount = res.amount * ratio;
                     var new_max = res.maxAmount * ratio;
                     if(new_amount > new_max) new_amount = new_max;
-                    var existing_res = p.Resources.Get(GLB.StructureResource.id);
+                    var existing_res = p.Resources.Get(GLB.ConstructionResource.id);
                     //if there's already new resource in this part, transfer to it as much mass as possible
                     if(existing_res != null)
                     {
@@ -83,7 +82,7 @@ namespace GroundConstruction
                     else //convert all by mass, then remove resource
                     {
                         p.Resources.Add(
-                            GLB.StructureResource.name,
+                            GLB.ConstructionResource.name,
                             new_amount,
                             new_max,
                             res.flowState,
@@ -98,7 +97,7 @@ namespace GroundConstruction
                 else
                 {
                     var new_amount = tank.Resource.amount * ratio;
-                    var existing_tank = tanks.Find(t => t.Resource != null && t.Resource.resourceName == GLB.StructureResource.name);
+                    var existing_tank = tanks.Find(t => t.Resource != null && t.Resource.resourceName == GLB.ConstructionResource.name);
                     //if there's already such a tank, transfer new resource into it, as much as possible
                     if(existing_tank != null)
                     {
@@ -114,7 +113,7 @@ namespace GroundConstruction
                     else //convert tank type and tank resource
                     {
                         var old_amount = tank.Amount;
-                        if(tank.ForceSwitchResource(GLB.StructureResource.name))
+                        if(tank.ForceSwitchResource(GLB.ConstructionResource.name))
                             tank.Amount = new_amount;
                         else //if failed, try to switch back and revert
                         {
@@ -151,11 +150,12 @@ namespace GroundConstruction
                     if(to_convert == null)
                     {
                         to_convert = vsl;
-                        warning.Message = string.Format("This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
-                                                        "<color=red><b>This cannot be undone!</b></color>\n" +
-                                                        "It is best that you <b>save the game</b> before doing this.\n" +
-                                                        "Are you sure you wish to continue?",
-                                                        old_res.name, Globals.Instance.StructureResource.name)
+                        warning.Message = string.Format(
+                            "This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
+                            "<color=red><b>This cannot be undone!</b></color>\n" +
+                            "It is best that you <b>save the game</b> before doing this.\n" +
+                            "Are you sure you wish to continue?",
+                            old_res.name, Globals.Instance.ConstructionResource.name);
                         warning.Show(true);
                     }
                 }

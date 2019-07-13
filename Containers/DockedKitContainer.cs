@@ -13,7 +13,7 @@ using AT_Utils.UI;
 
 namespace GroundConstruction
 {
-    public class DockedKitContainer : DeployableKitContainer, IConstructionSpace, IConfigurable
+    public class DockedKitContainer : DeployableKitContainer
     {
         [KSPField, SerializeField]
         public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
@@ -40,7 +40,6 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             SpawnManager.Init(part);
-            SpawnManager.SetupSensor();
             if(!string.IsNullOrEmpty(ConstructionNode))
             {
                 construction_node = part.FindAttachNode(ConstructionNode);
@@ -118,18 +117,20 @@ namespace GroundConstruction
             base.Deploy();
         }
 
-        protected override Transform get_deploy_transform_unrotated() =>
-        SpawnManager.GetSpawnTransform();
+        protected override Vector3 get_point_of_growth() => 
+            part.partTransform.TransformPoint(construction_node.position);
 
-        protected override Vector3 get_deployed_offset() => SpawnManager.GetSpawnOffset(Size);
+        protected override Transform get_deploy_transform_unrotated(Vector3 size, out Vector3 spawn_offset) =>
+        SpawnManager.GetSpawnTransform(size, out spawn_offset);
 
         protected override Vector3 get_deployed_size() => get_deployed_bounds().size;
 
-        protected override void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        protected override void update_kit_hull_mesh(Transform deployT,
+            Vector3 deployed_size, Vector3 spawn_offset)
         {
             if(construct_docking_node != null)
-                offset -= construct_docking_node.DockingOffset;
-            base.update_kit_hull_mesh(deployT, offset, show);
+                spawn_offset -= construct_docking_node.DockingOffset;
+            base.update_kit_hull_mesh(deployT, deployed_size, spawn_offset);
         }
 
         Part get_construction_part()
@@ -318,12 +319,7 @@ namespace GroundConstruction
             if(recipient_node != null)
             {
                 var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
-                var construction_node_fwd = part.partTransform.TransformDirection(construction_node.orientation).normalized;
                 var construction_part = recipient_node.owner;
-                var spawn_transform = get_deploy_transform();
-                Vector3 docking_offset = spawn_transform.position
-                    + spawn_transform.TransformDirection(get_deployed_offset())
-                    - construction_node_pos;
                 var docking_node = kit.GetDockingNode(vsl, ConstructDockingNode);
                 if(docking_node == null)
                 {
@@ -331,10 +327,11 @@ namespace GroundConstruction
                                   vsl.GetDisplayName(), construction_part.Title());
                     return;
                 }
+                var docking_offset = docking_node.owner.partTransform.TransformPoint(docking_node.position)
+                                         - construction_node_pos;
                 FXMonger.Explode(part, construction_node_pos, 0);
                 var docking_part = docking_node.owner;
                 this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());
-                var old_vessel = construction_part.vessel;
                 // vessels' position and rotation
                 construction_part.vessel.SetPosition(construction_part.vessel.transform.position, true);
                 construction_part.vessel.SetRotation(construction_part.vessel.transform.rotation);
@@ -386,15 +383,15 @@ namespace GroundConstruction
         protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
         {
             var bounds = get_deployed_bounds();
-            var docking_offset = construct_docking_node != null ? construct_docking_node.DockingOffset : Vector3.zero;
+            var docking_offset = construct_docking_node?.DockingOffset ?? Vector3.zero;
+            var spawn_transform = get_deploy_transform(bounds.size, out var spawn_offset);
             yield return
                 StartCoroutine(vessel_spawner
                                .SpawnShipConstruct(construct,
-                                                   get_deploy_transform(),
-                                                   get_deployed_offset()
+                                                   spawn_transform,
+                                                   spawn_offset
                                                    - bounds.center
                                                    - docking_offset
-                                                   + new Vector3(0, bounds.extents.y, 0)
                                                    + construct.Parts[0].localRoot.transform.position,
                                                    Vector3.zero,
                                                    null,
