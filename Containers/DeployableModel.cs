@@ -174,7 +174,17 @@ namespace GroundConstruction
         }
 
         static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
-        bool resizing;
+        bool servos_locked;
+
+        void change_servos_lock(bool is_locked)
+        {
+            GameEvents.onRoboticPartLockChanging.Fire(part, servos_locked);
+            if(vessel != null)
+                vessel.CycleAllAutoStrut();
+            servos_locked = is_locked;
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
+        }
+        
         IEnumerator<YieldInstruction> resize_coro;
         IEnumerator<YieldInstruction> _resize()
         {
@@ -205,9 +215,8 @@ namespace GroundConstruction
                 if(child.attachJoint != null)
                     save_dock_anchor(child, scale);
             }
-            resizing = true;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut();
+            change_servos_lock(false);
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
             yield return null;
             while(time < 1)
             {
@@ -223,9 +232,7 @@ namespace GroundConstruction
                 }
                 yield return new WaitForFixedUpdate();
             }
-            resizing = false;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut();
+            change_servos_lock(true);
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
@@ -233,7 +240,7 @@ namespace GroundConstruction
 
         public virtual bool IsJointUnlocked()
         {
-            return resizing;
+            return !servos_locked;
         }
 
         public override void OnAwake()
