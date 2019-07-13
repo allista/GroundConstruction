@@ -343,8 +343,6 @@ namespace GroundConstruction
                 var size = Size.Local2LocalDir(model, deployT).AbsComponents();
                 var scale = Vector3.Scale(deployed_size, size.Inverse());
                 var growth = Vector3.Scale(deployT.InverseTransformDirection(deployT.position - growth_point), scale);
-                this.Log("update hull: size {} => {}, scale {}, growth {}", 
-                    size, deployed_size, scale, growth);//debug
                 var T = kit_hull_mesh.gameObject.transform;
                 T.position = growth_point + deployT.TransformDirection(growth) + deployT.TransformDirection(spawn_offset - kit.ShipMetric.center);
                 T.rotation = deployT.rotation;

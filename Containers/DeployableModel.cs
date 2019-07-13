@@ -389,8 +389,6 @@ namespace GroundConstruction
                     var scale = Vector3.Scale(depl_size, part_size.Inverse());
                     var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
                     var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
-                    this.Log("deployed bounds: size {} => {}, scale {}, growth {}, center {}",
-                        part_size, depl_size, scale, growth, center);//debug
                     if(to_model_space)
                         return new Bounds(center.Local2LocalDir(T, model),
                             depl_size.Local2LocalDir(T, model).AbsComponents());
