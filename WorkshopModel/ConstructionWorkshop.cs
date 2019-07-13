@@ -145,7 +145,6 @@ namespace GroundConstruction
                         break;
                     }
             }
-            this.Log("Recycle experience modificator: {}", Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel());//debug
             return Math.Max(experience, 0.5f) / KerbalRoster.GetExperienceMaxLevel();
         }
         
@@ -208,7 +207,6 @@ namespace GroundConstruction
 
         IEnumerable recycle(Part p, float efficiency, bool discard_excess_resources, HashSet<uint> skip_craftIDs = null)
         {
-            this.Log("Recycling {}", p.GetID());//debug
             // first handle children
             var skip = false;
             if(p.children.Count > 0)
@@ -248,7 +246,6 @@ namespace GroundConstruction
                     }
                 }
             }
-            this.Log("Recycling {}: skip {}", p.GetID(), skip);//debug
             if(skip)
             {
                 yield return new SkipPart();
@@ -259,12 +256,9 @@ namespace GroundConstruction
             var result = recycle_part(p, discard_excess_resources, req_a, req_c);
             if(result > TransferState.ZERO)
             {
-                this.Log("Recycled {}, result {}", p.GetID(), result);//debug
                 FXMonger.Explode(p, p.transform.position, 0);
                 p.Die();
             }
-            else
-                this.Log("Couldn't recycle {}, result {}", p.GetID(), result);//debug
             // wait for some time before recycle next one, or break the recycling if something went wrong
             if(result == TransferState.NO_EC)
                 yield return new SkipPart();
@@ -280,7 +274,6 @@ namespace GroundConstruction
         {
             if(amount.Equals(0))
                 return TransferState.FULL;
-            this.Log("Transferring [{}]: {}", id, amount);//debug
             var remainder = amount;
             if(from.vessel != vessel)
                 remainder += part.RequestResource(id, -amount, ResourceFlowMode.ALL_VESSEL_BALANCE);
@@ -300,7 +293,6 @@ namespace GroundConstruction
                     }
                 }
             }
-            this.Log("Remainder [{}]: {}", id, remainder);//debug
             if(discard_excess_resources || Math.Abs(remainder) < 1e-6)
                 return TransferState.FULL;
             if(remainder.Equals(amount))
@@ -321,7 +313,6 @@ namespace GroundConstruction
             if(ec_req > 0)
             {
                 ec = part.RequestResource(Utils.ElectricCharge.id, ec_req);
-                this.Log("Requested {} EC, got {}", ec_req, ec);//debug
                 if(ec_req - ec > 1e-6)
                 {
                     recycle_report.Add($@"Not enough energy to fully recycle '{from.Title()
@@ -330,8 +321,6 @@ namespace GroundConstruction
                     part.RequestResource(Utils.ElectricCharge.id, -ec);
                     result = TransferState.NO_EC;
                 }
-                else
-                    this.Log("Using {}/{} of EC recycle {}", ec, ec_req, from.GetID());//debug
             }
             if(result != TransferState.NO_EC)
             {
