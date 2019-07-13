@@ -95,7 +95,7 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
-            recycler_window.SaveState();
+            recycler_window?.SaveState();
             Destroy(resources_window);
             Destroy(crew_window);
             base.OnDestroy();
