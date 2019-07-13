@@ -501,4 +501,78 @@ namespace GroundConstruction
         }
         #endregion
     }
+
+    internal class MutablePartTree
+    {
+        public class PartNode
+        {
+            public Part part;
+            public uint ID => part.persistentId;
+            public PartNode parent;
+            public readonly Dictionary<uint, PartNode> subnodes = new Dictionary<uint, PartNode>();
+
+            public PartNode(Part p, PartNode parent_node = null)
+            {
+                part = p;
+                parent = parent_node;
+            }
+
+            public static PartNode FromPartTree(
+                Part part,
+                PartNode parent = null,
+                Dictionary<uint, PartNode> all_parts = null
+            )
+            {
+                var node = new PartNode(part, parent);
+                if(all_parts != null)
+                    all_parts[node.ID] = node;
+                part.children.ForEach(p =>
+                    node.subnodes[p.persistentId] = PartNode.FromPartTree(p, node));
+                return node;
+            }
+
+            public void MakeRoot()
+            {
+                if(parent == null)
+                    return;
+                parent.MakeRoot();
+                subnodes[parent.ID] = parent;
+                parent.parent = this;
+                parent = null;
+            }
+        }
+
+        public PartNode root;
+        public readonly Dictionary<uint, PartNode> nodes = new Dictionary<uint, PartNode>();
+
+        public MutablePartTree(Part root_part)
+        {
+            root = PartNode.FromPartTree(root_part, null, nodes);
+        }
+
+        public void ReRoot(uint part_id)
+        {
+            if(part_id == root.ID)
+                return;
+            if(nodes.TryGetValue(part_id, out var new_root))
+            {
+                new_root.MakeRoot();
+                root = new_root;
+            }
+        }
+
+        public void ReRootAt(Func<PartNode, float> selector)
+        {
+            var new_root = nodes.Values.SelectMax(selector);
+            if(new_root != null)
+                ReRoot(new_root.ID);
+        }
+
+        public void ReRootAtHub() => ReRootAt(heavy_hub);
+
+        float heavy_hub(PartNode node) =>
+            node.part.mass
+            * (node.part.children.Count
+               + (node.part.parent != null ? 2 : 1));
+    }
 }
