@@ -139,6 +139,11 @@ namespace GroundConstruction
 
         public void SpawnEmptyContainer(string part_name)
         {
+            if(vessel_spawner.LaunchInProgress)
+            {
+                Utils.Message("In progress...");
+                return;
+            }
             if(Opened)
             {
                 Utils.Message("Need to close assembly space first");
