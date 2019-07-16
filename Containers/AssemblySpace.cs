@@ -156,6 +156,7 @@ namespace GroundConstruction
                 var kit_metric = new Metric(kit_ship.Bounds(kit_ship.parts[0].localRoot.partTransform));
                 if(!SpawnManager.MetricFits(kit_metric))
                 {
+                    kit_ship.Unload();
                     Utils.Message("Container is too big for this assembly space");
                     return;
                 }
