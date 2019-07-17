@@ -26,6 +26,11 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Nightbuild|AnyCPU' ">
+    <OutputPath>../../AT_Utils/Unity/Assets/Plugins/</OutputPath>
+    <DefineConstants>NIGHTBUILD</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="RecyclableTreeNode.cs" />
