@@ -260,11 +260,11 @@ namespace GroundConstruction
         {
             switch(deployable.State)
             {
-            case DeplyomentState.IDLE:
+            case DeploymentState.IDLE:
                 return "Idle";
-            case DeplyomentState.DEPLOYING:
+            case DeploymentState.DEPLOYING:
                 return "Deploying";
-            case DeplyomentState.DEPLOYED:
+            case DeploymentState.DEPLOYED:
                 return "Deployed";
             }
             return "";

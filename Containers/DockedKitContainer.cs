@@ -194,7 +194,7 @@ namespace GroundConstruction
                 GUILayout.BeginHorizontal(Styles.white);
                 GUILayout.Label("After construction:");
                 GUILayout.FlexibleSpace();
-                if(state == DeplyomentState.IDLE)
+                if(state == DeploymentState.IDLE)
                 {
                     var old_value = ConstructDockingNode;
                     if(Utils.ButtonSwitch(launch_label, ConstructDockingNode < 0,
@@ -222,7 +222,7 @@ namespace GroundConstruction
                     GUILayout.Label(launch_label,
                                     Styles.enabled, GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
-                if(state == DeplyomentState.IDLE && ConstructDockingNode >= 0)
+                if(state == DeploymentState.IDLE && ConstructDockingNode >= 0)
                 {
                     GUILayout.BeginHorizontal(Styles.white);
                     GUILayout.Label("Dock via:");
@@ -247,7 +247,7 @@ namespace GroundConstruction
                   guiActive = true, guiActiveEditor = true)]
         public void ToggleDockedConstruction()
         {
-            if(state == DeplyomentState.IDLE && kit && kit.DockingPossible)
+            if(state == DeploymentState.IDLE && kit && kit.DockingPossible)
             {
                 ConstructDockingNode += 1;
                 if(ConstructDockingNode < kit.DockingNodes.Count)

@@ -49,7 +49,7 @@ namespace GroundConstruction
         public Vector3 PartCenter;
         [KSPField(isPersistant = true)] public Vector3 Size;
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
-        [KSPField(isPersistant = true)] public DeplyomentState state;
+        [KSPField(isPersistant = true)] public DeploymentState state;
         [KSPField(isPersistant = true)] public bool ShowDeployHint;
         bool just_started;
 
@@ -57,7 +57,7 @@ namespace GroundConstruction
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
-        public DeplyomentState State => state;
+        public DeploymentState State => state;
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
@@ -273,7 +273,7 @@ namespace GroundConstruction
             base.OnStart(state);
             just_started = true;
             StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
-            if(State == DeplyomentState.DEPLOYING)
+            if(State == DeploymentState.DEPLOYING)
                 StartCoroutine(deploy());
         }
 
@@ -305,15 +305,15 @@ namespace GroundConstruction
             //deprecated config conversion
             if(node.HasValue("Deploying"))
             {
-                state = DeplyomentState.IDLE;
+                state = DeploymentState.IDLE;
                 var val = node.GetValue("Deploying");
                 if(bool.TryParse(val, out bool _deploy) && _deploy)
-                    state = DeplyomentState.DEPLOYING;
+                    state = DeploymentState.DEPLOYING;
                 else
                 {
                     val = node.GetValue("Deployed");
                     if(bool.TryParse(val, out _deploy) && _deploy)
-                        state = DeplyomentState.DEPLOYED;
+                        state = DeploymentState.DEPLOYED;
                 }
             }
         }
@@ -476,13 +476,13 @@ namespace GroundConstruction
             TargetSize = TargetSize.Local2LocalDir(deployT, model).AbsComponents();
             yield return slow_resize();
             foreach(var _ in finalize_deployment()) yield return null;
-            state = DeplyomentState.DEPLOYED;
+            state = DeploymentState.DEPLOYED;
         }
 
         protected void start_deployment()
         {
             Utils.SaveGame(Name + "-before_deployment");
-            state = DeplyomentState.DEPLOYING;
+            state = DeploymentState.DEPLOYING;
             StartCoroutine(deploy());
         }
 

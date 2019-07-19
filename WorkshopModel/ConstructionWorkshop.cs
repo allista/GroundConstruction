@@ -403,7 +403,7 @@ namespace GroundConstruction
                 draw_task(info);
                 if(info.ConstructionSpace is IDeployable depl)
                 {
-                    if(depl.State == DeplyomentState.DEPLOYED)
+                    if(depl.State == DeploymentState.DEPLOYED)
                     {
                         if(GUILayout.Button(
                             new GUIContent("Add", "Add this kit to construction queue"),
@@ -412,7 +412,7 @@ namespace GroundConstruction
                             GUILayout.ExpandHeight(true)))
                             add = info;
                     }
-                    else if(depl.State != DeplyomentState.DEPLOYING)
+                    else if(depl.State != DeploymentState.DEPLOYING)
                     {
                         if(GUILayout.Button(
                             new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),

@@ -33,7 +33,7 @@ namespace GroundConstruction
         void Launch();
     }
 
-    public enum DeplyomentState {
+    public enum DeploymentState {
         IDLE,
         DEPLOYING,
         DEPLOYED,
@@ -41,7 +41,7 @@ namespace GroundConstruction
 
     public interface IDeployable : IJointLockState
     {
-        DeplyomentState State { get; }
+        DeploymentState State { get; }
         void Deploy();
     }
 

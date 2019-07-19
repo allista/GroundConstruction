@@ -108,8 +108,8 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             vessel_spawner = new VesselSpawner(part);
-            Events["DeployEvent"].active = !Empty && State == DeplyomentState.IDLE;
-            Events["LaunchEvent"].active = !Empty && State == DeplyomentState.DEPLOYED && kit.Complete;
+            Events["DeployEvent"].active = !Empty && State == DeploymentState.IDLE;
+            Events["LaunchEvent"].active = !Empty && State == DeploymentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
@@ -272,7 +272,7 @@ namespace GroundConstruction
                   guiActive = true, guiActiveEditor = true, active = true)]
         public void RotateSpawnOrientation()
         {
-            if(kit && state == DeplyomentState.IDLE)
+            if(kit && state == DeploymentState.IDLE)
                 shift_Y_rotation(1);
         }
 
@@ -519,7 +519,7 @@ namespace GroundConstruction
             GUILayout.Label("Launch orientation:");
             GUILayout.FlexibleSpace();
             Utils.ButtonSwitch("Show", ref ShowDeployHint);
-            if(state == DeplyomentState.IDLE)
+            if(state == DeploymentState.IDLE)
             {
                 var choice = Utils.LeftRightChooser(yRotation.ToString(), width: 160);
                 if(choice != 0)
