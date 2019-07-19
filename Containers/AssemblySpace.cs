@@ -4,6 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2018 Allis Tauri
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,19 +12,17 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace, IAnimatedSpace, IContainerProducer, IConstructionSpace
+    public class AssemblySpace : SerializableFiledsPartModule, IAssemblySpace, IAnimatedSpace,
+        IContainerProducer, IConstructionSpace
     {
         [KSPField] public string Title = "Assembly Space";
         [KSPField] public string AnimatorID = string.Empty;
 
-        [KSPField(isPersistant = true)]
-        public string KitPart = "DIYKit";
+        [KSPField(isPersistant = true)] public string KitPart = "DIYKit";
 
-        [KSPField(isPersistant = true)]
-        public VesselKit Kit = new VesselKit();
+        [KSPField(isPersistant = true)] public VesselKit Kit = new VesselKit();
 
-        [KSPField, SerializeField]
-        public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
+        [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
         VesselSpawner vessel_spawner;
         MultiAnimator animator;
         bool can_construct_in_situ;
@@ -64,14 +63,17 @@ namespace GroundConstruction
         public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
         {
             kit2space_ratio = -1;
-            if(!kit) return false;
+            if(!kit)
+                return false;
             var kit_part = kit.CreatePart(part_name, part.flagURL, false);
-            if(kit_part == null) return false;
+            if(kit_part == null)
+                return false;
             var kit_metric = new Metric(kit_part);
             var kit_module = kit_part.FindModuleImplementing<DeployableKitContainer>();
             var can_construct = kit_module != null && kit_module.CanConstruct(kit);
             DestroyImmediate(kit_part.gameObject);
-            if(!can_construct) return false;
+            if(!can_construct)
+                return false;
             kit2space_ratio = kit_metric.volume / SpawnManager.SpaceMetric.volume;
             return SpawnManager.MetricFits(kit_metric);
         }
@@ -106,7 +108,8 @@ namespace GroundConstruction
 
         public void SpawnKit()
         {
-            if(!Kit) return;
+            if(!Kit)
+                return;
             //this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
             if(vessel_spawner.LaunchInProgress)
             {
@@ -153,7 +156,8 @@ namespace GroundConstruction
             var kit_ship = new VesselKit().CreateShipConstruct(part_name, part.flagURL);
             if(kit_ship != null)
             {
-                var kit_metric = new Metric(kit_ship.Bounds(kit_ship.parts[0].localRoot.partTransform));
+                var kit_metric =
+                    new Metric(kit_ship.Bounds(kit_ship.parts[0].localRoot.partTransform));
                 if(!SpawnManager.MetricFits(kit_metric))
                 {
                     kit_ship.Unload();
@@ -172,30 +176,30 @@ namespace GroundConstruction
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
-                               .SpawnShipConstruct(kit_ship,
-                                                   spawn_transform,
-                                                   offset - bounds.center,
-                                                   Vector3.zero));
+                    .SpawnShipConstruct(kit_ship,
+                        spawn_transform,
+                        offset - bounds.center,
+                        Vector3.zero));
             Kit = new VesselKit();
             Open();
         }
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
-        Kit.Valid ? Kit.Cost : 0;
+            Kit.Valid ? Kit.Cost : 0;
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
-        Kit.Valid ? Kit.Mass : 0;
+            Kit.Valid ? Kit.Mass : 0;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 
         #region IConstructionSpace
         public bool CanConstruct(VesselKit kit) =>
-        (!kit.HasLaunchClamps
-         && SpawnManager != null
-         && SpawnManager.MetricFits(kit.ShipMetric));
+            (!kit.HasLaunchClamps
+             && SpawnManager != null
+             && SpawnManager.MetricFits(kit.ShipMetric));
 
         bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
         
@@ -228,8 +232,10 @@ namespace GroundConstruction
 
         IEnumerator<YieldInstruction> launch_complete_construct()
         {
-            if(!HighLogic.LoadedSceneIsFlight) yield break;
-            while(!FlightGlobals.ready) yield return null;
+            if(!HighLogic.LoadedSceneIsFlight)
+                yield break;
+            while(!FlightGlobals.ready)
+                yield return null;
             vessel_spawner.BeginLaunch();
             yield return null;
             //save the game
@@ -239,9 +245,10 @@ namespace GroundConstruction
             var construct = Kit.LoadConstruct();
             if(construct == null)
             {
-                Utils.Log("Unable to load ShipConstruct {}. " +
-                          "This usually means that some parts are missing " +
-                          "or some modules failed to initialize.", Kit.Name);
+                Utils.Log("Unable to load ShipConstruct {}. "
+                          + "This usually means that some parts are missing "
+                          + "or some modules failed to initialize.",
+                    Kit.Name);
                 Utils.Message("Something went wrong. Constructed ship cannot be launched.");
                 vessel_spawner.AbortLaunch();
                 yield break;
@@ -250,16 +257,16 @@ namespace GroundConstruction
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
             yield return
                 StartCoroutine(vessel_spawner
-                               .SpawnShipConstruct(construct,
-                                                   spawn_transform,
-                                                   offset
-                                                   - bounds.center
-                                                   + construct.Parts[0].localRoot.transform.position,
-                                                   Vector3.zero,
-                                                   null,
-                                                   null,
-                                                   null,
-                                                   Kit.TransferCrewToKit));
+                    .SpawnShipConstruct(construct,
+                        spawn_transform,
+                        offset
+                        - bounds.center
+                        + construct.Parts[0].localRoot.transform.position,
+                        Vector3.zero,
+                        null,
+                        null,
+                        null,
+                        Kit.TransferCrewToKit));
             Kit = new VesselKit();
             Open();
         }

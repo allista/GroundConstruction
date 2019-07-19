@@ -18,9 +18,7 @@ namespace GroundConstruction
         [Persistent] public float Complexity;
         [Persistent] public bool PseudoPart;
 
-        public PartKit()
-        {
-        }
+        public PartKit() { }
 
         public PartKit(string name, float mass, float cost, bool assembled)
         {
@@ -84,7 +82,9 @@ namespace GroundConstruction
         }
 
         double total_work(JobStage task, double end_mass) =>
-        (Complexity * task.Resource.ComplexityWork + task.Resource.WorkPerMass) * end_mass * 3600;
+            (Complexity * task.Resource.ComplexityWork + task.Resource.WorkPerMass)
+            * end_mass
+            * 3600;
 
         //deprecated config conversion
         public override void Load(ConfigNode node)

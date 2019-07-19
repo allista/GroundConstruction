@@ -4,12 +4,12 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System.Linq;
 using AT_Utils;
 
 namespace GroundConstruction
 {
-
     public class CompositeJob<T> : JobBase where T : Job, new()
     {
         [Persistent] public PersistentList<T> Jobs = new PersistentList<T>();
@@ -73,11 +73,10 @@ namespace GroundConstruction
             return work;
         }
 
-        public override void SetComplete(bool complete) => 
-        Jobs.ForEach(j => j.SetComplete(complete));
+        public override void SetComplete(bool complete) =>
+            Jobs.ForEach(j => j.SetComplete(complete));
 
-        public override void SetStageComplete(int stage, bool complete) => 
-        Jobs.ForEach(j => j.SetStageComplete(stage, complete));
+        public override void SetStageComplete(int stage, bool complete) =>
+            Jobs.ForEach(j => j.SetStageComplete(stage, complete));
     }
 }
-

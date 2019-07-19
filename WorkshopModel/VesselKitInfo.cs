@@ -4,6 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -38,6 +39,7 @@ namespace GroundConstruction
         public abstract VesselKit FindKit();
 
         protected VesselKitInfo() { }
+
         protected VesselKitInfo(VesselKit kit)
         {
             Kit = kit;
@@ -46,6 +48,7 @@ namespace GroundConstruction
         }
 
         public bool Draw(GUIStyle style = null) => Valid && Kit.Draw(style);
+
         public bool DrawCurrentPart(GUIStyle style = null)
         {
             if(Valid)
@@ -58,7 +61,7 @@ namespace GroundConstruction
         }
 
         public static List<T> GetKitContainers<T>(Vessel vsl) where T : class, IKitContainer =>
-        vsl != null ? vsl.Parts.SelectMany(p => p.Modules.GetModules<T>()).ToList() : null;
+            vsl != null ? vsl.Parts.SelectMany(p => p.Modules.GetModules<T>()).ToList() : null;
 
         public VesselKit FindKit<T>() where T : class, IKitContainer
         {
@@ -96,4 +99,3 @@ namespace GroundConstruction
         public override VesselKit FindKit() => FindKit<IKitContainer>();
     }
 }
-

@@ -108,7 +108,7 @@ namespace GroundConstruction
             var frac = get_fraction();
             //Utils.Log("frac {} +delta {}, dM {}", frac, (frac + (work / TotalWork)), 
             //Mass.Curve.Evaluate((float)(frac + (work / TotalWork))) -
-            //Mass.Curve.Evaluate((float)frac));//debug
+            //Mass.Curve.Evaluate((float)frac)); //debug
             req.resource_mass = Math.Max(Mass.Curve.Evaluate((float)(frac + (work / TotalWork)))
                                          - Mass.Curve.Evaluate((float)frac),
                 0);
