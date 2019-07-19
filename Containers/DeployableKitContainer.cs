@@ -125,7 +125,10 @@ namespace GroundConstruction
         }
 
         #region IAssemblySpace
-        bool IAssemblySpace.Valid => isEnabled && (Empty || !kit.StageComplete(DIYKit.ASSEMBLY));
+        bool IAssemblySpace.Valid =>
+            isEnabled && (Empty || !kit.StageComplete(DIYKit.ASSEMBLY)) && ValidAssemblySpace;
+
+        protected virtual bool ValidAssemblySpace => true;
 
         public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
         {
@@ -377,8 +380,15 @@ namespace GroundConstruction
 
         public bool Empty => !kit;
         public override string Name => Empty ? "Container" : "Container: " + kit.Name;
-        bool IKitContainer.Valid => isEnabled;
-        bool IConstructionSpace.Valid => isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY);
+
+        bool IKitContainer.Valid => isEnabled && ValidKitContainer;
+
+        protected virtual bool ValidKitContainer => true;
+
+        bool IConstructionSpace.Valid =>
+            isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY) && ValidConstructionSpace;
+
+        protected virtual bool ValidConstructionSpace => true;
 
         [KSPEvent(guiName = "Deploy",
 #if DEBUG

@@ -36,6 +36,61 @@ namespace GroundConstruction
             ? kit.GetBoundsForDocking(ConstructDockingNode)
             : kit.ShipMetric.bounds;
 
+        private ConstructionWorkshop connected_construction_ws;
+        private AssemblyWorkshop connected_assembly_ws;
+
+        bool find_connected_workshops(AttachNode through_node, HashSet<uint> visited)
+        {
+            var next_part = through_node.attachedPart;
+            if(next_part == null || visited.Contains(next_part.persistentId))
+                return false;
+            visited.Add(next_part.persistentId);
+            if(connected_construction_ws == null)
+                connected_construction_ws =
+                    next_part.FindModuleImplementing<ConstructionWorkshop>();
+            if(connected_assembly_ws == null)
+                connected_assembly_ws =
+                    next_part.FindModuleImplementing<AssemblyWorkshop>();
+            if(connected_construction_ws != null && connected_assembly_ws != null)
+                return true;
+            for(int i = 0, len = next_part.attachNodes.Count; i < len; i++)
+            {
+                var an = next_part.attachNodes[i];
+                if(an.attachedPart == null || visited.Contains(an.attachedPart.persistentId))
+                    continue;
+                if(find_connected_workshops(an, visited))
+                    return true;
+            }
+            return false;
+        }
+
+        void find_connected_workshops()
+        {
+            connected_assembly_ws = null;
+            connected_construction_ws = null;
+            if(construction_node != null)
+                find_connected_workshops(construction_node,
+                    new HashSet<uint> { part.persistentId });
+        }
+
+        void onVesselModified(Vessel vsl)
+        {
+            if(vsl != null && vsl == vessel)
+                find_connected_workshops();
+        }
+
+        public override void OnAwake()
+        {
+            base.OnAwake();
+            GameEvents.onVesselWasModified.Add(onVesselModified);
+        }
+
+        protected override void OnDestroy()
+        {
+            GameEvents.onVesselWasModified.Remove(onVesselModified);
+            base.OnDestroy();
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
@@ -62,6 +117,7 @@ namespace GroundConstruction
             }
             if(kit && ConstructDockingNode >= 0)
                 construct_docking_node = kit.DockingNodes[ConstructDockingNode];
+            find_connected_workshops();
         }
 
         protected override void update_part_events()
@@ -88,6 +144,9 @@ namespace GroundConstruction
         }
 
         #region Deployment
+        protected override bool ValidAssemblySpace => connected_assembly_ws != null;
+        protected override bool ValidConstructionSpace => connected_construction_ws != null;
+
         public override bool CanConstruct(VesselKit kit) => !kit.HasLaunchClamps;
 
         protected override bool can_deploy()
