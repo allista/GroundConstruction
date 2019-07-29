@@ -48,8 +48,9 @@ namespace GroundConstruction
 
         public override void NextStage()
         {
+            var stages = StagesCount;
             var stage = CurrentStageIndex;
-            if(stage >= 0 && stage < StagesCount && StageComplete(stage))
+            while(stage >= 0 && stage < stages && StageComplete(stage))
             {
                 stage += 1;
                 Jobs.ForEach(j => j.CurrentIndex = stage);

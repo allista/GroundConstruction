@@ -53,7 +53,7 @@ namespace GroundConstruction
 
         public override void NextStage()
         {
-            if(CurrentIndex < stages.Count && CurrentStage.Complete)
+            while(CurrentIndex < stages.Count && CurrentStage.Complete)
                 CurrentIndex += 1;
         }
 
