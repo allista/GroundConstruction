@@ -26,7 +26,7 @@ namespace GroundConstruction
             if(req.resource_amount > 0)
             {
                 have_res = part.RequestResource(req.resource.id, req.resource_amount);
-                if(req.resource_amount > 0 && have_res.Equals(0))
+                if(have_res.Equals(0))
                 {
                     Utils.Message("Not enough {0}. The work on {1} was put on hold.",
                         req.resource.name,
