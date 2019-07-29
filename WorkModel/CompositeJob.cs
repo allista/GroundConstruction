@@ -53,7 +53,11 @@ namespace GroundConstruction
             while(stage >= 0 && stage < stages && StageComplete(stage))
             {
                 stage += 1;
-                Jobs.ForEach(j => j.CurrentIndex = stage);
+                Jobs.ForEach(j =>
+                {
+                    if(j.CurrentIndex < stage)
+                        j.CurrentIndex = stage;
+                });
                 CurrentIndex = 0;
             }
         }
