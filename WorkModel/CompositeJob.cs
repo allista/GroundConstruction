@@ -62,19 +62,41 @@ namespace GroundConstruction
             }
         }
 
+        T next_job(int current_stage)
+        {
+            T job;
+            do
+            {
+                CurrentIndex += 1;
+                job = CurrentJob;
+            } while(job != null && (job.CurrentIndex != current_stage || job.CurrentStage.Complete));
+            return job;
+        }
+
         public override double DoSomeWork(double work)
         {
             var job = CurrentJob;
+            var stage = CurrentStageIndex;
             while(work > 0 && job != null)
             {
-                //Utils.Log("Doing {} work on {}", work, job);//debug
-                work = job.DoSomeWork(work);
-                if(job.CurrentStage.Complete)
+                if(job.CurrentIndex == stage)
                 {
-                    CurrentIndex += 1;
-                    job = CurrentJob;
+//                    Utils.Log("Doing {} work on {}", work, job); //debug
+                    work = job.DoSomeWork(work);
+                    if(job.CurrentStage.Complete)
+                    {
+//                        Utils.Log("Completed {}", job); //debug
+                        job = next_job(stage);
+                    }
+                }
+                else
+                {
+//                    Utils.Log("Skipping {}", job); //debug
+                    job = next_job(stage);
                 }
             }
+            if(job == null)
+                NextStage();
             return work;
         }
 

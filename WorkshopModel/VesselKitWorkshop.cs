@@ -82,7 +82,6 @@ namespace GroundConstruction
                 CurrentTask.Kit.DoSomeWork(work);
                 if(CurrentTask.Complete)
                 {
-                    CurrentTask.Kit.NextStage();
                     on_task_complete(CurrentTask);
                     start_next_item();
                 }
