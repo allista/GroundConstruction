@@ -178,28 +178,26 @@ namespace GroundConstruction
         {
             var stage = CurrentStage;
             var rem = RemainingRequirements();
-            return Draw(Name, CurrentIndex, stage != null ? stage.TotalWork : 1, rem, style);
+            return Draw(Name, CurrentIndex, stage?.TotalWork ?? 1, rem, style);
         }
 
         public override double DoSomeWork(double work)
         {
-            if(work > 0 && remainder != null)
-                remainder.Clear();
+            if(work > 0)
+                remainder?.Clear();
             return base.DoSomeWork(work);
         }
 
         public override void NextStage()
         {
             base.NextStage();
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
         }
 
         public override void SetStageComplete(int stage, bool complete)
         {
             base.SetStageComplete(stage, complete);
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
         }
 
         //deprecated config conversion

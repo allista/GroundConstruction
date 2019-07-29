@@ -29,12 +29,7 @@ namespace GroundConstruction
         public IControllable Controllable => Kit.Host as IControllable;
         public IConfigurable Configurator => Kit.Host as IConfigurable;
 
-        public bool Recheck()
-        {
-            if(Kit == null)
-                Kit = FindKit();
-            return Kit;
-        }
+        public bool Recheck() => Kit ?? (Kit = FindKit());
 
         public abstract VesselKit FindKit();
 

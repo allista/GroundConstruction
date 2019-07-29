@@ -109,7 +109,7 @@ namespace GroundConstruction
                 if(stage < CurrentIndex)
                     return;
                 for(int i = CurrentIndex; i <= stage; i++)
-                    stages[i].SetComplete(complete);
+                    stages[i].SetComplete(true);
                 CurrentIndex = stage + 1;
             }
             else
@@ -117,7 +117,7 @@ namespace GroundConstruction
                 if(stage > CurrentIndex)
                     return;
                 for(int i = stage, count = stages.Count; i < count; i++)
-                    stages[i].SetComplete(complete);
+                    stages[i].SetComplete(false);
                 CurrentIndex = stage;
             }
             update_parameters();

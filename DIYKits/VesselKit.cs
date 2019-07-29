@@ -300,24 +300,22 @@ namespace GroundConstruction
 
         public override double DoSomeWork(double work)
         {
-            if(work > 0 && remainder != null)
-                remainder.Clear();
+            if(work > 0)
+                remainder?.Clear();
             return base.DoSomeWork(work);
         }
 
         public override void NextStage()
         {
             base.NextStage();
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
             workers.Clear();
         }
 
         public override void SetStageComplete(int stage, bool complete)
         {
             base.SetStageComplete(stage, complete);
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
             workers.Clear();
         }
 
