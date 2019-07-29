@@ -42,7 +42,7 @@ namespace GroundConstruction
 
         public T CurrentJob => CurrentIndex < Jobs.Count ? Jobs[CurrentIndex] : null;
 
-        public int CurrentStageIndex => Jobs.Count > 0 ? Jobs[0].CurrentIndex : -1;
+        public int CurrentStageIndex => Jobs.Count > 0 ? Jobs.Min(j => j.CurrentIndex) : -1;
 
         public override int StagesCount => Jobs.Count > 0 ? Jobs[0].StagesCount : -1;
 
