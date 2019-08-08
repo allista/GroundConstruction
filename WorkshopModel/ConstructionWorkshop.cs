@@ -162,16 +162,19 @@ namespace GroundConstruction
             out DIYKit.Requirements construction_requirements
         )
         {
-            var kit = new PartKit(p, false);
-            assembly_requirements = kit.RemainingRequirements().Copy();
-            kit.SetStageComplete(DIYKit.ASSEMBLY, true);
-            construction_requirements = kit.RemainingRequirements().Copy();
-            assembly_requirements.resource_amount *=
-                assembly_requirements.resource.MaxRecycleRatio * efficiency;
-            assembly_requirements.energy *= GLB.RecycleEnergyRatio;
-            construction_requirements.resource_amount *=
-                construction_requirements.resource.MaxRecycleRatio * efficiency;
-            construction_requirements.energy *= GLB.RecycleEnergyRatio;
+            PartKit.GetRequirements(p, out assembly_requirements, out construction_requirements);
+            if(assembly_requirements)
+            {
+                assembly_requirements.resource_amount *=
+                    assembly_requirements.resource.MaxRecycleRatio * efficiency;
+                assembly_requirements.energy *= GLB.RecycleEnergyRatio;
+            }
+            if(construction_requirements)
+            {
+                construction_requirements.resource_amount *=
+                    construction_requirements.resource.MaxRecycleRatio * efficiency;
+                construction_requirements.energy *= GLB.RecycleEnergyRatio;
+            }
         }
 
         public bool IsRecycling => recycling_part != null;
