@@ -86,38 +86,21 @@ namespace GroundConstruction
             * end_mass
             * 3600;
 
-        //deprecated config conversion
-        public override void Load(ConfigNode node)
+        public static void GetRequirements(
+            Part p,
+            out Requirements assembly_requirements,
+            out Requirements construction_requirements
+        )
         {
-            base.Load(node);
-            if(!Construction.Valid)
-                CurrentIndex = -1;
-            else if(node.HasValue("Completeness"))
+            var kit = new PartKit(p, false);
+            if(kit.CurrentIndex == ASSEMBLY)
             {
-                CurrentIndex = CONSTRUCTION;
-                Assembly.TotalWork = Assembly.WorkDone = Construction.TotalWork;
-                update_total_work();
-                float v;
-                var frac = (float)(Assembly.TotalWork / TotalWork);
-                var val = node.GetValue("Title");
-                if(!string.IsNullOrEmpty(val))
-                    Name = val;
-                val = node.GetValue("PartMass");
-                if(float.TryParse(val, out v))
-                    Mass.Add(1, v);
-                val = node.GetValue("PartCost");
-                if(float.TryParse(val, out v))
-                    Cost.Add(1, v);
-                val = node.GetValue("KitMass");
-                if(float.TryParse(val, out v))
-                    Mass.Add(frac, v);
-                val = node.GetValue("KitCost");
-                if(float.TryParse(val, out v))
-                    Cost.Add(frac, v);
-                frac = (float)get_fraction();
-                Mass.Update(frac);
-                Cost.Update(frac);
+                assembly_requirements = kit.RemainingRequirements().Copy();
+                kit.SetStageComplete(DIYKit.ASSEMBLY, true);
             }
+            else
+                assembly_requirements = new Requirements();
+            construction_requirements = kit.RemainingRequirements().Copy();
         }
     }
 }
