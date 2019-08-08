@@ -454,6 +454,9 @@ namespace GroundConstruction
         bool IConstructionSpace.Valid =>
             isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY) && ValidConstructionSpace;
 
+        public bool ConstructionComplete =>
+            state == DeploymentState.DEPLOYED && kit && kit.Complete;
+
         protected virtual bool ValidConstructionSpace => true;
 
         [KSPEvent(guiName = "Deploy",

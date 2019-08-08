@@ -202,7 +202,8 @@ namespace GroundConstruction
              && SpawnManager.MetricFits(kit.ShipMetric));
 
         bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
-        
+        public bool ConstructionComplete => Kit && Kit.Complete;
+
         public void Launch()
         {
             if(vessel_spawner == null || vessel_spawner.LaunchInProgress)

@@ -77,7 +77,10 @@ namespace GroundConstruction
         public ConstructionKitInfo(VesselKit kit) : base(kit) { }
 
         public override bool Valid => base.Valid && ConstructionSpace != null;
-        public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
+
+        public override bool Complete =>
+            Recheck()
+            && (ConstructionSpace?.ConstructionComplete ?? false);
 
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
