@@ -33,6 +33,13 @@ namespace GroundConstruction
             Jobs.ForEach(j => work += j[stage].WorkLeft);
             return work;
         }
+        
+        public double TotalWorkInStage(int stage)
+        {
+            var work = 0.0;
+            Jobs.ForEach(j => work += j[stage].TotalWork);
+            return work;
+        }
 
         public override bool Complete => Jobs.TrueForAll(j => j.Complete);
 

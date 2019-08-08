@@ -38,6 +38,7 @@ namespace GroundConstruction
         [Persistent] public float MaxGenericEfficiency = 0.5f;
 
         [Persistent] public float ComplexityFactor = 1e-4f;
+        [Persistent] public float FinalizationWorkPerMass = 0.5f;
 
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
         [Persistent] public float MinKitVolume = 0.02f; //m3

@@ -150,11 +150,26 @@ namespace GroundConstruction
             var create_resources = count_kit_resources(ship, assembled);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
-            Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
+            var final_assembly_work = 0f;
+            ship.Parts.ForEach(p =>
+            {
+                var kit = new PartKit(p, assembled);
+                final_assembly_work += p.mass * GLB.FinalizationWorkPerMass * 3600;
+                Jobs.Add(kit);
+            });
             create_resources.ForEach(r =>
-                Jobs.Add(new PartKit(r.Value.name, r.Value.mass, r.Value.cost,
-                                     r.Value.type == KitResourceInfo.ResourceType.CONSTRUCTED)));
-            SetStageComplete(DIYKit.ASSEMBLY, assembled);
+            {
+                var assembled_resource = r.Value.type == KitResourceInfo.ResourceType.CONSTRUCTED;
+                Jobs.Add(new PartKit(r.Value.name,
+                    r.Value.mass,
+                    r.Value.cost,
+                    assembled_resource ? 0 : 1,
+                    0,
+                    assembled_resource));
+            });
+            Jobs.Add(new PartKit("Final Assembly", 0, 0, 0, final_assembly_work, true));
+            if(assembled)
+                SetStageComplete(DIYKit.ASSEMBLY, true);
             HasLaunchClamps = ship.HasLaunchClamp();
             CurrentIndex = 0;
         }
