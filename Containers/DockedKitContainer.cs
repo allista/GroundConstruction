@@ -112,7 +112,7 @@ namespace GroundConstruction
             }
             if(kit && ConstructDockingNode >= 0)
                 construct_docking_node = kit.DockingNodes[ConstructDockingNode];
-            find_connected_workshops();
+            StartCoroutine(CallbackUtil.DelayedCallback(1, find_connected_workshops));
         }
 
         protected override void update_part_events()
