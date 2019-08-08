@@ -164,6 +164,34 @@ namespace GroundConstruction
                     Utils.Message("Container is too big for this assembly space");
                     return;
                 }
+                PartKit.GetRequirements(kit_ship.Parts[0],
+                    out var assembly_reqs,
+                    out var construction_reqs);
+                var need_ec = assembly_reqs.energy + construction_reqs.energy;
+                if(!part.TryUseResource(Utils.ElectricCharge.id, need_ec))
+                {
+                    Utils.Message("Not enough energy to make the container");
+                    kit_ship.Unload();
+                    return;
+                }
+                if(assembly_reqs
+                   && !part.TryUseResource(assembly_reqs.resource.id,
+                       assembly_reqs.resource_amount))
+                {
+                    Utils.Message("Not enough {0} to make the container",
+                        assembly_reqs.resource.name);
+                    kit_ship.Unload();
+                    return;
+                }
+                if(construction_reqs
+                   && !part.TryUseResource(construction_reqs.resource.id,
+                       construction_reqs.resource_amount))
+                {
+                    Utils.Message("Not enough {0} to make the container",
+                        construction_reqs.resource.name);
+                    kit_ship.Unload();
+                    return;
+                }
                 Utils.SaveGame(vessel.name + "-before_spawn_empty");
                 StartCoroutine(spawn_kit_vessel(kit_ship));
             }
