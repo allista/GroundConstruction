@@ -173,7 +173,7 @@ namespace GroundConstruction
             yield return null;
         }
 
-        static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
+        private int scenery_mask;
         bool servos_locked;
 
         void change_servos_lock(bool is_locked)
@@ -246,6 +246,7 @@ namespace GroundConstruction
         public override void OnAwake()
         {
             base.OnAwake();
+            scenery_mask = Utils.GetLayer("Local Scenery");
             warning = gameObject.AddComponent<SimpleWarning>();
             warning.Message = "Deployment cannot be undone.\nAre you sure?";
             warning.yesCallback = start_deployment;
