@@ -199,13 +199,5 @@ namespace GroundConstruction
             base.SetStageComplete(stage, complete);
             remainder?.Clear();
         }
-
-        //deprecated config conversion
-        public override void Load(ConfigNode node)
-        {
-            base.Load(node);
-            if(node.HasValue("Completeness"))
-                Construction.Load(node);
-        }
     }
 }

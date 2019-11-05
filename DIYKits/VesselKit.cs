@@ -379,42 +379,6 @@ namespace GroundConstruction
                 CrewTransferBatch.moveCrew(CrewSource, vsl, KitCrew);
         }
 
-        public override void Load(ConfigNode node)
-        {
-            base.Load(node);
-            if(node.HasValue("Completeness"))
-            {
-                //Utils.Log("VesselKit.Load: {}\n{}", this, node);//debug
-                //deprecated config conversion
-                CurrentIndex = 0;
-                var list = new PersistentList<PartKit>();
-                var n = node.GetNode("BuiltParts");
-                if(n != null)
-                {
-                    list.Load(n);
-                    Jobs.AddRange(list.Where(j => j.Valid));
-                    list.Clear();
-                    CurrentIndex = Jobs.Count;
-                }
-                n = node.GetNode("PartUnderConstruction");
-                if(n != null)
-                {
-                    var p = new PartKit();
-                    p.Load(n);
-                    if(p.Valid)
-                        Jobs.Add(p);
-                }
-                n = node.GetNode("UnbuiltParts");
-                if(n != null)
-                {
-                    list.Load(n);
-                    Jobs.AddRange(list.Where(j => j.Valid));
-                    list.Clear();
-                }
-                //Utils.Log("VesselKit.Loaded: {}", this);//debug
-            }
-        }
-
         public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
     }
 
