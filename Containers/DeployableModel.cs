@@ -494,7 +494,7 @@ namespace GroundConstruction
                 if(same_vessel_collision_if_deployed())
                 {
                     warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
-                        "if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
+                        " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
                         "will not collide with anything when launched.\n" +
                         Colors.Danger.Tag("Start the deployment?"),
                     () => warning.Show(true));

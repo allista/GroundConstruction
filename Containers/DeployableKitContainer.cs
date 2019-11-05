@@ -552,7 +552,7 @@ namespace GroundConstruction
                           + "This usually means that some parts are missing "
                           + "or some modules failed to initialize.",
                     kit.Name);
-                Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+                Utils.Message("Something went wrong. Constructed ship cannot be launched.");
                 GameEvents.onShowUI.Fire();
                 vessel_spawner.AbortLaunch();
                 yield break;
