@@ -347,6 +347,7 @@ namespace GroundConstruction
                         }
                         break;
                     }
+                    Queue.Dequeue();
                 }
             }
             stop(true);
