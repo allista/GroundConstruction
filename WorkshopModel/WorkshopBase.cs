@@ -432,12 +432,12 @@ namespace GroundConstruction
                 return;
             }
             var deltaTime = get_delta_time();
-            if(deltaTime < 0) 
+            if(deltaTime < 0)
                 return;
             //check current kit
 //            this.Log($"FixedUpdate dT {deltaTime}");//debug
 //            this.Log($"FixedUpdate CurrentTask 0: {CurrentTask}, check {check_task(CurrentTask)}");//debug
-            if(!check_task(CurrentTask) && !start_next_item()) 
+            if(!check_task(CurrentTask) && !start_next_item())
                 return;
             var available_work = workforce * deltaTime;
 //            this.Log($"FixedUpdate CurrentTask 0: {CurrentTask}, check {check_task(CurrentTask)}");//debug
