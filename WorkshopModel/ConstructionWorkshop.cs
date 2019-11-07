@@ -112,9 +112,7 @@ namespace GroundConstruction
             base.draw();
             if(target_kit != null && target_kit.Recheck())
             {
-                resources_window.Draw(
-                    string.Format("Transfer resources to {0}", target_kit.Kit.Name),
-                    transfer_list);
+                resources_window.Draw($"Transfer resources to {target_kit.Kit.Name}", transfer_list);
                 crew_window.Draw(vessel.GetVesselCrew(), target_kit.Kit.KitCrew, kit_crew_capacity);
             }
             else

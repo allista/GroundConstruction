@@ -73,10 +73,7 @@ namespace GroundConstruction
         protected override double do_some_work(double available_work)
         {
             var work = serve_requirements(available_work);
-            this.Log("can do work: {}/{}, eta {}",
-                work,
-                available_work,
-                CurrentTask.Kit.CurrentTaskETA); //debug
+//            this.Log($"do_some_work can do work: {work}/{available_work}, eta {CurrentTask.Kit.CurrentTaskETA}"); //debug
             if(work > 0)
             {
                 CurrentTask.Kit.DoSomeWork(work);
