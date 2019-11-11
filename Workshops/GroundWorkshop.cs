@@ -4,6 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2016 Allis Tauri
+
 using System.Linq;
 using UnityEngine;
 using AT_Utils;
@@ -13,8 +14,13 @@ namespace GroundConstruction
     public class GroundWorkshop : ConstructionWorkshop
     {
         [KSPField] public bool AutoEfficiency;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Workshop Efficiency", guiFormat = "P1")]
+
+        [KSPField(guiActive = true,
+            guiActiveEditor = true,
+            guiName = "Workshop Efficiency",
+            guiFormat = "P1")]
         public float Efficiency = 1;
+
         float distance_mod = -1;
 
         public override float EffectiveWorkforce => workforce * distance_mod;
@@ -37,7 +43,7 @@ namespace GroundConstruction
             workshopType = WorkshopType.GROUND;
             if(!isEnabled)
             {
-                enabled = false; 
+                enabled = false;
                 return;
             }
             if(AutoEfficiency)
@@ -47,14 +53,16 @@ namespace GroundConstruction
         void compute_part_efficiency()
         {
             Efficiency = 0;
-            if(part.CrewCapacity == 0) 
+            if(part.CrewCapacity == 0)
                 return;
             var useful_volume = (Metric.Volume(part) - part.mass) * GLB.PartVolumeFactor;
-            if(useful_volume <= 0) 
+            if(useful_volume <= 0)
                 return;
-            Efficiency = Mathf.Lerp(0, GLB.MaxGenericEfficiency,
-                                    Mathf.Min(useful_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
-            if(Efficiency < GLB.MinGenericEfficiency) Efficiency = 0;
+            Efficiency = Mathf.Lerp(0,
+                GLB.MaxGenericEfficiency,
+                Mathf.Min(useful_volume / part.CrewCapacity / GLB.VolumePerKerbal, 1));
+            if(Efficiency < GLB.MinGenericEfficiency)
+                Efficiency = 0;
             if(Efficiency.Equals(0))
                 this.EnableModule(false);
         }
@@ -65,9 +73,11 @@ namespace GroundConstruction
             var queued = get_queued_ids();
             foreach(var vsl in FlightGlobals.Vessels)
             {
-                if(!vsl.loaded) continue;
-                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl)?.Where(s => s.Valid);
-                if(containers == null) 
+                if(!vsl.loaded)
+                    continue;
+                var containers = VesselKitInfo.GetKitContainers<IConstructionSpace>(vsl)
+                    ?.Where(s => s.Valid);
+                if(containers == null)
                     continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
@@ -130,7 +140,8 @@ namespace GroundConstruction
             if(dist2kit(target) > GLB.MaxDistanceToWorkshop)
             {
                 Utils.Message("{0} is too far away. Needs to be closer that {1}m",
-                              target.Name, GLB.MaxDistanceToWorkshop);
+                    target.Name,
+                    GLB.MaxDistanceToWorkshop);
                 return false;
             }
             return true;
@@ -141,16 +152,20 @@ namespace GroundConstruction
         protected override void info_pane()
         {
             GUILayout.BeginVertical();
-            GUILayout.Label(string.Format("<color=silver>Efficiency:</color> <b>{0:P1}</b> " +
-                                          "<color=silver>Workforce:</color> <b>{1:F1}</b>/{2:F1} SK",
-                                          Efficiency, workforce, max_workforce),
-                            Styles.boxed_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(string.Format(
+                    "<color=silver>Efficiency:</color> <b>{0:P1}</b> "
+                    + "<color=silver>Workforce:</color> <b>{1:F1}</b>/{2:F1} SK",
+                    Efficiency,
+                    workforce,
+                    max_workforce),
+                Styles.boxed_label,
+                GUILayout.ExpandWidth(true));
             if(distance_mod >= 0 && distance_mod < 1)
                 GUILayout.Label(string.Format("Efficiency (due to distance): {0:P1}", distance_mod),
-                                Styles.fracStyle(distance_mod), GUILayout.ExpandWidth(true));
+                    Styles.fracStyle(distance_mod),
+                    GUILayout.ExpandWidth(true));
             GUILayout.EndVertical();
         }
         #endregion
     }
 }
-
