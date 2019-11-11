@@ -72,9 +72,12 @@ namespace GroundConstruction
                     continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {
-                    if(vsl_kit != null && vsl_kit.Valid &&
-                       vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id) &&
-                       (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                    if(vsl_kit != null
+                       && vsl_kit.Valid
+                       && vsl_kit != CurrentTask.Kit
+                       && !queued.Contains(vsl_kit.id)
+                       && (part.partTransform.position - vsl.vesselTransform.position).magnitude
+                       < GLB.MaxDistanceToWorkshop)
                         sort_task(new ConstructionKitInfo(vsl_kit));
                 }
             }

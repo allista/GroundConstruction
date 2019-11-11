@@ -107,7 +107,7 @@ namespace GroundConstruction
         protected HashSet<Guid> get_queued_ids() => new HashSet<Guid>(Queue.Select(k => k.ID));
 
         protected float dist2kit(VesselKitInfo kit) =>
-            (kit.Kit.Host.vessel.transform.position - vessel.transform.position).magnitude;
+            (kit.Kit.Host.vessel.transform.position - part.partTransform.position).magnitude;
 
         protected float current_task_distance_mod()
         {
