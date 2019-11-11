@@ -108,7 +108,7 @@ namespace GroundConstruction
             var frac = get_fraction();
             //Utils.Log("frac {} +delta {}, dM {}", frac, (frac + (work / TotalWork)), 
             //Mass.Curve.Evaluate((float)(frac + (work / TotalWork))) -
-            //Mass.Curve.Evaluate((float)frac));//debug
+            //Mass.Curve.Evaluate((float)frac)); //debug
             req.resource_mass = Math.Max(Mass.Curve.Evaluate((float)(frac + (work / TotalWork)))
                                          - Mass.Curve.Evaluate((float)frac),
                 0);
@@ -178,36 +178,26 @@ namespace GroundConstruction
         {
             var stage = CurrentStage;
             var rem = RemainingRequirements();
-            return Draw(Name, CurrentIndex, stage != null ? stage.TotalWork : 1, rem, style);
+            return Draw(Name, CurrentIndex, stage?.TotalWork ?? 1, rem, style);
         }
 
         public override double DoSomeWork(double work)
         {
-            if(work > 0 && remainder != null)
-                remainder.Clear();
+            if(work > 0)
+                remainder?.Clear();
             return base.DoSomeWork(work);
         }
 
         public override void NextStage()
         {
             base.NextStage();
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
         }
 
         public override void SetStageComplete(int stage, bool complete)
         {
             base.SetStageComplete(stage, complete);
-            if(remainder != null)
-                remainder.Clear();
-        }
-
-        //deprecated config conversion
-        public override void Load(ConfigNode node)
-        {
-            base.Load(node);
-            if(node.HasValue("Completeness"))
-                Construction.Load(node);
+            remainder?.Clear();
         }
     }
 }

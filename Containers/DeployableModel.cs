@@ -49,7 +49,7 @@ namespace GroundConstruction
         public Vector3 PartCenter;
         [KSPField(isPersistant = true)] public Vector3 Size;
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
-        [KSPField(isPersistant = true)] public DeplyomentState state;
+        [KSPField(isPersistant = true)] public DeploymentState state;
         [KSPField(isPersistant = true)] public bool ShowDeployHint;
         bool just_started;
 
@@ -57,7 +57,7 @@ namespace GroundConstruction
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
-        public DeplyomentState State => state;
+        public DeploymentState State => state;
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
@@ -173,8 +173,18 @@ namespace GroundConstruction
             yield return null;
         }
 
-        static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
-        bool resizing;
+        private int scenery_mask;
+        bool servos_locked;
+
+        void change_servos_lock(bool is_locked)
+        {
+            GameEvents.onRoboticPartLockChanging.Fire(part, servos_locked);
+            if(vessel != null)
+                vessel.CycleAllAutoStrut();
+            servos_locked = is_locked;
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
+        }
+        
         IEnumerator<YieldInstruction> resize_coro;
         IEnumerator<YieldInstruction> _resize()
         {
@@ -205,9 +215,8 @@ namespace GroundConstruction
                 if(child.attachJoint != null)
                     save_dock_anchor(child, scale);
             }
-            resizing = true;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut();
+            change_servos_lock(false);
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
             yield return null;
             while(time < 1)
             {
@@ -223,9 +232,7 @@ namespace GroundConstruction
                 }
                 yield return new WaitForFixedUpdate();
             }
-            resizing = false;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut();
+            change_servos_lock(true);
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
@@ -233,12 +240,13 @@ namespace GroundConstruction
 
         public virtual bool IsJointUnlocked()
         {
-            return resizing;
+            return !servos_locked;
         }
 
         public override void OnAwake()
         {
             base.OnAwake();
+            scenery_mask = Utils.GetLayer("Local Scenery");
             warning = gameObject.AddComponent<SimpleWarning>();
             warning.Message = "Deployment cannot be undone.\nAre you sure?";
             warning.yesCallback = start_deployment;
@@ -266,7 +274,7 @@ namespace GroundConstruction
             base.OnStart(state);
             just_started = true;
             StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
-            if(State == DeplyomentState.DEPLOYING)
+            if(State == DeploymentState.DEPLOYING)
                 StartCoroutine(deploy());
         }
 
@@ -298,15 +306,15 @@ namespace GroundConstruction
             //deprecated config conversion
             if(node.HasValue("Deploying"))
             {
-                state = DeplyomentState.IDLE;
+                state = DeploymentState.IDLE;
                 var val = node.GetValue("Deploying");
                 if(bool.TryParse(val, out bool _deploy) && _deploy)
-                    state = DeplyomentState.DEPLOYING;
+                    state = DeploymentState.DEPLOYING;
                 else
                 {
                     val = node.GetValue("Deployed");
                     if(bool.TryParse(val, out _deploy) && _deploy)
-                        state = DeplyomentState.DEPLOYED;
+                        state = DeploymentState.DEPLOYED;
                 }
             }
         }
@@ -382,8 +390,6 @@ namespace GroundConstruction
                     var scale = Vector3.Scale(depl_size, part_size.Inverse());
                     var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
                     var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
-                    this.Log("deployed bounds: size {} => {}, scale {}, growth {}, center {}",
-                        part_size, depl_size, scale, growth, center);//debug
                     if(to_model_space)
                         return new Bounds(center.Local2LocalDir(T, model),
                             depl_size.Local2LocalDir(T, model).AbsComponents());
@@ -471,13 +477,13 @@ namespace GroundConstruction
             TargetSize = TargetSize.Local2LocalDir(deployT, model).AbsComponents();
             yield return slow_resize();
             foreach(var _ in finalize_deployment()) yield return null;
-            state = DeplyomentState.DEPLOYED;
+            state = DeploymentState.DEPLOYED;
         }
 
         protected void start_deployment()
         {
             Utils.SaveGame(Name + "-before_deployment");
-            state = DeplyomentState.DEPLOYING;
+            state = DeploymentState.DEPLOYING;
             StartCoroutine(deploy());
         }
 
@@ -488,7 +494,7 @@ namespace GroundConstruction
                 if(same_vessel_collision_if_deployed())
                 {
                     warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
-                        "if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
+                        " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
                         "will not collide with anything when launched.\n" +
                         Colors.Danger.Tag("Start the deployment?"),
                     () => warning.Show(true));

@@ -14,7 +14,7 @@ namespace GroundConstruction
 {
     public class ModuleConstructionKit : DeployableKitContainer
     {
-        List<Transform> spawn_transforms = new List<Transform>();
+        readonly List<Transform> spawn_transforms = new List<Transform>();
         [KSPField] public string SpawnTransforms;
 
         ATGroundAnchor anchor;

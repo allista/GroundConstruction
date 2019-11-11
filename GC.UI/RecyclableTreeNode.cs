@@ -61,7 +61,7 @@ namespace GC.UI
             var subnode = subnodeObj.GetComponent<RecyclableTreeNode>();
             subnode.ui = ui;
             subnode.subnodesToggle.group = null;
-            subnode.subnodesToggle.SetIsOnWithoutNotify(false);
+            subnode.subnodesToggle.SetIsOnAndColorWithoutNotify(false);
             subnode.SetRecyclableInfo(child_info);
             children[child_info.ID] = subnodeObj;
             subnodeObj.SetActive(true);

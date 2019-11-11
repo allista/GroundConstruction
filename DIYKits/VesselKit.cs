@@ -27,9 +27,9 @@ namespace GroundConstruction
         public bool DockingPossible => DockingNodes.Count > 0;
 
         public AttachNode GetDockingNode(Vessel vsl, int node_idx) =>
-        node_idx >= 0 && node_idx < DockingNodes.Count
-            ? DockingNodes[node_idx].GetDockingNode(vsl)
-            : null;
+            node_idx >= 0 && node_idx < DockingNodes.Count
+                ? DockingNodes[node_idx].GetDockingNode(vsl)
+                : null;
 
         [Persistent] public float KitResourcesMass;
         [Persistent] public float KitResourcesCost;
@@ -50,22 +50,22 @@ namespace GroundConstruction
             AdditionalResources.Clear();
             if(assembled)
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(r =>
-                {
-                    if(r.info.isTweakable &&
-                       r.info.density > 0 &&
-                       r.info.id != Utils.ElectricCharge.id &&
-                       !GLB.KeepResources.Values.Contains(r.info.id))
-                        AdditionalResources.Strip(r);
-                }));
+                    p.Resources.ForEach(r =>
+                    {
+                        if(r.info.isTweakable
+                           && r.info.density > 0
+                           && r.info.id != Utils.ElectricCharge.id
+                           && !GLB.KeepResources.Values.Contains(r.info.id))
+                            AdditionalResources.Strip(r);
+                    }));
             else
                 ship.Parts.ForEach(p =>
-                                   p.Resources.ForEach(r =>
-                {
-                    if(!GLB.AssembleResources.Values.Contains(r.info.id) &&
-                       !GLB.ConstructResources.Values.Contains(r.info.id))
-                        AdditionalResources.Strip(r);
-                }));
+                    p.Resources.ForEach(r =>
+                    {
+                        if(!GLB.AssembleResources.Values.Contains(r.info.id)
+                           && !GLB.ConstructResources.Values.Contains(r.info.id))
+                            AdditionalResources.Strip(r);
+                    }));
         }
 
         KitResourcesList count_kit_resources(IShipconstruct ship, bool assembled)
@@ -73,19 +73,19 @@ namespace GroundConstruction
             var resouces_to_assemble = new KitResourcesList();
             KitResourcesCost = KitResourcesMass = 0f;
             ship.Parts.ForEach(p =>
-                               p.Resources.ForEach(res =>
-            {
-                if(!assembled && GLB.AssembleResources.Values.Contains(res.info.id))
-                    resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.ASSEMBLED);
-                else if(!assembled && GLB.ConstructResources.Values.Contains(res.info.id))
-                    resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.CONSTRUCTED);
-                else
+                p.Resources.ForEach(res =>
                 {
-                    var amount = (float)res.amount;
-                    KitResourcesMass += amount * res.info.density;
-                    KitResourcesCost += amount * res.info.unitCost;
-                }
-            }));
+                    if(!assembled && GLB.AssembleResources.Values.Contains(res.info.id))
+                        resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.ASSEMBLED);
+                    else if(!assembled && GLB.ConstructResources.Values.Contains(res.info.id))
+                        resouces_to_assemble.Keep(res, KitResourceInfo.ResourceType.CONSTRUCTED);
+                    else
+                    {
+                        var amount = (float)res.amount;
+                        KitResourcesMass += amount * res.info.density;
+                        KitResourcesCost += amount * res.info.unitCost;
+                    }
+                }));
             return resouces_to_assemble;
         }
 
@@ -98,7 +98,8 @@ namespace GroundConstruction
             {
                 foreach(var n in p.attachNodes)
                 {
-                    if(n.attachedPart != null) continue;
+                    if(n.attachedPart != null)
+                        continue;
                     var orientation = p.partTransform.TransformDirection(n.orientation).normalized;
                     if(Vector3.Dot(Vector3.down, orientation) > GLB.MaxDockingCos)
                     {
@@ -107,7 +108,10 @@ namespace GroundConstruction
                         {
                             nodes.Add(new ConstructDockingNode
                             {
-                                Name = string.Format("{0} {1:X} ({2})", p.Title(), p.craftID, n.id),
+                                Name = string.Format("{0} {1:X} ({2})",
+                                    p.Title(),
+                                    p.craftID,
+                                    n.id),
                                 PartId = p.craftID,
                                 NodeId = n.id,
                                 DockingOffset = delta
@@ -120,11 +124,20 @@ namespace GroundConstruction
         }
 
         public Bounds GetBoundsForDocking(int node_idx) =>
-        new Bounds(ShipMetric.bounds.center,
-                   ShipMetric.bounds.size + DockingNodes[node_idx].DockingOffset.AbsComponents());
+            new Bounds(ShipMetric.bounds.center,
+                ShipMetric.bounds.size + DockingNodes[node_idx].DockingOffset.AbsComponents());
 
-        public VesselKit() { id = Guid.NewGuid(); }
-        public VesselKit(PartModule host, ShipConstruct ship, bool assembled = true, bool simulate = false)
+        public VesselKit()
+        {
+            id = Guid.NewGuid();
+        }
+
+        public VesselKit(
+            PartModule host,
+            ShipConstruct ship,
+            bool assembled = true,
+            bool simulate = false
+        )
             : this()
         {
             Host = host;
@@ -137,11 +150,26 @@ namespace GroundConstruction
             var create_resources = count_kit_resources(ship, assembled);
             ShipMetric = new Metric(ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
-            Jobs.AddRange(ship.Parts.ConvertAll(p => new PartKit(p, assembled)));
+            var final_assembly_work = 0f;
+            ship.Parts.ForEach(p =>
+            {
+                var kit = new PartKit(p, assembled);
+                final_assembly_work += p.mass * GLB.FinalizationWorkPerMass * 3600;
+                Jobs.Add(kit);
+            });
             create_resources.ForEach(r =>
-                Jobs.Add(new PartKit(r.Value.name, r.Value.mass, r.Value.cost,
-                                     r.Value.type == KitResourceInfo.ResourceType.CONSTRUCTED)));
-            SetStageComplete(DIYKit.ASSEMBLY, assembled);
+            {
+                var assembled_resource = r.Value.type == KitResourceInfo.ResourceType.CONSTRUCTED;
+                Jobs.Add(new PartKit(r.Value.name,
+                    r.Value.mass,
+                    r.Value.cost,
+                    assembled_resource ? 0 : 1,
+                    0,
+                    assembled_resource));
+            });
+            Jobs.Add(new PartKit("Final Assembly", 0, 0, 0, final_assembly_work, true));
+            if(assembled)
+                SetStageComplete(DIYKit.ASSEMBLY, true);
             HasLaunchClamps = ship.HasLaunchClamp();
             CurrentIndex = 0;
         }
@@ -194,13 +222,12 @@ namespace GroundConstruction
         }
 
         public VesselResources ConstructResources =>
-        Complete ? new VesselResources(Blueprint) : null;
+            Complete ? new VesselResources(Blueprint) : null;
 
         public void CheckinWorker(WorkshopBase module) =>
-        workers[module.part.flightID] = module.Workforce;
+            workers[module.part.flightID] = module.Workforce;
 
-        public void CheckoutWorker(WorkshopBase module) =>
-        workers.Remove(module.part.flightID);
+        public void CheckoutWorker(WorkshopBase module) => workers.Remove(module.part.flightID);
 
         public ShipConstruct LoadConstruct()
         {
@@ -262,7 +289,8 @@ namespace GroundConstruction
                     for(int i = CurrentIndex; i < njobs; i++)
                     {
                         req.Update(Jobs[i].RequirementsForWork(work - req.work));
-                        if(work <= req.work) break;
+                        if(work <= req.work)
+                            break;
                     }
                 }
             }
@@ -287,24 +315,22 @@ namespace GroundConstruction
 
         public override double DoSomeWork(double work)
         {
-            if(work > 0 && remainder != null)
-                remainder.Clear();
+            if(work > 0)
+                remainder?.Clear();
             return base.DoSomeWork(work);
         }
 
         public override void NextStage()
         {
             base.NextStage();
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
             workers.Clear();
         }
 
         public override void SetStageComplete(int stage, bool complete)
         {
             base.SetStageComplete(stage, complete);
-            if(remainder != null)
-                remainder.Clear();
+            remainder?.Clear();
             workers.Clear();
         }
 
@@ -342,49 +368,15 @@ namespace GroundConstruction
         public ShipConstruct CreateShipConstruct(string part_name, string flag_url)
         {
             var kit_part = CreatePart(part_name, flag_url, true);
-            return kit_part ? PartMaker.CreatePartConstruct(kit_part, "DIY Kit: " + Name, "") : null;
+            return kit_part
+                ? PartMaker.CreatePartConstruct(kit_part, "DIY Kit: " + Name, "")
+                : null;
         }
 
         public void TransferCrewToKit(Vessel vsl)
         {
             if(CrewSource != null && KitCrew != null && KitCrew.Count > 0)
                 CrewTransferBatch.moveCrew(CrewSource, vsl, KitCrew);
-        }
-
-        public override void Load(ConfigNode node)
-        {
-            base.Load(node);
-            if(node.HasValue("Completeness"))
-            {
-                //Utils.Log("VesselKit.Load: {}\n{}", this, node);//debug
-                //deprecated config conversion
-                CurrentIndex = 0;
-                var list = new PersistentList<PartKit>();
-                var n = node.GetNode("BuiltParts");
-                if(n != null)
-                {
-                    list.Load(n);
-                    Jobs.AddRange(list.Where(j => j.Valid));
-                    list.Clear();
-                    CurrentIndex = Jobs.Count;
-                }
-                n = node.GetNode("PartUnderConstruction");
-                if(n != null)
-                {
-                    var p = new PartKit();
-                    p.Load(n);
-                    if(p.Valid)
-                        Jobs.Add(p);
-                }
-                n = node.GetNode("UnbuiltParts");
-                if(n != null)
-                {
-                    list.Load(n);
-                    Jobs.AddRange(list.Where(j => j.Valid));
-                    list.Clear();
-                }
-                //Utils.Log("VesselKit.Loaded: {}", this);//debug
-            }
         }
 
         public bool Equals(VesselKit other) => id != Guid.Empty && id == other.id;
@@ -397,30 +389,31 @@ namespace GroundConstruction
         [Persistent] public string NodeId;
         [Persistent] public Vector3 DockingOffset;
 
-        public Part GetDockingPart(Vessel vsl) =>
-        vsl.Parts.GetPartByCraftID(PartId);
+        public Part GetDockingPart(Vessel vsl) => vsl.Parts.GetPartByCraftID(PartId);
 
         public AttachNode GetDockingNode(Vessel vsl) =>
-        vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
+            vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
 
         public override string ToString() => Name;
     }
 
-    public class DockingNodeList : PersistentList<ConstructDockingNode>
-    {
-
-    }
+    public class DockingNodeList : PersistentList<ConstructDockingNode> { }
 
     public class KitResourceInfo : ResourceInfo
     {
         public enum ResourceType { STRIPPED, ASSEMBLED, CONSTRUCTED };
+
         public ResourceType type;
 
         [Persistent] public double amount;
 
         public KitResourceInfo() { }
+
         public KitResourceInfo(string name, ResourceType type)
-        : base(name) { this.type = type; }
+            : base(name)
+        {
+            this.type = type;
+        }
 
         public float mass => (float)amount * def.density;
         public float cost => (float)amount * def.unitCost;
@@ -457,7 +450,8 @@ namespace GroundConstruction
 
         public void Draw()
         {
-            if(Count == 0) return;
+            if(Count == 0)
+                return;
             GUILayout.BeginVertical(Styles.white);
             foreach(var r in this)
             {
@@ -488,4 +482,3 @@ namespace GroundConstruction
         }
     }
 }
-

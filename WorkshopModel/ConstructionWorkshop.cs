@@ -95,7 +95,7 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
-            recycler_window.SaveState();
+            recycler_window?.SaveState();
             Destroy(resources_window);
             Destroy(crew_window);
             base.OnDestroy();
@@ -112,9 +112,7 @@ namespace GroundConstruction
             base.draw();
             if(target_kit != null && target_kit.Recheck())
             {
-                resources_window.Draw(
-                    string.Format("Transfer resources to {0}", target_kit.Kit.Name),
-                    transfer_list);
+                resources_window.Draw($"Transfer resources to {target_kit.Kit.Name}", transfer_list);
                 crew_window.Draw(vessel.GetVesselCrew(), target_kit.Kit.KitCrew, kit_crew_capacity);
             }
             else
@@ -162,16 +160,19 @@ namespace GroundConstruction
             out DIYKit.Requirements construction_requirements
         )
         {
-            var kit = new PartKit(p, false);
-            assembly_requirements = kit.RemainingRequirements().Copy();
-            kit.SetStageComplete(DIYKit.ASSEMBLY, true);
-            construction_requirements = kit.RemainingRequirements().Copy();
-            assembly_requirements.resource_amount *=
-                assembly_requirements.resource.MaxRecycleRatio * efficiency;
-            assembly_requirements.energy *= GLB.RecycleEnergyRatio;
-            construction_requirements.resource_amount *=
-                construction_requirements.resource.MaxRecycleRatio * efficiency;
-            construction_requirements.energy *= GLB.RecycleEnergyRatio;
+            PartKit.GetRequirements(p, out assembly_requirements, out construction_requirements);
+            if(assembly_requirements)
+            {
+                assembly_requirements.resource_amount *=
+                    assembly_requirements.resource.MaxRecycleRatio * efficiency;
+                assembly_requirements.energy *= GLB.RecycleEnergyRatio;
+            }
+            if(construction_requirements)
+            {
+                construction_requirements.resource_amount *=
+                    construction_requirements.resource.MaxRecycleRatio * efficiency;
+                construction_requirements.energy *= GLB.RecycleEnergyRatio;
+            }
         }
 
         public bool IsRecycling => recycling_part != null;
@@ -403,7 +404,7 @@ namespace GroundConstruction
                 draw_task(info);
                 if(info.ConstructionSpace is IDeployable depl)
                 {
-                    if(depl.State == DeplyomentState.DEPLOYED)
+                    if(depl.State == DeploymentState.DEPLOYED)
                     {
                         if(GUILayout.Button(
                             new GUIContent("Add", "Add this kit to construction queue"),
@@ -412,7 +413,7 @@ namespace GroundConstruction
                             GUILayout.ExpandHeight(true)))
                             add = info;
                     }
-                    else if(depl.State != DeplyomentState.DEPLOYING)
+                    else if(depl.State != DeploymentState.DEPLOYING)
                     {
                         if(GUILayout.Button(
                             new GUIContent("Deploy", "Deploy this kit and fix it to the ground"),

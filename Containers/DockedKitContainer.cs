@@ -15,11 +15,9 @@ namespace GroundConstruction
 {
     public class DockedKitContainer : DeployableKitContainer
     {
-        [KSPField, SerializeField]
-        public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
+        [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
 
-        [KSPField]
-        public string ConstructionNode = "bottom";
+        [KSPField] public string ConstructionNode = "bottom";
         protected AttachNode construction_node;
         protected ModuleDockingNode construction_port;
         protected AttachNode recipient_node;
@@ -27,14 +25,68 @@ namespace GroundConstruction
         [KSPField(guiActive = true, guiName = "Kit Dockable")]
         public bool DockableDisplay;
 
-        [KSPField(isPersistant = true)]
-        public int ConstructDockingNode = -1;
+        [KSPField(isPersistant = true)] public int ConstructDockingNode = -1;
         ConstructDockingNode construct_docking_node;
 
         Bounds get_deployed_bounds() =>
-        ConstructDockingNode >= 0 && kit.DockingPossible
-            ? kit.GetBoundsForDocking(ConstructDockingNode)
-            : kit.ShipMetric.bounds;
+            ConstructDockingNode >= 0 && kit.DockingPossible
+                ? kit.GetBoundsForDocking(ConstructDockingNode)
+                : kit.ShipMetric.bounds;
+
+        private ConstructionWorkshop connected_construction_ws;
+        private AssemblyWorkshop connected_assembly_ws;
+
+        bool find_connected_workshops(AttachNode through_node, HashSet<uint> visited)
+        {
+            var next_part = through_node.attachedPart;
+            if(next_part == null || visited.Contains(next_part.persistentId))
+                return false;
+            visited.Add(next_part.persistentId);
+            if(connected_construction_ws == null)
+                connected_construction_ws =
+                    next_part.FindModuleImplementing<ConstructionWorkshop>();
+            if(connected_assembly_ws == null)
+                connected_assembly_ws =
+                    next_part.FindModuleImplementing<AssemblyWorkshop>();
+            if(connected_construction_ws != null && connected_assembly_ws != null)
+                return true;
+            for(int i = 0, len = next_part.attachNodes.Count; i < len; i++)
+            {
+                var an = next_part.attachNodes[i];
+                if(an.attachedPart == null || visited.Contains(an.attachedPart.persistentId))
+                    continue;
+                if(find_connected_workshops(an, visited))
+                    return true;
+            }
+            return false;
+        }
+
+        void find_connected_workshops()
+        {
+            connected_assembly_ws = null;
+            connected_construction_ws = null;
+            if(construction_node != null)
+                find_connected_workshops(construction_node,
+                    new HashSet<uint> { part.persistentId });
+        }
+
+        void onVesselModified(Vessel vsl)
+        {
+            if(vsl != null && vsl == vessel)
+                find_connected_workshops();
+        }
+
+        public override void OnAwake()
+        {
+            base.OnAwake();
+            GameEvents.onVesselWasModified.Add(onVesselModified);
+        }
+
+        protected override void OnDestroy()
+        {
+            GameEvents.onVesselWasModified.Remove(onVesselModified);
+            base.OnDestroy();
+        }
 
         public override void OnStart(StartState state)
         {
@@ -44,24 +96,23 @@ namespace GroundConstruction
             {
                 construction_node = part.FindAttachNode(ConstructionNode);
                 foreach(var port in part.FindModulesImplementing<ModuleDockingNode>())
-                {
                     if(port.nodeTransformName == ConstructionNode
                        || port.referenceAttachNode == ConstructionNode)
                     {
                         construction_port = port;
                         break;
                     }
-                }
             }
             if(construction_node == null)
             {
                 this.Log("ERROR: unable to find construction AttachNode with id: {}",
-                         ConstructionNode);
+                    ConstructionNode);
                 this.EnableModule(false);
                 return;
             }
             if(kit && ConstructDockingNode >= 0)
                 construct_docking_node = kit.DockingNodes[ConstructDockingNode];
+            StartCoroutine(CallbackUtil.DelayedCallback(1, find_connected_workshops));
         }
 
         protected override void update_part_events()
@@ -88,6 +139,9 @@ namespace GroundConstruction
         }
 
         #region Deployment
+        protected override bool ValidAssemblySpace => connected_assembly_ws != null;
+        protected override bool ValidConstructionSpace => connected_construction_ws != null;
+
         public override bool CanConstruct(VesselKit kit) => !kit.HasLaunchClamps;
 
         protected override bool can_deploy()
@@ -108,25 +162,35 @@ namespace GroundConstruction
             if(kit && kit.DockingPossible)
             {
                 if(ConstructDockingNode >= 0)
-                    warning.Message += Colors.Warning.Tag("\nYou have chosen to <b>dock the vessel</b> after construction.");
+                    warning.Message +=
+                        Colors.Warning.Tag(
+                            "\nYou have chosen to <b>dock the vessel</b> after construction.");
                 else
-                    warning.Message += Colors.Warning.Tag("\nYou have chosen to <b>launch the vessel</b> after construction.");
+                    warning.Message +=
+                        Colors.Warning.Tag(
+                            "\nYou have chosen to <b>launch the vessel</b> after construction.");
                 warning.Message += "\nYou cannot change it after deployment.";
             }
             warning.Message += "\nAre you sure?";
             base.Deploy();
         }
 
-        protected override Vector3 get_point_of_growth() => 
+        protected override Vector3 get_point_of_growth() =>
             part.partTransform.TransformPoint(construction_node.position);
 
-        protected override Transform get_deploy_transform_unrotated(Vector3 size, out Vector3 spawn_offset) =>
-        SpawnManager.GetSpawnTransform(size, out spawn_offset);
+        protected override Transform get_deploy_transform_unrotated(
+            Vector3 size,
+            out Vector3 spawn_offset
+        ) =>
+            SpawnManager.GetSpawnTransform(size, out spawn_offset);
 
         protected override Vector3 get_deployed_size() => get_deployed_bounds().size;
 
-        protected override void update_kit_hull_mesh(Transform deployT,
-            Vector3 deployed_size, Vector3 spawn_offset)
+        protected override void update_kit_hull_mesh(
+            Transform deployT,
+            Vector3 deployed_size,
+            Vector3 spawn_offset
+        )
         {
             if(construct_docking_node != null)
                 spawn_offset -= construct_docking_node.DockingOffset;
@@ -184,7 +248,10 @@ namespace GroundConstruction
         }
 
         static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
-        static readonly GUIContent docked_label = new GUIContent("Dock", "Dock the constructed vessel to the main vessel after launch.");
+
+        static readonly GUIContent docked_label = new GUIContent("Dock",
+            "Dock the constructed vessel to the main vessel after launch.");
+
         public override void DrawOptions()
         {
             GUILayout.BeginVertical();
@@ -194,17 +261,19 @@ namespace GroundConstruction
                 GUILayout.BeginHorizontal(Styles.white);
                 GUILayout.Label("After construction:");
                 GUILayout.FlexibleSpace();
-                if(state == DeplyomentState.IDLE)
+                if(state == DeploymentState.IDLE)
                 {
                     var old_value = ConstructDockingNode;
-                    if(Utils.ButtonSwitch(launch_label, ConstructDockingNode < 0,
-                                          GUILayout.ExpandWidth(false)))
+                    if(Utils.ButtonSwitch(launch_label,
+                        ConstructDockingNode < 0,
+                        GUILayout.ExpandWidth(false)))
                     {
                         ConstructDockingNode = -1;
                         construct_docking_node = null;
                     }
-                    if(Utils.ButtonSwitch(docked_label, ConstructDockingNode >= 0,
-                                          GUILayout.ExpandWidth(false)))
+                    if(Utils.ButtonSwitch(docked_label,
+                        ConstructDockingNode >= 0,
+                        GUILayout.ExpandWidth(false)))
                     {
                         ConstructDockingNode = 0;
                         construct_docking_node = kit.DockingNodes[0];
@@ -217,12 +286,14 @@ namespace GroundConstruction
                 }
                 else if(ConstructDockingNode >= 0)
                     GUILayout.Label("Dock " + construct_docking_node,
-                                    Styles.enabled, GUILayout.ExpandWidth(false));
+                        Styles.enabled,
+                        GUILayout.ExpandWidth(false));
                 else
                     GUILayout.Label(launch_label,
-                                    Styles.enabled, GUILayout.ExpandWidth(false));
+                        Styles.enabled,
+                        GUILayout.ExpandWidth(false));
                 GUILayout.EndHorizontal();
-                if(state == DeplyomentState.IDLE && ConstructDockingNode >= 0)
+                if(state == DeploymentState.IDLE && ConstructDockingNode >= 0)
                 {
                     GUILayout.BeginHorizontal(Styles.white);
                     GUILayout.Label("Dock via:");
@@ -230,8 +301,10 @@ namespace GroundConstruction
                     var choice = Utils.LeftRightChooser(construct_docking_node.ToString());
                     if(choice != 0)
                     {
-                        ConstructDockingNode = (ConstructDockingNode + choice) % kit.DockingNodes.Count;
-                        if(ConstructDockingNode < 0) ConstructDockingNode = kit.DockingNodes.Count - 1;
+                        ConstructDockingNode =
+                            (ConstructDockingNode + choice) % kit.DockingNodes.Count;
+                        if(ConstructDockingNode < 0)
+                            ConstructDockingNode = kit.DockingNodes.Count - 1;
                         construct_docking_node = kit.DockingNodes[ConstructDockingNode];
                         update_part_events();
                         create_deploy_hint_mesh();
@@ -243,11 +316,13 @@ namespace GroundConstruction
         }
 
         [KSPEvent(guiName = "After construction",
-                  guiActiveUnfocused = true, unfocusedRange = 10,
-                  guiActive = true, guiActiveEditor = true)]
+            guiActiveUnfocused = true,
+            unfocusedRange = 10,
+            guiActive = true,
+            guiActiveEditor = true)]
         public void ToggleDockedConstruction()
         {
-            if(state == DeplyomentState.IDLE && kit && kit.DockingPossible)
+            if(state == DeploymentState.IDLE && kit && kit.DockingPossible)
             {
                 ConstructDockingNode += 1;
                 if(ConstructDockingNode < kit.DockingNodes.Count)
@@ -264,9 +339,12 @@ namespace GroundConstruction
         #endregion
 
         //TODO: extract this method somewhere to use both here and in VesselKit
-        AttachNode find_closest_free_node(IEnumerable<Part> parts,
-                                          Vector3 world_pos, Vector3 world_fwd,
-                                          out Vector3 world_delta)
+        AttachNode find_closest_free_node(
+            IEnumerable<Part> parts,
+            Vector3 world_pos,
+            Vector3 world_fwd,
+            out Vector3 world_delta
+        )
         {
             world_delta = Vector3.zero;
             var best_dist = float.MaxValue;
@@ -300,16 +378,19 @@ namespace GroundConstruction
 
         void update_recipient_node(Part construction_part)
         {
-            var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
-            var construction_node_fwd = part.partTransform.TransformDirection(construction_node.orientation).normalized;
+            var construction_node_pos =
+                part.partTransform.TransformPoint(construction_node.position);
+            var construction_node_fwd = part.partTransform
+                .TransformDirection(construction_node.orientation)
+                .normalized;
             recipient_node = construction_part.FindAttachNodeByPart(part);
             if(recipient_node == null)
             {
                 Vector3 _delta;
                 recipient_node = find_closest_free_node(new[] { construction_part },
-                                                        construction_node_pos,
-                                                        -construction_node_fwd,
-                                                        out _delta);
+                    construction_node_pos,
+                    -construction_node_fwd,
+                    out _delta);
             }
         }
 
@@ -318,24 +399,31 @@ namespace GroundConstruction
             base.on_vessel_launched(vsl);
             if(recipient_node != null)
             {
-                var construction_node_pos = part.partTransform.TransformPoint(construction_node.position);
+                var construction_node_pos =
+                    part.partTransform.TransformPoint(construction_node.position);
                 var construction_part = recipient_node.owner;
                 var docking_node = kit.GetDockingNode(vsl, ConstructDockingNode);
                 if(docking_node == null)
                 {
-                    Utils.Message("No suitable attachment node found in \"{0}\" to dock it to the {1}",
-                                  vsl.GetDisplayName(), construction_part.Title());
+                    Utils.Message(
+                        "No suitable attachment node found in \"{0}\" to dock it to the {1}",
+                        vsl.GetDisplayName(),
+                        construction_part.Title());
                     return;
                 }
-                var docking_offset = docking_node.owner.partTransform.TransformPoint(docking_node.position)
-                                         - construction_node_pos;
+                var docking_offset =
+                    docking_node.owner.partTransform.TransformPoint(docking_node.position)
+                    - construction_node_pos;
                 FXMonger.Explode(part, construction_node_pos, 0);
                 var docking_part = docking_node.owner;
                 this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());
                 // vessels' position and rotation
-                construction_part.vessel.SetPosition(construction_part.vessel.transform.position, true);
+                construction_part.vessel.SetPosition(construction_part.vessel.transform.position,
+                    true);
                 construction_part.vessel.SetRotation(construction_part.vessel.transform.rotation);
-                docking_part.vessel.SetPosition(docking_part.vessel.transform.position - docking_offset, true);
+                docking_part.vessel.SetPosition(
+                    docking_part.vessel.transform.position - docking_offset,
+                    true);
                 docking_part.vessel.SetRotation(docking_part.vessel.transform.rotation);
                 construction_part.vessel.IgnoreGForces(10);
                 docking_part.vessel.IgnoreGForces(10);
@@ -370,13 +458,18 @@ namespace GroundConstruction
                 // add fuel lookups
                 construction_part.fuelLookupTargets.Add(docking_part);
                 docking_part.fuelLookupTargets.Add(construction_part);
-                GameEvents.onPartFuelLookupStateChange.Fire(new GameEvents.HostedFromToAction<bool, Part>(true, docking_part, construction_part));
+                GameEvents.onPartFuelLookupStateChange.Fire(
+                    new GameEvents.HostedFromToAction<bool, Part>(true,
+                        docking_part,
+                        construction_part));
                 FlightGlobals.ForceSetActiveVessel(construction_part.vessel);
                 FlightInputHandler.SetNeutralControls();
                 GameEvents.onVesselWasModified.Fire(construction_part.vessel);
                 recipient_node = null;
-                this.Log("Docked {} to {}, new vessel {}", 
-                         docking_part, construction_part, construction_part.vessel.GetID());
+                this.Log("Docked {} to {}, new vessel {}",
+                    docking_part,
+                    construction_part,
+                    construction_part.vessel.GetID());
             }
         }
 
@@ -387,17 +480,17 @@ namespace GroundConstruction
             var spawn_transform = get_deploy_transform(bounds.size, out var spawn_offset);
             yield return
                 StartCoroutine(vessel_spawner
-                               .SpawnShipConstruct(construct,
-                                                   spawn_transform,
-                                                   spawn_offset
-                                                   - bounds.center
-                                                   - docking_offset
-                                                   + construct.Parts[0].localRoot.transform.position,
-                                                   Vector3.zero,
-                                                   null,
-                                                   on_vessel_loaded,
-                                                   null,
-                                                   on_vessel_launched));
+                    .SpawnShipConstruct(construct,
+                        spawn_transform,
+                        spawn_offset
+                        - bounds.center
+                        - docking_offset
+                        + construct.Parts[0].localRoot.transform.position,
+                        Vector3.zero,
+                        null,
+                        on_vessel_loaded,
+                        null,
+                        on_vessel_launched));
         }
 
         public override void Launch()

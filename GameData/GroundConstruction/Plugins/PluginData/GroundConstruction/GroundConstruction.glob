@@ -30,6 +30,7 @@ MinGenericEfficiency      = 0.05
 MaxGenericEfficiency      = 0.5
 
 ComplexityFactor = 1E-04
+FinalizationWorkPerMass = 0.5
 
 VesselKitDensity = 0.5
 MinKitVolume = 0.02
