@@ -34,11 +34,5 @@ namespace GroundConstruction
         protected override bool init_task(ConstructionKitInfo task) => true;
         protected override bool check_host(ConstructionKitInfo task) =>
         base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
-
-        protected override IEnumerable<Vessel> get_recyclable_vessels()
-        {
-            if(vessel.loaded)
-                yield return vessel;
-        }
     }
 }

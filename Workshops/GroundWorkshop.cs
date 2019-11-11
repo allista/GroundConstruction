@@ -80,18 +80,6 @@ namespace GroundConstruction
             }
         }
 
-        protected override IEnumerable<Vessel> get_recyclable_vessels()
-        {
-            foreach(var vsl in FlightGlobals.Vessels)
-            {
-                if(vsl.loaded
-                   && !vsl.isEVA
-                   && (vsl != vessel || vsl.Parts.Count > 1)
-                   && (vessel.vesselTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
-                    yield return vsl;
-            }
-        }
-
         protected override void update_max_workforce()
         {
             base.update_max_workforce();

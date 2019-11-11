@@ -180,7 +180,17 @@ namespace GroundConstruction
         public void Recycle(Part p, bool discard_excess_resources, Action<bool> on_finished) =>
             StartCoroutine(recycle(p, discard_excess_resources, on_finished));
 
-        protected abstract IEnumerable<Vessel> get_recyclable_vessels();
+        protected virtual IEnumerable<Vessel> get_recyclable_vessels()
+        {
+            foreach(var vsl in FlightGlobals.Vessels)
+            {
+                if(vsl.loaded
+                   && !vsl.isEVA
+                   && (vsl != vessel || vsl.Parts.Count > 1)
+                   && (part.partTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                    yield return vsl;
+            }
+        }
 
         HashSet<uint> get_parts_to_skip(Vessel vsl)
         {
