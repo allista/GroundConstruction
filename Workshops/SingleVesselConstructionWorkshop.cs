@@ -4,7 +4,6 @@
 //       Allis Tauri allista@gmail.com
 //
 //  Copyright (c) 2018 Allis Tauri
-using System.Collections.Generic;
 using System.Linq;
 
 namespace GroundConstruction
