@@ -21,6 +21,8 @@ namespace GC.UI
         public GameObject recyclableTreeNodePrefab;
 
         public ReportPane reportPane;
+        
+        public Button closeButton;
 
         readonly Dictionary<uint, RecyclableTreeNode> rootNodes =
             new Dictionary<uint, RecyclableTreeNode>();

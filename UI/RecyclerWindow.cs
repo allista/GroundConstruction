@@ -114,6 +114,7 @@ namespace GroundConstruction
                 rp.Update();
                 Controller.AddRoot(rp);
             });
+            Controller.closeButton.onClick.AddListener(this.Close);
         }
     }
 
