@@ -26,11 +26,11 @@ using AT_Utils;
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
 
 #if NIGHTBUILD
-[assembly: AssemblyVersion("2.4.*")]
+[assembly: AssemblyVersion("2.5.*")]
 #else
-[assembly: AssemblyVersion("2.4.1")]
+[assembly: AssemblyVersion("2.5.0")]
 #endif
-[assembly: KSPAssembly("GroundConstruction", 2, 4)]
+[assembly: KSPAssembly("GroundConstruction", 2, 5)]
 
 // The following attributes are used to specify the signing key for the assembly,
 // if desired. See the Mono documentation for more information about signing.
@@ -44,8 +44,8 @@ namespace GroundConstruction
     {
         public ModInfo()
         {
-            MinKSPVersion = new Version(1, 6, 1);
-            MaxKSPVersion = new Version(1, 7, 2);
+            MinKSPVersion = new Version(1, 8, 1);
+            MaxKSPVersion = new Version(1, 8, 1);
 
             VersionURL = "https://raw.githubusercontent.com/allista/GroundConstruction/master/GameData/GroundConstruction/GroundConstruction.version";
             UpgradeURL = "https://spacedock.info/mod/1123/Ground%20Construction";

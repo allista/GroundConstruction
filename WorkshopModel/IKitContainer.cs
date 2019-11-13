@@ -29,11 +29,12 @@ namespace GroundConstruction
     public interface IConstructionSpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
         new bool Valid { get; }
+        bool ConstructionComplete { get; }
         bool CanConstruct(VesselKit kit);
         void Launch();
     }
 
-    public enum DeplyomentState {
+    public enum DeploymentState {
         IDLE,
         DEPLOYING,
         DEPLOYED,
@@ -41,7 +42,7 @@ namespace GroundConstruction
 
     public interface IDeployable : IJointLockState
     {
-        DeplyomentState State { get; }
+        DeploymentState State { get; }
         void Deploy();
     }
 

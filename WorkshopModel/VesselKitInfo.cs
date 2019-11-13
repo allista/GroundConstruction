@@ -4,6 +4,7 @@
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -28,16 +29,12 @@ namespace GroundConstruction
         public IControllable Controllable => Kit.Host as IControllable;
         public IConfigurable Configurator => Kit.Host as IConfigurable;
 
-        public bool Recheck()
-        {
-            if(Kit == null)
-                Kit = FindKit();
-            return Kit;
-        }
+        public bool Recheck() => Kit ?? (Kit = FindKit());
 
         public abstract VesselKit FindKit();
 
         protected VesselKitInfo() { }
+
         protected VesselKitInfo(VesselKit kit)
         {
             Kit = kit;
@@ -46,6 +43,7 @@ namespace GroundConstruction
         }
 
         public bool Draw(GUIStyle style = null) => Valid && Kit.Draw(style);
+
         public bool DrawCurrentPart(GUIStyle style = null)
         {
             if(Valid)
@@ -58,7 +56,7 @@ namespace GroundConstruction
         }
 
         public static List<T> GetKitContainers<T>(Vessel vsl) where T : class, IKitContainer =>
-        vsl != null ? vsl.Parts.SelectMany(p => p.Modules.GetModules<T>()).ToList() : null;
+            vsl != null ? vsl.Parts.SelectMany(p => p.Modules.GetModules<T>()).ToList() : null;
 
         public VesselKit FindKit<T>() where T : class, IKitContainer
         {
@@ -79,7 +77,10 @@ namespace GroundConstruction
         public ConstructionKitInfo(VesselKit kit) : base(kit) { }
 
         public override bool Valid => base.Valid && ConstructionSpace != null;
-        public override bool Complete => Recheck() && Kit.StageComplete(DIYKit.CONSTRUCTION);
+
+        public override bool Complete =>
+            Recheck()
+            && (ConstructionSpace?.ConstructionComplete ?? false);
 
         public IConstructionSpace ConstructionSpace => Kit.Host as IConstructionSpace;
         public override VesselKit FindKit() => FindKit<IConstructionSpace>();
@@ -96,4 +97,3 @@ namespace GroundConstruction
         public override VesselKit FindKit() => FindKit<IKitContainer>();
     }
 }
-

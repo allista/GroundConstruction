@@ -260,11 +260,11 @@ namespace GroundConstruction
         {
             switch(deployable.State)
             {
-            case DeplyomentState.IDLE:
+            case DeploymentState.IDLE:
                 return "Idle";
-            case DeplyomentState.DEPLOYING:
+            case DeploymentState.DEPLOYING:
                 return "Deploying";
-            case DeplyomentState.DEPLOYED:
+            case DeploymentState.DEPLOYED:
                 return "Deployed";
             }
             return "";
@@ -298,6 +298,8 @@ namespace GroundConstruction
         }
 
         protected void reset_current_task() => CurrentTask = new T();
+
+        protected Type worker_effect => typeof(E);
 
         protected virtual void update_workforce() => update_workforce<E>();
 
@@ -345,6 +347,7 @@ namespace GroundConstruction
                         }
                         break;
                     }
+                    Queue.Dequeue();
                 }
             }
             stop(true);
@@ -421,16 +424,24 @@ namespace GroundConstruction
 
         void FixedUpdate()
         {
-            if(!HighLogic.LoadedSceneIsFlight || !Working || workforce.Equals(0)) return;
+            if(!Working || !HighLogic.LoadedSceneIsFlight) 
+                return;
+            if(EffectiveWorkforce.Equals(0))
+            {
+                stop();
+                return;
+            }
             var deltaTime = get_delta_time();
-            if(deltaTime < 0) return;
+            if(deltaTime < 0)
+                return;
             //check current kit
-            //this.Log("Delta time: {}", deltaTime);//debug
-            //this.Log("0 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
-            if(!check_task(CurrentTask) && !start_next_item()) return;
+//            this.Log($"FixedUpdate dT {deltaTime}");//debug
+//            this.Log($"FixedUpdate CurrentTask 0: {CurrentTask}, check {check_task(CurrentTask)}");//debug
+            if(!check_task(CurrentTask) && !start_next_item())
+                return;
             var available_work = workforce * deltaTime;
-            //this.Log("1 CurrentTask: {}, check {}", CurrentTask, check_task(CurrentTask));//debug
-            //this.Log("available work: {}", available_work);//debug
+//            this.Log($"FixedUpdate CurrentTask 0: {CurrentTask}, check {check_task(CurrentTask)}");//debug
+//            this.Log($"FixedUpdate available work: {available_work}");//debug
             while(Working && available_work > TimeWarp.fixedDeltaTime / 10)
                 available_work = do_some_work(available_work);
             //this.Log("available work left: {}", available_work);//debug

@@ -46,9 +46,10 @@ namespace GroundConstruction
         public Vector3 OrigScale;
         public Vector3 OrigSize;
         public Vector3 OrigPartSize;
+        public Vector3 PartCenter;
         [KSPField(isPersistant = true)] public Vector3 Size;
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
-        [KSPField(isPersistant = true)] public DeplyomentState state;
+        [KSPField(isPersistant = true)] public DeploymentState state;
         [KSPField(isPersistant = true)] public bool ShowDeployHint;
         bool just_started;
 
@@ -56,7 +57,7 @@ namespace GroundConstruction
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
-        public DeplyomentState State { get { return state; } }
+        public DeploymentState State => state;
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
@@ -75,11 +76,7 @@ namespace GroundConstruction
                 if(d.dockedPartUId == part.flightID)
                     return d.nodeTransform.position;
             }
-            PartJoint j;
-            if(part.parent = docked)
-                j = part.attachJoint;
-            else
-                j = docked.attachJoint;
+            var j = part.parent == docked ? part.attachJoint : docked.attachJoint;
             return j.Host.transform.TransformPoint(j.HostAnchor);
         }
 
@@ -176,8 +173,18 @@ namespace GroundConstruction
             yield return null;
         }
 
-        static readonly int scenery_mask = (1 << LayerMask.NameToLayer("Local Scenery"));
-        bool resizing;
+        private int scenery_mask;
+        bool servos_locked;
+
+        void change_servos_lock(bool is_locked)
+        {
+            GameEvents.onRoboticPartLockChanging.Fire(part, servos_locked);
+            if(vessel != null)
+                vessel.CycleAllAutoStrut();
+            servos_locked = is_locked;
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
+        }
+        
         IEnumerator<YieldInstruction> resize_coro;
         IEnumerator<YieldInstruction> _resize()
         {
@@ -208,9 +215,8 @@ namespace GroundConstruction
                 if(child.attachJoint != null)
                     save_dock_anchor(child, scale);
             }
-            resizing = true;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut﻿﻿();
+            change_servos_lock(false);
+            GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
             yield return null;
             while(time < 1)
             {
@@ -226,9 +232,7 @@ namespace GroundConstruction
                 }
                 yield return new WaitForFixedUpdate();
             }
-            resizing = false;
-            if(vessel != null)
-                vessel.CycleAllAutoStrut﻿﻿();
+            change_servos_lock(true);
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
@@ -236,12 +240,13 @@ namespace GroundConstruction
 
         public virtual bool IsJointUnlocked()
         {
-            return resizing;
+            return !servos_locked;
         }
 
         public override void OnAwake()
         {
             base.OnAwake();
+            scenery_mask = Utils.GetLayer("Local Scenery");
             warning = gameObject.AddComponent<SimpleWarning>();
             warning.Message = "Deployment cannot be undone.\nAre you sure?";
             warning.yesCallback = start_deployment;
@@ -269,7 +274,7 @@ namespace GroundConstruction
             base.OnStart(state);
             just_started = true;
             StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
-            if(State == DeplyomentState.DEPLOYING)
+            if(State == DeploymentState.DEPLOYING)
                 StartCoroutine(deploy());
         }
 
@@ -293,6 +298,7 @@ namespace GroundConstruction
                 OrigSize = metric.size;
                 OrigScale = model.localScale;
                 OrigPartSize = part_metric.size;
+                PartCenter = part_metric.center.Local2Local(part.partTransform, model);
             }
             if(Size.IsZero())
                 Size = OrigSize;
@@ -300,15 +306,15 @@ namespace GroundConstruction
             //deprecated config conversion
             if(node.HasValue("Deploying"))
             {
-                state = DeplyomentState.IDLE;
+                state = DeploymentState.IDLE;
                 var val = node.GetValue("Deploying");
                 if(bool.TryParse(val, out bool _deploy) && _deploy)
-                    state = DeplyomentState.DEPLOYING;
+                    state = DeploymentState.DEPLOYING;
                 else
                 {
                     val = node.GetValue("Deployed");
                     if(bool.TryParse(val, out _deploy) && _deploy)
-                        state = DeplyomentState.DEPLOYED;
+                        state = DeploymentState.DEPLOYED;
                 }
             }
         }
@@ -323,7 +329,7 @@ namespace GroundConstruction
                     just_started = false;
                 }
             }
-            update_deploy_hint();
+            show_deploy_hint();
         }
 
         [KSPEvent(guiName = "Show Deployment Hint", guiActive = true, guiActiveEditor = true,
@@ -333,24 +339,34 @@ namespace GroundConstruction
 
         #region Deployment
         protected abstract Vector3 get_deployed_size();
-        protected abstract Vector3 get_deployed_offset();
-        protected abstract Transform get_deploy_transform();
+        protected abstract Transform get_deploy_transform(Vector3 size, out Vector3 spawn_offset);
 
-        protected virtual void update_deploy_hint(bool show)
+        protected virtual void update_deploy_hint(Transform deployT,
+            Vector3 deployed_size, Vector3 spawn_offset)
         {
-            var deployT = get_deploy_transform();
-            if(show && deployT != null)
+            if(deployT != null)
             {
                 var T = deploy_hint_mesh.gameObject.transform;
-                T.position = model.position;
+                T.position = deployT.position;
                 T.rotation = deployT.rotation;
-                deploy_hint_mesh.gameObject.SetActive(true);
             }
-            else
-                deploy_hint_mesh.gameObject.SetActive(false);
         }
-        protected void update_deploy_hint() =>
-        update_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
+
+        protected void update_deploy_hint()
+        {
+            var size = get_deployed_size();
+            if (!size.IsZero())
+            {
+                var deployT = get_deploy_transform(size, out var spawn_offset);
+                update_deploy_hint(deployT, size, spawn_offset);
+            }
+        }
+
+        protected virtual void show_deploy_hint(bool show) =>
+            deploy_hint_mesh.gameObject.SetActive(show);
+
+        protected void show_deploy_hint() =>
+            show_deploy_hint(GroundConstructionScenario.ShowDeployHint || ShowDeployHint);
 
         protected Vector3 metric_to_part_scale =>
         Vector3.Scale(OrigPartSize, OrigSize.Inverse());
@@ -358,18 +374,27 @@ namespace GroundConstruction
         protected Vector3 get_deployed_part_size() =>
         Vector3.Scale(get_deployed_size(), metric_to_part_scale);
 
+        protected abstract Vector3 get_point_of_growth();
+
         protected Bounds get_deployed_part_bounds(bool to_model_space)
         {
-            var T = get_deploy_transform();
+            var T = get_deploy_transform(Vector3.zero, out _);
             if(T != null)
             {
                 var depl_size = get_deployed_part_size();
-                var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
-                var center = new Vector3(0, (depl_size.y - part_size.y) / 2, 0);
-                if(to_model_space)
-                    return new Bounds(center.Local2LocalDir(T, model),
-                                      depl_size.Local2LocalDir(T, model).AbsComponents());
-                return new Bounds(center, depl_size);
+                if (!depl_size.IsZero())
+                {
+                    var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
+                    var part_center = model.TransformPoint(PartCenter);
+                    var growth_point = get_point_of_growth();
+                    var scale = Vector3.Scale(depl_size, part_size.Inverse());
+                    var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
+                    var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
+                    if(to_model_space)
+                        return new Bounds(center.Local2LocalDir(T, model),
+                            depl_size.Local2LocalDir(T, model).AbsComponents());
+                    return new Bounds(center, depl_size);    
+                }
             }
             return default(Bounds);
         }
@@ -407,6 +432,7 @@ namespace GroundConstruction
             mesh.RecalculateNormals();
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
+            update_deploy_hint();
         }
 
         protected abstract bool can_deploy();
@@ -446,18 +472,18 @@ namespace GroundConstruction
         IEnumerator<YieldInstruction> deploy()
         {
             foreach(var _ in prepare_deployment()) yield return null;
-            var deployT = get_deploy_transform();
+            var deployT = get_deploy_transform(Vector3.zero, out _);
             TargetSize = get_deployed_size();
             TargetSize = TargetSize.Local2LocalDir(deployT, model).AbsComponents();
             yield return slow_resize();
             foreach(var _ in finalize_deployment()) yield return null;
-            state = DeplyomentState.DEPLOYED;
+            state = DeploymentState.DEPLOYED;
         }
 
         protected void start_deployment()
         {
             Utils.SaveGame(Name + "-before_deployment");
-            state = DeplyomentState.DEPLOYING;
+            state = DeploymentState.DEPLOYING;
             StartCoroutine(deploy());
         }
 
@@ -468,7 +494,7 @@ namespace GroundConstruction
                 if(same_vessel_collision_if_deployed())
                 {
                     warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
-                        "if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
+                        " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
                         "will not collide with anything when launched.\n" +
                         Colors.Danger.Tag("Start the deployment?"),
                     () => warning.Show(true));

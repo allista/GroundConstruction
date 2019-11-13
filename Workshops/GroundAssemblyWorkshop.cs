@@ -27,7 +27,7 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var vsl_spaces = VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl).Where(s => s.Valid);
+                var vsl_spaces = VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl)?.Where(s => s.Valid);
                 if(vsl_spaces != null)
                     spaces.AddRange(vsl_spaces);
             }
@@ -43,7 +43,7 @@ namespace GroundConstruction
             foreach(var vsl in FlightGlobals.Vessels)
             {
                 if(!vsl.loaded) continue;
-                var containers = VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl).Where(c => c.Valid);
+                var containers = VesselKitInfo.GetKitContainers<IAssemblySpace>(vsl)?.Where(c => c.Valid);
                 if(containers == null) continue;
                 foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                 {

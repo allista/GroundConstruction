@@ -39,8 +39,7 @@ namespace GroundConstruction
                                BindingFlags.FlattenHierarchy)
                     .Where(fi => typeof(T).IsAssignableFrom(fi.FieldType)))
             {
-                var item = fi.GetValue(this) as T;
-                if(item != null)
+                if(fi.GetValue(this) is T item)
                     collection.Add(item);
             }
         }
@@ -54,7 +53,7 @@ namespace GroundConstruction
 
         public override void NextStage()
         {
-            if(CurrentIndex < stages.Count && CurrentStage.Complete)
+            while(CurrentIndex < stages.Count && CurrentStage.Complete)
                 CurrentIndex += 1;
         }
 
@@ -110,7 +109,7 @@ namespace GroundConstruction
                 if(stage < CurrentIndex)
                     return;
                 for(int i = CurrentIndex; i <= stage; i++)
-                    stages[i].SetComplete(complete);
+                    stages[i].SetComplete(true);
                 CurrentIndex = stage + 1;
             }
             else
@@ -118,7 +117,7 @@ namespace GroundConstruction
                 if(stage > CurrentIndex)
                     return;
                 for(int i = stage, count = stages.Count; i < count; i++)
-                    stages[i].SetComplete(complete);
+                    stages[i].SetComplete(false);
                 CurrentIndex = stage;
             }
             update_parameters();

@@ -4,6 +4,7 @@
 //       Allis Tauri allista@gmail.com
 //
 //  Copyright (c) 2018 Allis Tauri
+
 using System.Linq;
 
 namespace GroundConstruction
@@ -17,13 +18,16 @@ namespace GroundConstruction
             if(vessel.loaded)
             {
                 var containers = VesselKitInfo
-                    .GetKitContainers<IConstructionSpace>(vessel).Where(s => s.Valid);
+                    .GetKitContainers<IConstructionSpace>(vessel)
+                    ?.Where(s => s.Valid);
                 if(containers != null)
                 {
                     foreach(var vsl_kit in containers.SelectMany(c => c.GetKits()))
                     {
-                        if(vsl_kit != null && vsl_kit.Valid &&
-                           vsl_kit != CurrentTask.Kit && !queued.Contains(vsl_kit.id))
+                        if(vsl_kit != null
+                           && vsl_kit.Valid
+                           && vsl_kit != CurrentTask.Kit
+                           && !queued.Contains(vsl_kit.id))
                             sort_task(new ConstructionKitInfo(vsl_kit));
                     }
                 }
@@ -31,7 +35,8 @@ namespace GroundConstruction
         }
 
         protected override bool init_task(ConstructionKitInfo task) => true;
+
         protected override bool check_host(ConstructionKitInfo task) =>
-        base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
+            base.check_host(task) && task.Module != null && task.Module.vessel == vessel;
     }
 }

@@ -12,6 +12,8 @@ namespace GroundConstruction
 {
     public class Globals : PluginGlobals<Globals>
     {
+        public UIBundle AssetBundle = new UIBundle("GroundConstruction/gc_ui");
+        
         #region Resources
         [Persistent] public ResourceUsageInfo AssemblyResource = new ResourceUsageInfo("SpecializedParts");
         [Persistent] public ResourceUsageInfo ConstructionResource = new ResourceUsageInfo("MaterialKits");
@@ -36,6 +38,7 @@ namespace GroundConstruction
         [Persistent] public float MaxGenericEfficiency = 0.5f;
 
         [Persistent] public float ComplexityFactor = 1e-4f;
+        [Persistent] public float FinalizationWorkPerMass = 0.5f;
 
         [Persistent] public float VesselKitDensity = 0.5f; //t/m3
         [Persistent] public float MinKitVolume = 0.02f; //m3
@@ -49,6 +52,9 @@ namespace GroundConstruction
         
         [Persistent] public float MaxDockingCos = 0.999f;
         [Persistent] public float MaxDockingDist = 0.2f;
+
+        [Persistent] public float RecycleRate = 1f;
+        [Persistent] public float RecycleEnergyRatio = 0.1f;
     }
 
     public class ResourceUsageInfo : ResourceInfo
@@ -56,6 +62,7 @@ namespace GroundConstruction
         [Persistent] public float ComplexityWork = 0;
         [Persistent] public float EnergyPerMass = 0;
         [Persistent] public float WorkPerMass = 0;
+        [Persistent] public float MaxRecycleRatio = 0;
 
         public ResourceUsageInfo(string name = "") : base(name) { }
     }

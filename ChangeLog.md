@@ -1,10 +1,50 @@
 #Ground Construction ChangeLog
 
-* **v2.4.1 -- Making Resources**
+* **v2.5.0 -- Recycling**
+    * **Supports KSP-1.8.1**
+    * **Recycle nearby vessels back into Mat.Kits and Sp.Parts**:
+        * Recycling is done by the _construction_ workshops.
+        * Nearby means _no further than 300m from the workshop_, like
+                    the construction limit for ground workshops.
+        * Recycling is done part-by-part in the order in which the vessel was
+            assembled in VAB/SPH, i.e. along the Part Tree.
+        * **A vessel may be recycled partially**, i.e. you may choose to recycle
+            _just one branch of the Part Tree_, or even a single _leaf_ part.
+        * The obtained resources (MK, SP and anything that was inside of
+            a recycled part) are moved into the recycling vessel and
+            distributed within available storage.
+            * If there's no room left for a resource, the part is not recycled,
+                but skipped, and the Recycler moves on and tries to recycle
+                other available parts.
+        * If there's crew inside of a part, it is skipped.
+        * Orbital Workshop _also recycles remotely_.
+        * The vessel to which the workshop belongs can also be recycled, with
+            the exception of the workshop itself.
+    * **Creation of an empty kit container consumes resources** that would
+        be required to actually assemble and construct it.
+    * Added the **Final Assembly** - last phase of the _construction_: It
+        represents some work that needs to be done after construction is
+        complete. Does not require any resources but the time.
+    * Numerous **bugfixes and improvements**:
+        * Do not allow assembly/construction in the docked container if it is not
+            docked through the _construction node_.
+        * If the effective workforse is zero, the construction is stopped.
+        * Deploy hint is disabled when the payload is launched.
+        * Added ModuleConstructionKit and DockedKitContainer to ignored PartModules.
+        * Improved Docked Kit Container texture.
+        * Fixed resizing with KJRn and robotic parts.
+        * Fixed NRE in part prefabs of ConstructionWorkshops.
+        * Multiple fixes in the assembly/construction framework.
+        * Multiple fixes in docked spawning.
+        * Several fixes in spawning of empty containers.
+        * Fixed infinite loop in `WorkshopBase.start_next_item`.
+        * Corrected some typos.
+
+* v2.4.1 -- **Making Resources**
     * **Parts with *selected* resources are assembled and constructed with these resources**
         * By default only two such resources are supported:
-            * **Ablator** is made from MaterialKits during the contraction phase
-            * **Machinery** is mdade from SpecializedParts during the assembly phase
+            * **Ablator** is made from MaterialKits during the construction phase
+            * **Machinery** is made from SpecializedParts during the assembly phase
         * Other resources may be added by other mods:
             * Add a resource name into a ﻿GC_CONSTRUCT_RESOURCES node in any of .cfg files in your mod to make that resource from MaterialKits in GC
             * Add a resource name into a ﻿GC_ASSEMBLE_RESOURCES node in any of .cfg files in your mod to make that resource from SpecializedParts in GC

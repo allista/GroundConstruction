@@ -7,21 +7,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using AT_Utils;
-using System.Collections;
 
 namespace GroundConstruction
 {
-    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace, IAssemblySpace, IControllable, IConfigurable
+    public abstract partial class DeployableKitContainer : DeployableModel, IConstructionSpace,
+        IAssemblySpace, IControllable, IConfigurable
     {
-        public enum YRotation { Forward, Left, Backward, Right };
+        public enum YRotation
+        {
+            Forward,
+            Left,
+            Backward,
+            Right
+        };
 
-        [KSPField(isPersistant = true)]
-        public YRotation yRotation = YRotation.Forward;
+        [KSPField(isPersistant = true)] public YRotation yRotation = YRotation.Forward;
 
-        [KSPField(isPersistant = true)]
-        public EditorFacility Facility;
+        [KSPField(isPersistant = true)] public EditorFacility Facility;
 
         [KSPField(guiName = "Kit", guiActive = true, guiActiveEditor = true, isPersistant = true)]
         public string KitName = "None";
@@ -34,24 +39,41 @@ namespace GroundConstruction
         protected MeshFilter kit_hull_mesh;
         static readonly Color kit_hull_color = new Color { r = 0, g = 1, b = 1, a = 0.25f };
 
-        [KSPField(guiName = "Kit Mass", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 t")]
+        [KSPField(guiName = "Kit Mass",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiFormat = "0.0 t")]
         public float KitMass;
 
-        [KSPField(guiName = "Kit Cost", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 F")]
+        [KSPField(guiName = "Kit Cost",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiFormat = "0.0 F")]
         public float KitCost;
 
-        [KSPField(guiName = "Work required", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 SKH")]
+        [KSPField(guiName = "Work required",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiFormat = "0.0 SKH")]
         public float KitWork;
 
-        [KSPField(guiName = "Resources required", guiActive = true, guiActiveEditor = true, guiFormat = "0.0 u")]
+        [KSPField(guiName = "Resources required",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiFormat = "0.0 u")]
         public float KitRes;
 
-        [KSPField(isPersistant = true)]
-        public VesselKit kit = new VesselKit();
+        [KSPField(isPersistant = true)] public VesselKit kit = new VesselKit();
 
-        public VesselKit GetKit(Guid id) { return kit.id == id ? kit : null; }
+        public VesselKit GetKit(Guid id)
+        {
+            return kit.id == id ? kit : null;
+        }
 
-        public List<VesselKit> GetKits() { return new List<VesselKit> { kit }; }
+        public List<VesselKit> GetKits()
+        {
+            return new List<VesselKit> { kit };
+        }
 
         protected virtual void update_part_info()
         {
@@ -80,7 +102,11 @@ namespace GroundConstruction
             base.OnAwake();
             //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
-            kitname_editor.yesCallback = () => { if(kit) KitName = kit.Name = kitname_editor.Text; };
+            kitname_editor.yesCallback = () =>
+            {
+                if(kit)
+                    KitName = kit.Name = kitname_editor.Text;
+            };
             resource_manifest_view = gameObject.AddComponent<SimpleScrollView>();
             construct_loader = gameObject.AddComponent<ShipConstructLoader>();
             construct_loader.process_construct = store_construct;
@@ -108,8 +134,9 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             vessel_spawner = new VesselSpawner(part);
-            Events["DeployEvent"].active = !Empty && State == DeplyomentState.IDLE;
-            Events["LaunchEvent"].active = !Empty && State == DeplyomentState.DEPLOYED && kit.Complete;
+            Events["DeployEvent"].active = !Empty && State == DeploymentState.IDLE;
+            Events["LaunchEvent"].active =
+                !Empty && State == DeploymentState.DEPLOYED && kit.Complete;
             update_unfocusedRange("Deploy", "Launch");
             setup_constraint_fields();
             StartCoroutine(Utils.SlowUpdate(update_part_info, 0.5f));
@@ -125,7 +152,10 @@ namespace GroundConstruction
         }
 
         #region IAssemblySpace
-        bool IAssemblySpace.Valid => isEnabled && (Empty || !kit.StageComplete(DIYKit.ASSEMBLY));
+        bool IAssemblySpace.Valid =>
+            isEnabled && (Empty || !kit.StageComplete(DIYKit.ASSEMBLY)) && ValidAssemblySpace;
+
+        protected virtual bool ValidAssemblySpace => true;
 
         public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
         {
@@ -151,7 +181,8 @@ namespace GroundConstruction
 
         public void SpawnKit()
         {
-            if(!kit) return;
+            if(!kit)
+                return;
             if(!kit.StageComplete(DIYKit.ASSEMBLY))
             {
                 Utils.Message("The kit is not yet assembled");
@@ -160,9 +191,13 @@ namespace GroundConstruction
         }
         #endregion
 
-        [KSPEvent(guiName = "Rename Kit", guiActive = true, guiActiveEditor = true,
-                  guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
-                  active = true)]
+        [KSPEvent(guiName = "Rename Kit",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiActiveUncommand = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 300,
+            active = true)]
         public void EditName()
         {
             if(kit)
@@ -172,9 +207,13 @@ namespace GroundConstruction
             }
         }
 
-        [KSPEvent(guiName = "Show Required Resources", guiActive = true, guiActiveEditor = true,
-                  guiActiveUncommand = true, guiActiveUnfocused = true, unfocusedRange = 300,
-                  active = false)]
+        [KSPEvent(guiName = "Show Required Resources",
+            guiActive = true,
+            guiActiveEditor = true,
+            guiActiveUncommand = true,
+            guiActiveUnfocused = true,
+            unfocusedRange = 300,
+            active = false)]
         public void ShowResources()
         {
             if(kit && kit.AdditionalResources.Count > 0)
@@ -187,19 +226,28 @@ namespace GroundConstruction
         #region Select Ship Construct
         public virtual bool CanConstruct(VesselKit kit) => true;
 
-        [KSPEvent(guiName = "Select Vessel", guiActive = false, guiActiveEditor = true, active = true)]
+        [KSPEvent(guiName = "Select Vessel",
+            guiActive = false,
+            guiActiveEditor = true,
+            active = true)]
         public void SelectVessel()
         {
             construct_loader.SelectVessel();
         }
 
-        [KSPEvent(guiName = "Select Subassembly", guiActive = false, guiActiveEditor = true, active = true)]
+        [KSPEvent(guiName = "Select Subassembly",
+            guiActive = false,
+            guiActiveEditor = true,
+            active = true)]
         public void SelectSubassembly()
         {
             construct_loader.SelectSubassembly();
         }
 
-        [KSPEvent(guiName = "Select Part", guiActive = false, guiActiveEditor = true, active = true)]
+        [KSPEvent(guiName = "Select Part",
+            guiActive = false,
+            guiActiveEditor = true,
+            active = true)]
         public void SelectPart()
         {
             construct_loader.SelectPart(part.flagURL);
@@ -261,30 +309,47 @@ namespace GroundConstruction
         #region Deployment
         protected void shift_Y_rotation(int delta)
         {
-            yRotation = (YRotation)(((int)yRotation + delta) % Enum.GetNames(typeof(YRotation)).Length);
-            if(yRotation < 0) yRotation = 0;
+            yRotation =
+                (YRotation)(((int)yRotation + delta) % Enum.GetNames(typeof(YRotation)).Length);
+            if(yRotation < 0)
+                yRotation = 0;
             create_deploy_hint_mesh();
             ShowDeployHint = true;
         }
 
         [KSPEvent(guiName = "Rotate launch direction",
-                  guiActiveUnfocused = true, unfocusedRange = 10,
-                  guiActive = true, guiActiveEditor = true, active = true)]
+            guiActiveUnfocused = true,
+            unfocusedRange = 10,
+            guiActive = true,
+            guiActiveEditor = true,
+            active = true)]
         public void RotateSpawnOrientation()
         {
-            if(kit && state == DeplyomentState.IDLE)
+            if(kit && state == DeploymentState.IDLE)
                 shift_Y_rotation(1);
         }
 
-        protected Quaternion get_Y_rotation() => Quaternion.AngleAxis((int)yRotation * 90f, Vector3.up);
+        protected Quaternion get_Y_rotation() =>
+            Quaternion.AngleAxis((int)yRotation * 90f, Vector3.up);
 
         protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
 
-        protected abstract Transform get_deploy_transform_unrotated();
+        protected abstract Transform get_deploy_transform_unrotated(
+            Vector3 size,
+            out Vector3 spawn_offset
+        );
 
-        protected override Transform get_deploy_transform()
+        protected override Transform get_deploy_transform(Vector3 size, out Vector3 spawn_offset)
         {
-            var T = get_deploy_transform_unrotated();
+            var localRotation = Quaternion.identity;
+            if(yRotation > 0)
+            {
+                localRotation = get_Y_rotation();
+                if(!size.IsZero())
+                    size = Quaternion.Inverse(localRotation)
+                           * ((localRotation * size).AbsComponents());
+            }
+            var T = get_deploy_transform_unrotated(size, out spawn_offset);
             if(yRotation > 0 && T != null)
             {
                 var rT = T.Find("__SPAWN_TRANSFORM_ROTATED");
@@ -295,7 +360,7 @@ namespace GroundConstruction
                     rT = empty.transform;
                 }
                 rT.localPosition = Vector3.zero;
-                rT.localRotation = get_Y_rotation();
+                rT.localRotation = localRotation;
                 return rT;
             }
             return T;
@@ -327,26 +392,44 @@ namespace GroundConstruction
             }
         }
 
-        protected virtual void update_kit_hull_mesh(Transform deployT, Vector3 offset, bool show)
+        protected virtual void update_kit_hull_mesh(
+            Transform deployT,
+            Vector3 deployed_size,
+            Vector3 spawn_offset
+        )
         {
-            if(show && deployT != null)
+            if(deployT != null)
             {
+                var growth_point = get_point_of_growth();
+                var size = Size.Local2LocalDir(model, deployT).AbsComponents();
+                var scale = Vector3.Scale(deployed_size, size.Inverse());
+                var growth =
+                    Vector3.Scale(
+                        deployT.InverseTransformDirection(deployT.position - growth_point),
+                        scale);
                 var T = kit_hull_mesh.gameObject.transform;
-                offset -= kit.ShipMetric.center;
-                offset += new Vector3(0, kit.ShipMetric.bounds.extents.y, 0);
-                T.position = deployT.position + deployT.TransformDirection(offset);
+                T.position = growth_point
+                             + deployT.TransformDirection(growth)
+                             + deployT.TransformDirection(spawn_offset - kit.ShipMetric.center);
                 T.rotation = deployT.rotation;
-                kit_hull_mesh.gameObject.SetActive(true);
             }
-            else
-                kit_hull_mesh.gameObject.SetActive(false);
         }
 
-        protected override void update_deploy_hint(bool show)
+        protected override void update_deploy_hint(
+            Transform deployT,
+            Vector3 deployed_size,
+            Vector3 spawn_offset
+        )
+        {
+            base.update_deploy_hint(deployT, deployed_size, spawn_offset);
+            update_kit_hull_mesh(deployT, deployed_size, spawn_offset);
+        }
+
+        protected override void show_deploy_hint(bool show)
         {
             show &= kit;
-            base.update_deploy_hint(show);
-            update_kit_hull_mesh(get_deploy_transform(), get_deployed_offset(), show);
+            base.show_deploy_hint(show);
+            kit_hull_mesh.gameObject.SetActive(show);
         }
 
         protected override IEnumerable prepare_deployment()
@@ -363,14 +446,26 @@ namespace GroundConstruction
 
         public bool Empty => !kit;
         public override string Name => Empty ? "Container" : "Container: " + kit.Name;
-        bool IKitContainer.Valid => isEnabled;
-        bool IConstructionSpace.Valid => isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY);
+
+        bool IKitContainer.Valid => isEnabled && ValidKitContainer;
+
+        protected virtual bool ValidKitContainer => true;
+
+        bool IConstructionSpace.Valid =>
+            isEnabled && !Empty && kit.StageComplete(DIYKit.ASSEMBLY) && ValidConstructionSpace;
+
+        public bool ConstructionComplete =>
+            state == DeploymentState.DEPLOYED && kit && kit.Complete;
+
+        protected virtual bool ValidConstructionSpace => true;
 
         [KSPEvent(guiName = "Deploy",
 #if DEBUG
-                  guiActive = true,
+            guiActive = true,
 #endif
-                  guiActiveUnfocused = true, unfocusedRange = 10, active = true)]
+            guiActiveUnfocused = true,
+            unfocusedRange = 10,
+            active = true)]
         public void DeployEvent()
         {
             Deploy();
@@ -380,15 +475,18 @@ namespace GroundConstruction
         #region Launching
         public virtual void Launch()
         {
-            if(!can_launch()) return;
+            if(!can_launch())
+                return;
             StartCoroutine(launch_complete_construct());
         }
 
         [KSPEvent(guiName = "Launch",
 #if DEBUG
-                  guiActive = true,
+            guiActive = true,
 #endif
-                  guiActiveUnfocused = true, unfocusedRange = 10, active = false)]
+            guiActiveUnfocused = true,
+            unfocusedRange = 10,
+            active = false)]
         public void LaunchEvent() => Launch();
 
         public virtual void EnableControls(bool enable = true)
@@ -417,24 +515,28 @@ namespace GroundConstruction
             }
             if(!kit.BlueprintComplete())
             {
-                Utils.Message("Something whent wrong. Not all parts were properly constructed.");
+                Utils.Message("Something went wrong. Not all parts were properly constructed.");
                 return false;
             }
             return true;
         }
 
-        protected virtual void on_vessel_loaded(Vessel vsl) =>
-        FXMonger.Explode(part, part.partTransform.position, 0);
+        protected virtual void on_vessel_loaded(Vessel vsl)
+        {
+            FXMonger.Explode(part, part.partTransform.position, 0);
+            ShowDeployHint = false;
+        }
 
-        protected virtual void on_vessel_launched(Vessel vsl) =>
-        kit.TransferCrewToKit(vsl);
+        protected virtual void on_vessel_launched(Vessel vsl) => kit.TransferCrewToKit(vsl);
 
         protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
 
         IEnumerator<YieldInstruction> launch_complete_construct()
         {
-            if(!HighLogic.LoadedSceneIsFlight) yield break;
-            while(!FlightGlobals.ready) yield return null;
+            if(!HighLogic.LoadedSceneIsFlight)
+                yield break;
+            while(!FlightGlobals.ready)
+                yield return null;
             vessel_spawner.BeginLaunch();
             //hide UI
             GameEvents.onHideUI.Fire();
@@ -446,10 +548,11 @@ namespace GroundConstruction
             var construct = kit.LoadConstruct();
             if(construct == null)
             {
-                Utils.Log("Unable to load ShipConstruct {}. " +
-                          "This usually means that some parts are missing " +
-                          "or some modules failed to initialize.", kit.Name);
-                Utils.Message("Something whent wrong. Constructed ship cannot be launched.");
+                Utils.Log("Unable to load ShipConstruct {}. "
+                          + "This usually means that some parts are missing "
+                          + "or some modules failed to initialize.",
+                    kit.Name);
+                Utils.Message("Something went wrong. Constructed ship cannot be launched.");
                 GameEvents.onShowUI.Fire();
                 vessel_spawner.AbortLaunch();
                 yield break;
@@ -465,14 +568,14 @@ namespace GroundConstruction
 
         void OnGUI()
         {
-            if(Event.current.type != EventType.Layout &&
-               Event.current.type != EventType.Repaint) return;
+            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint)
+                return;
             Styles.Init();
             if(vessel_spawner.LaunchInProgress)
             {
                 GUI.Label(new Rect(Screen.width / 2 - 190, 30, 380, 70),
-                              "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
-                              Styles.rich_label);
+                    "<b><color=#FFD100><size=30>Launching. Please, wait...</size></color></b>",
+                    Styles.rich_label);
                 return;
             }
             construct_loader.Draw();
@@ -481,14 +584,14 @@ namespace GroundConstruction
 
         #region IPartCostModifier implementation
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit) =>
-        Empty ? 0 : kit.Cost;
+            Empty ? 0 : kit.Cost;
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
 
         #region IPartMassModifier implementation
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit) =>
-        Empty ? 0 : kit.Mass;
+            Empty ? 0 : kit.Mass;
 
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.CONSTANTLY;
         #endregion
@@ -502,7 +605,7 @@ namespace GroundConstruction
             GUILayout.Label("Launch orientation:");
             GUILayout.FlexibleSpace();
             Utils.ButtonSwitch("Show", ref ShowDeployHint);
-            if(state == DeplyomentState.IDLE)
+            if(state == DeploymentState.IDLE)
             {
                 var choice = Utils.LeftRightChooser(yRotation.ToString(), width: 160);
                 if(choice != 0)
@@ -510,7 +613,8 @@ namespace GroundConstruction
             }
             else
                 GUILayout.Label(yRotation.ToString(),
-                                Styles.enabled, GUILayout.ExpandWidth(false));
+                    Styles.enabled,
+                    GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
         }
         #endregion
@@ -518,10 +622,10 @@ namespace GroundConstruction
 #if DEBUG
         void OnRenderObject()
         {
-            var T = get_deploy_transform();
+            var T = get_deploy_transform(Size, out _);
             if(T != null)
             {
-                var pos = T.position + T.TransformDirection(get_deployed_offset());
+                var pos = T.position;
                 Utils.GLVec(pos, T.up, Color.green);
                 Utils.GLVec(pos, T.forward, Color.blue);
                 Utils.GLVec(pos, T.right, Color.red);
@@ -532,6 +636,7 @@ namespace GroundConstruction
                 if(j.Host != null)
                     Utils.GLDrawPoint(j.Host.transform.TransformPoint(j.HostAnchor), Color.magenta);
             }
+            Utils.GLDrawPoint(model.TransformPoint(PartCenter), Color.yellow);
         }
 #endif
     }
