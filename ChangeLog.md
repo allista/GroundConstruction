@@ -1,6 +1,11 @@
 #Ground Construction ChangeLog
 
-* **v2.5.0 -- Recycling**
+* **v2.5.0.1**
+    * Fixed Recycler part tree: subtrees no longer overlap
+    * Included gc_ui.ksp asset bundle into GC-Core.netkan
+    * Changed part filter tooltip to "Global Construction"
+
+* v2.5.0 -- **Recycling**
     * **Supports KSP-1.8.1**
     * **Recycle nearby vessels back into Mat.Kits and Sp.Parts**:
         * Recycling is done by the _construction_ workshops.

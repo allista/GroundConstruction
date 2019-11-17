@@ -14,7 +14,7 @@ namespace GroundConstruction
     {
         public GCFilterManager()
         {
-            SUBCATEGORY = "Ground Construction";
+            SUBCATEGORY = "Global Construction";
             FOLDER = "GroundConstruction/Icons";
             ICON = "GC-category";
         }
