@@ -123,6 +123,8 @@ namespace GroundConstruction
         private readonly Part part;
         public readonly IRecycler Recycler;
         public uint ID => part != null ? part.persistentId : 0;
+        public string Name => part != null ? part.Title() : null;
+        public bool HasChildren => children.Count > 0;
         public RecyclableTreeNode Display { get; private set; }
         private DIYKit.Requirements assembly_requirements;
         private DIYKit.Requirements construction_requirements;
@@ -153,7 +155,7 @@ namespace GroundConstruction
                 assembly_requirements.Update(child.assembly_requirements);
                 construction_requirements.Update(child.construction_requirements);
             });
-            update_display();
+            UpdateDisplay();
         }
 
         public void SetDisplay(RecyclableTreeNode display_node)
@@ -162,7 +164,7 @@ namespace GroundConstruction
             if(assembly_requirements == null || construction_requirements == null)
                 Update();
             else
-                update_display();
+                UpdateDisplay();
         }
 
         public IEnumerable<IRecyclable> GetChildren()
@@ -176,7 +178,7 @@ namespace GroundConstruction
                 ? $"{req.resource.name}: {FormatUtils.formatBigValue((float)req.resource_amount, " u")}"
                 : "";
 
-        private void update_display()
+        public void UpdateDisplay()
         {
             if(Display == null)
                 return;

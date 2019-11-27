@@ -17,8 +17,11 @@ namespace GC.UI
     public interface IRecyclable
     {
         uint ID { get; }
+        string Name { get; }
         bool Valid { get; }
         void SetDisplay(RecyclableTreeNode display_node);
+        void UpdateDisplay();
+        bool HasChildren { get; }
         IEnumerable<IRecyclable> GetChildren();
         void Recycle(bool discard_excess_resources, Action<bool> on_finished);
     }
@@ -55,7 +58,7 @@ namespace GC.UI
             info?.SetDisplay(null);
         }
 
-        private void add_subnode(IRecyclable child_info)
+        private RecyclableTreeNode add_subnode(IRecyclable child_info)
         {
             var subnodeObj = Instantiate(gameObject, subnodes);
             var subnode = subnodeObj.GetComponent<RecyclableTreeNode>();
@@ -65,6 +68,7 @@ namespace GC.UI
             subnode.SetRecyclableInfo(child_info);
             children[child_info.ID] = subnodeObj;
             subnodeObj.SetActive(true);
+            return subnode;
         }
 
         private void show_subnodes(bool show)
@@ -85,6 +89,74 @@ namespace GC.UI
                 for(var i = subnodes.childCount - 1; i >= 0; i--)
                     Destroy(subnodes.GetChild(i).gameObject);
             }
+        }
+
+        private static IEnumerator<YieldInstruction> find_children(
+            IRecyclable recyclable,
+            string named_like,
+            HashSet<uint> show_subnode_ids
+        )
+        {
+            var show = recyclable.Name.ToLowerInvariant().Contains(named_like);
+            foreach(var child in recyclable.GetChildren())
+            {
+                var child_coro = find_children(child, named_like, show_subnode_ids);
+                while(child_coro.MoveNext())
+                    yield return child_coro.Current;
+                show |= show_subnode_ids.Contains(child.ID);
+            }
+            if(show)
+                show_subnode_ids.Add(recyclable.ID);
+            yield return null;
+        }
+
+        private IEnumerator<YieldInstruction> show_filtered_subnodes(HashSet<uint> node_ids)
+        {
+            show_subnodes(false);
+            subnodesToggle.interactable = false;
+            if(info == null || !node_ids.Contains(info.ID))
+                yield break;
+            var activate_subnodes = false;
+            foreach(var childInfo in info.GetChildren())
+            {
+                if(node_ids.Contains(childInfo.ID))
+                {
+                    activate_subnodes = true;
+                    var subnode = add_subnode(childInfo);
+                    var subnode_coro = subnode.show_filtered_subnodes(node_ids);
+                    while(subnode_coro.MoveNext())
+                        yield return subnode_coro.Current;
+                }
+            }
+            if(activate_subnodes)
+            {
+                subnodesToggle.SetIsOnAndColorWithoutNotify(true);
+                subnodes.gameObject.SetActive(true);
+            }
+            else if(info.HasChildren)
+                subnodesToggle.interactable = true;
+            yield return null;
+        }
+
+        public IEnumerator<YieldInstruction> FilterSubnodes(string named_like)
+        {
+            if(info == null)
+                yield break;
+            if(string.IsNullOrEmpty(named_like))
+            {
+                ClearFilter();
+                yield break;
+            }
+            var node_ids = new HashSet<uint>();
+            named_like = named_like.ToLowerInvariant();
+            yield return StartCoroutine(find_children(info, named_like, node_ids));
+            yield return StartCoroutine(show_filtered_subnodes(node_ids));
+        }
+
+        public void ClearFilter()
+        {
+            info?.UpdateDisplay();
+            subnodesToggle.isOn = false;
         }
 
         public void RefreshSubnodes()
