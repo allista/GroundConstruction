@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AT_Utils.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace GC.UI
@@ -24,6 +25,8 @@ namespace GC.UI
         bool HasChildren { get; }
         IEnumerable<IRecyclable> GetChildren();
         void Recycle(bool discard_excess_resources, Action<bool> on_finished);
+        void OnPointerEnter();
+        void OnPointerExit();
     }
 
     public class RecyclableTreeNode : PanelledUI
@@ -33,6 +36,7 @@ namespace GC.UI
 
         public RecyclerUI ui;
         public Toggle subnodesToggle;
+        public OnHoverTrigger hoverTrigger;
         public Text nodeName, assemblyResourceInfo, constructionResourceInfo, requirementsInfo;
         public Toggle discardExcess;
         public Button recycleButton;
@@ -51,6 +55,8 @@ namespace GC.UI
         {
             subnodesToggle.onValueChanged.AddListener(show_subnodes);
             recycleButton.onClick.AddListener(recycle);
+            hoverTrigger.onPointerEnterEvent.AddListener(onPointerEnter);
+            hoverTrigger.onPointerExitEvent.AddListener(onPointerExit);
         }
 
         private void OnDestroy()
@@ -58,6 +64,8 @@ namespace GC.UI
             info?.SetDisplay(null);
             subnodesToggle.onValueChanged.RemoveListener(show_subnodes);
             recycleButton.onClick.RemoveListener(recycle);
+            hoverTrigger.onPointerEnterEvent.RemoveListener(onPointerEnter);
+            hoverTrigger.onPointerExitEvent.RemoveListener(onPointerExit);
         }
 
         private RecyclableTreeNode add_subnode(IRecyclable child_info)
@@ -199,6 +207,16 @@ namespace GC.UI
                 ui.reportPane.Clear();
                 info.Recycle(discardExcess.isOn, on_recycled);
             }
+        }
+
+        private void onPointerEnter(PointerEventData eventData)
+        {
+            info?.OnPointerEnter();
+        }
+
+        private void onPointerExit(PointerEventData eventData)
+        {
+            info?.OnPointerExit();
         }
     }
 }

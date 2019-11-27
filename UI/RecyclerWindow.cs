@@ -140,6 +140,11 @@ namespace GroundConstruction
             this.part.children.ForEach(p => children.Add(p));
         }
 
+        ~RecyclablePart()
+        {
+            OnPointerExit();
+        }
+
         public void Update(float efficiency = -1)
         {
             if(efficiency < 0)
@@ -181,7 +186,10 @@ namespace GroundConstruction
         public void UpdateDisplay()
         {
             if(Display == null)
+            {
+                part.SetHighlightDefault();
                 return;
+            }
             if(part.vessel != null && part == part.vessel.rootPart)
                 Display.nodeName.text = Localizer.Format(part.vessel.vesselName);
             else
@@ -208,6 +216,18 @@ namespace GroundConstruction
                 on_finished += on_recycled;
                 Recycler.Recycle(part, discard_excess_resources, on_finished);
             }
+        }
+
+        public void OnPointerEnter()
+        {
+            if(part != null)
+                part.HighlightAlways(Colors.Selected1);
+        }
+
+        public void OnPointerExit()
+        {
+            if(part != null)
+                part.SetHighlightDefault();
         }
     }
 
