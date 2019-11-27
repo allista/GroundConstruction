@@ -56,6 +56,8 @@ namespace GC.UI
         private void OnDestroy()
         {
             info?.SetDisplay(null);
+            subnodesToggle.onValueChanged.RemoveListener(show_subnodes);
+            recycleButton.onClick.RemoveListener(recycle);
         }
 
         private RecyclableTreeNode add_subnode(IRecyclable child_info)
