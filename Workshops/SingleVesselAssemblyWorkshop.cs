@@ -21,8 +21,7 @@ namespace GroundConstruction
         {
             base.update_kits();
             if(vessel.loaded)
-                update_kits(VesselKitInfo
-                            .GetKitContainers<IAssemblySpace>(vessel)?.Cast<IKitContainer>());
+                update_kits(VesselKitInfo.GetKitContainers<IAssemblySpace>(vessel));
         }
     }
 }
