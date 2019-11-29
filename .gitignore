@@ -11,3 +11,5 @@ Assets/**/*.png
 /Releases
 /GameData/GroundConstruction/Plugins/GroundConstruction.dll
 *.pdb
+/GameData/GroundConstruction/Plugins/*.dll
+/GameData/GroundConstruction/Plugins/PluginData/GroundConstruction/config.xml
