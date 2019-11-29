@@ -482,7 +482,7 @@ namespace GroundConstruction
 
         protected void start_deployment()
         {
-            Utils.SaveGame(Name + "-before_deployment");
+            GroundConstructionScenario.SaveGame(Name + "-before_deployment");
             state = DeploymentState.DEPLOYING;
             StartCoroutine(deploy());
         }

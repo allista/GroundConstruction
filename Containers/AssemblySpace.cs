@@ -135,7 +135,7 @@ namespace GroundConstruction
             var kit_ship = Kit.CreateShipConstruct(KitPart, part.flagURL);
             if(kit_ship != null)
             {
-                Utils.SaveGame(Kit.Name + "-before_spawn");
+                GroundConstructionScenario.SaveGame(Kit.Name + "-before_spawn");
                 StartCoroutine(spawn_kit_vessel(kit_ship));
             }
         }
@@ -192,7 +192,7 @@ namespace GroundConstruction
                     kit_ship.Unload();
                     return;
                 }
-                Utils.SaveGame(vessel.name + "-before_spawn_empty");
+                GroundConstructionScenario.SaveGame(vessel.name + "-before_spawn_empty");
                 StartCoroutine(spawn_kit_vessel(kit_ship));
             }
         }
@@ -268,7 +268,7 @@ namespace GroundConstruction
             vessel_spawner.BeginLaunch();
             yield return null;
             //save the game
-            Utils.SaveGame(Kit.Name + "-before_launch");
+            GroundConstructionScenario.SaveGame(Kit.Name + "-before_launch");
             yield return null;
             //load ship construct and launch it
             var construct = Kit.LoadConstruct();

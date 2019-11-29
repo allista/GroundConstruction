@@ -542,7 +542,7 @@ namespace GroundConstruction
             GameEvents.onHideUI.Fire();
             yield return null;
             //save the game
-            Utils.SaveGame(kit.Name + "-before_launch");
+            GroundConstructionScenario.SaveGame(kit.Name + "-before_launch");
             yield return null;
             //load ship construct and launch it
             var construct = kit.LoadConstruct();
