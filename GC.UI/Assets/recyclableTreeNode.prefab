@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 224525937266440122}
   - component: {fileID: 114963426757957228}
   - component: {fileID: 114590484677994264}
+  - component: {fileID: 1884797816631029638}
   m_Layer: 5
   m_Name: nodeContent
   m_TagString: Untagged
@@ -84,6 +85,18 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &1884797816631029638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120373266169154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -715389733, guid: 23fd6eb82728348aba7ba3f92873da24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1181471154217516
 GameObject:
   m_ObjectHideFlags: 0
@@ -1868,6 +1881,7 @@ MonoBehaviour:
   panel: {fileID: 224112529116452374}
   ui: {fileID: 0}
   subnodesToggle: {fileID: 114213229279388406}
+  hoverTrigger: {fileID: 1884797816631029638}
   nodeName: {fileID: 114028891399347242}
   assemblyResourceInfo: {fileID: 114490152304938630}
   constructionResourceInfo: {fileID: 114964701899497028}
