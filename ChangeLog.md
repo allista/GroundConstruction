@@ -1,6 +1,30 @@
 #Ground Construction ChangeLog
 
-* **v2.5.0.1**
+
+* **v2.5.1 -- Better Recycling**
+    * Recycler UI:
+        * **Part tree may be filtered** by part name
+            * Search term is case insensitive and will match any part whose
+              title contains it.
+            * Filtering is started in 0.5s after you stopped typing.
+            * Filtering is not instant: when the search term is yellow
+              (configurable color) the search is in progress;
+              when it becomes green (configurable color) the search is
+              complete and the filtered part tree is displayed.
+            * Parts that do not match the term are not shown in the part tree
+              unless they are ancestors to those that match.
+            * Matched parts that has children remain togglable, so that you
+              can access their subtree. Other parts of the filtered tree
+              are not togglable.
+            * Recycling in the filtered tree works exactly the same.
+        * **A part is highlighted** when mouse hovers over corresponding
+          part tree node 
+    * Added **spotlights** to the Space Crane
+    * Added **AutoSave** option to the Main GC Window
+    * Fixed detection of the Orbital Container by workshops 
+      (thanks @ChrisF0001 for the report)    
+
+* v2.5.0.1
     * Fixed Recycler part tree: subtrees no longer overlap
     * Included gc_ui.ksp asset bundle into GC-Core.netkan
     * Changed part filter tooltip to "Global Construction"
