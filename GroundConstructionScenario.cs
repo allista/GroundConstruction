@@ -28,8 +28,16 @@ namespace GroundConstruction
         static List<string> CelestialBodies = new List<string>();
         static string CelestialBodyTab = "";
         public static bool ShowDeployHint;
+        public static bool AutoSave = true;
         double now = -1;
 
+        public static void SaveGame(string name)
+        {
+            if(!AutoSave)
+                return;
+            Utils.SaveGame(name);
+        }
+        
         public static void CheckinVessel(WorkshopManager workshop_manager)
         {
             if(workshop_manager.Vessel == null || workshop_manager.Empty) return;
@@ -117,6 +125,24 @@ namespace GroundConstruction
             Utils.LockIfMouseOver(LockName, WindowPos, false);
         }
 
+        public override void OnSave(ConfigNode node)
+        {
+            base.OnSave(node);
+            node.AddValue(nameof(ShowDeployHint), ShowDeployHint);
+            node.AddValue(nameof(AutoSave), AutoSave);
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+            var val = node.GetValue(nameof(ShowDeployHint));
+            if(!string.IsNullOrEmpty(val))
+                bool.TryParse(val, out ShowDeployHint);
+            val = node.GetValue(nameof(AutoSave));
+            if(!string.IsNullOrEmpty(val))
+                bool.TryParse(val, out AutoSave);
+        }
+
         void Update()
         {
             if(switchto != null)
@@ -184,6 +210,9 @@ namespace GroundConstruction
             Utils.ButtonSwitch("Show Deploy Hints", ref ShowDeployHint,
                                "Draw visual cues to help position a DIY Kit",
                                GUILayout.ExpandWidth(false));
+            Utils.ButtonSwitch("Auto Save", ref AutoSave,
+                "Save the game before deploying containers and spawning new vessels",
+                GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
             if(GUILayout.Button("Close", Styles.close_button, GUILayout.ExpandWidth(false)))
                 show_window = false;
