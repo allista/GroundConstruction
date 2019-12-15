@@ -547,6 +547,7 @@ namespace GroundConstruction
             //save the game
             GroundConstructionScenario.SaveGame(kit.Name + "-before_launch");
             yield return null;
+            yield return new WaitForFixedUpdate();
             //load ship construct and launch it
             var construct = kit.LoadConstruct();
             if(construct == null)

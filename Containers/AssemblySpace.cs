@@ -149,6 +149,8 @@ namespace GroundConstruction
                 Close();
                 yield break;
             }
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForFixedUpdate();
             var kit_ship = Kit.CreateShipConstruct(KitPart, part.flagURL);
             if(kit_ship == null)
                 yield break;
@@ -169,6 +171,8 @@ namespace GroundConstruction
                 Close();
                 yield break;
             }
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForFixedUpdate();
             var kit_ship = new VesselKit().CreateShipConstruct(part_name, part.flagURL);
             if(kit_ship == null)
                 yield break;
@@ -284,6 +288,7 @@ namespace GroundConstruction
             //save the game
             GroundConstructionScenario.SaveGame(Kit.Name + "-before_launch");
             yield return null;
+            yield return new WaitForFixedUpdate();
             //load ship construct and launch it
             var construct = Kit.LoadConstruct();
             if(construct == null)
