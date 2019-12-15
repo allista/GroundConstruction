@@ -69,45 +69,45 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="Globals.cs"/>
-        <Compile Include="GroundConstructionScenario.cs"/>
-        <Compile Include="GCAppToolbar.cs"/>
-        <Compile Include="ConstructionSkill.cs"/>
-        <Compile Include="GCFilterManager.cs"/>
-        <Compile Include="UI\RecyclerWindow.cs"/>
-        <Compile Include="VesselInfo.cs"/>
-        <Compile Include="DIYKits\DIYKit.cs"/>
-        <Compile Include="DIYKits\PartKit.cs"/>
-        <Compile Include="DIYKits\VesselKit.cs"/>
-        <Compile Include="WorkshopModel\WorkshopBase.cs"/>
-        <Compile Include="WorkshopModel\WorkshopManager.cs"/>
-        <Compile Include="WorkshopModel\ProtoWorkshop.cs"/>
-        <Compile Include="WorkshopModel\IKitContainer.cs"/>
-        <Compile Include="WorkshopModel\VesselKitWorkshop.cs"/>
-        <Compile Include="WorkshopModel\VesselKitInfo.cs"/>
-        <Compile Include="WorkshopModel\AssemblyWorkshop.cs"/>
-        <Compile Include="WorkshopModel\ConstructionWorkshop.cs"/>
-        <Compile Include="WorkModel\Job.cs"/>
-        <Compile Include="WorkModel\JobParameter.cs"/>
-        <Compile Include="WorkModel\JobStage.cs"/>
-        <Compile Include="WorkModel\CompositeJob.cs"/>
-        <Compile Include="WorkModel\JobBase.cs"/>
-        <Compile Include="WorkModel\WorkBase.cs"/>
-        <Compile Include="Containers\DeployableModel.cs"/>
-        <Compile Include="Containers\DeployableKitContainer.cs"/>
-        <Compile Include="Containers\DeployableKitContainerConstrains.cs"/>
-        <Compile Include="Containers\ModuleConstructionKit.cs"/>
-        <Compile Include="Containers\DockedKitContainer.cs"/>
-        <Compile Include="Workshops\GroundWorkshop.cs"/>
-        <Compile Include="Workshops\SinglePartAssemblyWorkshop.cs"/>
-        <Compile Include="Workshops\SingleVesselAssemblyWorkshop.cs"/>
-        <Compile Include="Workshops\SingleVesselConstructionWorkshop.cs"/>
-        <Compile Include="Workshops\GroundAssemblyWorkshop.cs"/>
-        <Compile Include="Containers\AssemblySpace.cs"/>
-        <Compile Include="GCEditorGUI.cs"/>
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Globals.cs" />
+        <Compile Include="GroundConstructionScenario.cs" />
+        <Compile Include="GCAppToolbar.cs" />
+        <Compile Include="ConstructionSkill.cs" />
+        <Compile Include="GCFilterManager.cs" />
+        <Compile Include="UI\RecyclerWindow.cs" />
+        <Compile Include="VesselInfo.cs" />
+        <Compile Include="DIYKits\DIYKit.cs" />
+        <Compile Include="DIYKits\PartKit.cs" />
+        <Compile Include="DIYKits\VesselKit.cs" />
+        <Compile Include="WorkshopModel\WorkshopBase.cs" />
+        <Compile Include="WorkshopModel\WorkshopManager.cs" />
+        <Compile Include="WorkshopModel\ProtoWorkshop.cs" />
+        <Compile Include="WorkshopModel\IKitContainer.cs" />
+        <Compile Include="WorkshopModel\VesselKitWorkshop.cs" />
+        <Compile Include="WorkshopModel\VesselKitInfo.cs" />
+        <Compile Include="WorkshopModel\AssemblyWorkshop.cs" />
+        <Compile Include="WorkshopModel\ConstructionWorkshop.cs" />
+        <Compile Include="WorkModel\Job.cs" />
+        <Compile Include="WorkModel\JobParameter.cs" />
+        <Compile Include="WorkModel\JobStage.cs" />
+        <Compile Include="WorkModel\CompositeJob.cs" />
+        <Compile Include="WorkModel\JobBase.cs" />
+        <Compile Include="WorkModel\WorkBase.cs" />
+        <Compile Include="Containers\DeployableModel.cs" />
+        <Compile Include="Containers\DeployableKitContainer.cs" />
+        <Compile Include="Containers\DeployableKitContainerConstrains.cs" />
+        <Compile Include="Containers\ModuleConstructionKit.cs" />
+        <Compile Include="Containers\DockedKitContainer.cs" />
+        <Compile Include="Workshops\GroundWorkshop.cs" />
+        <Compile Include="Workshops\SinglePartAssemblyWorkshop.cs" />
+        <Compile Include="Workshops\SingleVesselAssemblyWorkshop.cs" />
+        <Compile Include="Workshops\SingleVesselConstructionWorkshop.cs" />
+        <Compile Include="Workshops\GroundAssemblyWorkshop.cs" />
+        <Compile Include="Containers\AssemblySpace.cs" />
+        <Compile Include="GCEditorGUI.cs" />
     </ItemGroup>
-    <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets"/>
+    <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
     <ItemGroup>
         <ProjectReference Include="..\AT_Utils\AT_Utils.csproj">
             <Project>{64CC36A2-0610-4F74-9F31-3D4E22866B7E}</Project>
@@ -126,32 +126,32 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="WorkModel\"/>
-        <Folder Include="DIYKits\"/>
-        <Folder Include="WorkshopModel\"/>
-        <Folder Include="Containers\"/>
-        <Folder Include="Workshops\"/>
+        <Folder Include="WorkModel\" />
+        <Folder Include="DIYKits\" />
+        <Folder Include="WorkshopModel\" />
+        <Folder Include="Containers\" />
+        <Folder Include="Workshops\" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="GameData\GroundConstruction\IgnoreModules.cfg"/>
-        <None Include="GameData\GroundConstruction\KitResources.cfg"/>
-        <None Include="GameData\GroundConstruction\Engineer.cfg"/>
-        <None Include="GameData\GroundConstruction\Patches\ISRU_Patch.cfg"/>
-        <None Include="GameData\GroundConstruction\Patches\EPL.cfg"/>
-        <None Include="ChangeLog.md"/>
-        <None Include="GroundConstruction.netkan"/>
-        <None Include="GroundConstruction-Core.netkan"/>
-        <None Include="make-release.sh"/>
-        <None Include="README.md"/>
-        <None Include="GameData\GroundConstruction\Parts\DIYKit\DIYKit.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\DIYKit\OrbitalKitContainer.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\SpaceCrane\SpaceCrane.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\GroundAssemblyLine.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\InlineGroundWorkshop.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg"/>
-        <None Include="GameData\GroundConstruction\Plugins\PluginData\GroundConstruction\GroundConstruction.glob"/>
-        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblySpace.cfg"/>
+        <None Include="GameData\GroundConstruction\IgnoreModules.cfg" />
+        <None Include="GameData\GroundConstruction\KitResources.cfg" />
+        <None Include="GameData\GroundConstruction\Engineer.cfg" />
+        <None Include="GameData\GroundConstruction\Patches\ISRU_Patch.cfg" />
+        <None Include="GameData\GroundConstruction\Patches\EPL.cfg" />
+        <None Include="ChangeLog.md" />
+        <None Include="GroundConstruction.netkan" />
+        <None Include="GroundConstruction-Core.netkan" />
+        <None Include="make-release.sh" />
+        <None Include="README.md" />
+        <None Include="GameData\GroundConstruction\Parts\DIYKit\DIYKit.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\DIYKit\OrbitalKitContainer.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\SpaceCrane\SpaceCrane.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\GroundAssemblyLine.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\InlineGroundWorkshop.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\MobileWorkshop.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblyLine.cfg" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalWorkshop.cfg" />
+        <None Include="GameData\GroundConstruction\Plugins\PluginData\GroundConstruction\GroundConstruction.glob" />
+        <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblySpace.cfg" />
     </ItemGroup>
 </Project>
