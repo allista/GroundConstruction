@@ -115,7 +115,8 @@ namespace GroundConstruction
                 animator.Close();
         }
 
-        public bool Opened => animator == null || animator.State != AnimatorState.Closed;
+        public bool Opened =>
+            animator == null || animator.GetAnimatorState() != AnimatorState.Closed;
 
         public void SpawnKit() => StartCoroutine(spawn_kit());
 

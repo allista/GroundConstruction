@@ -28,7 +28,8 @@ namespace GroundConstruction
                 foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
                 {
                     var transforms = part.FindModelTransforms(t);
-                    if(transforms == null || transforms.Length == 0) continue;
+                    if(transforms == null || transforms.Length == 0)
+                        continue;
                     spawn_transforms.AddRange(transforms);
                 }
             }
@@ -38,14 +39,19 @@ namespace GroundConstruction
         protected override Vector3 get_point_of_growth() =>
             get_deploy_transform(Vector3.zero, out _).position;
 
-        protected override Transform get_deploy_transform_unrotated(Vector3 size, out Vector3 spawn_offset)
+        protected override Transform get_deploy_transform_unrotated(
+            Vector3 size,
+            out Vector3 spawn_offset
+        )
         {
             var minT = part.transform;
-            spawn_offset = new Vector3(0, size.y/2, 0);
+            spawn_offset = new Vector3(0, size.y / 2, 0);
             if(spawn_transforms.Count > 0)
             {
                 var alt = double.MaxValue;
-                for(int i = 0, spawn_transformsCount = spawn_transforms.Count; i < spawn_transformsCount; i++)
+                for(int i = 0, spawn_transformsCount = spawn_transforms.Count;
+                    i < spawn_transformsCount;
+                    i++)
                 {
                     var T = spawn_transforms[i];
                     double t_alt;
@@ -97,23 +103,27 @@ namespace GroundConstruction
         {
             get
             {
-                return vessel.srfSpeed < GLB.DeployMaxSpeed &&
-                    vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
+                return vessel.srfSpeed < GLB.DeployMaxSpeed
+                       && vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
             }
         }
 
         RealTimer settled_timer = new RealTimer(3);
         ActionDamper message_damper = new ActionDamper(1);
+
         IEnumerable wait_for_ground_contact(string wait_message)
         {
             settled_timer.Reset();
             while(!settled_timer.RunIf(part.GroundContact && kit_is_settled))
             {
                 if(!part.GroundContact)
-                    message_damper.Run(() => Utils.Message(1, "{0} Kit: no ground contact!", kit.Name));
+                    message_damper.Run(() =>
+                        Utils.Message(1, "{0} Kit: no ground contact!", kit.Name));
                 else if(!kit_is_settled)
                     message_damper.Run(() => Utils.Message(1, "{0} Kit is moving...", kit.Name));
-                else message_damper.Run(() => Utils.Message(1, "{0} {1:F1}s", wait_message, settled_timer.Remaining));
+                else
+                    message_damper.Run(() =>
+                        Utils.Message(1, "{0} {1:F1}s", wait_message, settled_timer.Remaining));
                 yield return null;
             }
         }
@@ -122,14 +132,15 @@ namespace GroundConstruction
         {
             foreach(var _ in base.prepare_deployment())
                 yield return null;
-            if(part.parent) part.decouple(2);
+            if(part.parent)
+                part.decouple(2);
             yield return null;
             while(part.children.Count > 0)
             {
                 part.children[0].decouple(2);
                 yield return null;
             }
-            foreach(var _ in wait_for_ground_contact(string.Format("Deploing {0} Kit in", kit.Name)))
+            foreach(var _ in wait_for_ground_contact($"Deploing {kit.Name} Kit in"))
                 yield return null;
         }
 
@@ -137,7 +148,7 @@ namespace GroundConstruction
         {
             foreach(var _ in base.finalize_deployment())
                 yield return null;
-            foreach(var _ in wait_for_ground_contact(string.Format("Fixing {0} Kit in", kit.Name)))
+            foreach(var _ in wait_for_ground_contact($"Fixing {kit.Name} Kit in"))
                 yield return null;
             if(anchor != null)
                 anchor.ForceAttach();
