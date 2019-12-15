@@ -168,19 +168,18 @@ namespace GroundConstruction
             return true;
         }
 
-        protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
+        protected override IEnumerator launch(ShipConstruct construct)
         {
             var launch_transform = get_deploy_transform(get_deployed_size(), out _);
-            yield return
-                StartCoroutine(vessel_spawner
-                               .SpawnShipConstructToGround(construct, 
-                                                           launch_transform, 
-                                                           Vector3.zero,
-                                                           null,
-                                                           on_vessel_loaded,
-                                                           null,
-                                                           on_vessel_launched,
-                                                           GLB.EasingFrames));
+            vessel_spawner.SpawnShipConstructToGround(construct,
+                    launch_transform,
+                    Vector3.zero,
+                    null,
+                    on_vessel_loaded,
+                    null,
+                    on_vessel_launched,
+                    GLB.EasingFrames);
+            yield return vessel_spawner.WaitForLaunch;
         }
         #endregion
     }

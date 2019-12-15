@@ -483,24 +483,23 @@ namespace GroundConstruction
             }
         }
 
-        protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
+        protected override IEnumerator launch(ShipConstruct construct)
         {
             var bounds = get_deployed_bounds();
             var docking_offset = construct_docking_node?.DockingOffset ?? Vector3.zero;
             var spawn_transform = get_deploy_transform(bounds.size, out var spawn_offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(construct,
-                        spawn_transform,
-                        spawn_offset
-                        - bounds.center
-                        - docking_offset
-                        + construct.Parts[0].localRoot.transform.position,
-                        Vector3.zero,
-                        null,
-                        on_vessel_loaded,
-                        null,
-                        on_vessel_launched));
+            vessel_spawner.SpawnShipConstruct(construct,
+                spawn_transform,
+                spawn_offset
+                - bounds.center
+                - docking_offset
+                + construct.Parts[0].localRoot.transform.position,
+                Vector3.zero,
+                null,
+                on_vessel_loaded,
+                null,
+                on_vessel_launched);
+            yield return vessel_spawner.WaitForLaunch;
         }
 
         public override void Launch()

@@ -6,6 +6,7 @@
 //  Copyright (c) 2018 Allis Tauri
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
@@ -27,10 +28,21 @@ namespace GroundConstruction
         MultiAnimator animator;
         bool can_construct_in_situ;
 
+        public override void OnAwake()
+        {
+            base.OnAwake();
+            vessel_spawner = gameObject.AddComponent<VesselSpawner>();
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(vessel_spawner);
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            vessel_spawner = new VesselSpawner(part);
+            vessel_spawner.Init(part);
             SpawnManager.Init(part);
             SpawnManager.SetupSensor();
             if(!string.IsNullOrEmpty(AnimatorID))
@@ -197,17 +209,16 @@ namespace GroundConstruction
             }
         }
 
-        IEnumerator<YieldInstruction> spawn_kit_vessel(ShipConstruct kit_ship)
+        IEnumerator spawn_kit_vessel(ShipConstruct kit_ship)
         {
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(kit_ship,
-                        spawn_transform,
-                        offset - bounds.center,
-                        Vector3.zero));
+            vessel_spawner.SpawnShipConstruct(kit_ship,
+                spawn_transform,
+                offset - bounds.center,
+                Vector3.zero);
+            yield return vessel_spawner.WaitForLaunch;
             Kit = new VesselKit();
             Open();
         }
@@ -259,7 +270,7 @@ namespace GroundConstruction
             StartCoroutine(launch_complete_construct());
         }
 
-        IEnumerator<YieldInstruction> launch_complete_construct()
+        private IEnumerator launch_complete_construct()
         {
             if(!HighLogic.LoadedSceneIsFlight)
                 yield break;
@@ -283,19 +294,18 @@ namespace GroundConstruction
                 yield break;
             }
             var bounds = new Metric(construct, world_space: true).bounds;
-            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(construct,
-                        spawn_transform,
-                        offset
-                        - bounds.center
-                        + construct.Parts[0].localRoot.transform.position,
-                        Vector3.zero,
-                        null,
-                        null,
-                        null,
-                        Kit.TransferCrewToKit));
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var spawn_offset);
+            vessel_spawner.SpawnShipConstruct(construct,
+                spawn_transform,
+                spawn_offset
+                - bounds.center
+                + construct.Parts[0].localRoot.transform.position,
+                Vector3.zero,
+                null,
+                null,
+                null,
+                Kit.TransferCrewToKit);
+            yield return vessel_spawner.WaitForLaunch;
             Kit = new VesselKit();
             Open();
         }
