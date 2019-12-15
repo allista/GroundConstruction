@@ -61,9 +61,11 @@ namespace GroundConstruction
                 if(find_connected_workshops(docked_part, visited))
                     return true;
             }
-            for(int i = 0, len = next_part.attachNodes.Count; i < len; i++)
+            if(find_connected_workshops(next_part.parent, visited))
+                return true;
+            for(int i = 0, len = next_part.children.Count; i < len; i++)
             {
-                if(find_connected_workshops(next_part.attachNodes[i].attachedPart, visited))
+                if(find_connected_workshops(next_part.children[i], visited))
                     return true;
             }
             return false;
