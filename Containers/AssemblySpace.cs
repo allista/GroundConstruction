@@ -25,7 +25,7 @@ namespace GroundConstruction
 
         [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
         VesselSpawner vessel_spawner;
-        MultiAnimator animator;
+        IAnimator animator;
         bool can_construct_in_situ;
 
         public override void OnAwake()
@@ -45,8 +45,7 @@ namespace GroundConstruction
             vessel_spawner.Init(part);
             SpawnManager.Init(part);
             SpawnManager.SetupSensor();
-            if(!string.IsNullOrEmpty(AnimatorID))
-                animator = part.GetAnimator(AnimatorID);
+            animator = part.GetAnimator(AnimatorID);
             if(animator != null)
                 StartCoroutine(Utils.SlowUpdate(spawn_space_keeper));
             if(Kit && !Kit.Empty)
