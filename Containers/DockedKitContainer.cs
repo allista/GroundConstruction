@@ -38,7 +38,9 @@ namespace GroundConstruction
 
         bool find_connected_workshops(Part next_part, HashSet<uint> visited)
         {
-//            this.Log($"Searching for CWS and AWS in {next_part.GetID()}");//debug
+#if DEBUG
+            this.Log($"Searching for CWS and AWS in {next_part.GetID()}");
+#endif
             if(next_part == null || visited.Contains(next_part.persistentId))
                 return false;
             visited.Add(next_part.persistentId);
@@ -48,7 +50,9 @@ namespace GroundConstruction
             if(connected_assembly_ws == null)
                 connected_assembly_ws =
                     next_part.FindModuleImplementing<AssemblyWorkshop>();
-//            this.Log($"Found so far: CWS: {connected_construction_ws.GetID()}, AWS: {connected_assembly_ws.GetID()}");//debug
+#if DEBUG
+            this.Log($"Found so far: CWS: {connected_construction_ws.GetID()}, AWS: {connected_assembly_ws.GetID()}");
+#endif
             if(connected_construction_ws != null && connected_assembly_ws != null)
                 return true;
             foreach(var d in next_part.FindModulesImplementing<ModuleDockingNode>())
