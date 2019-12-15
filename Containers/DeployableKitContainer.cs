@@ -125,12 +125,12 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
-            base.OnDestroy();
             Destroy(vessel_spawner);
             Destroy(deploy_hint_mesh.gameObject);
             Destroy(kitname_editor);
             Destroy(resource_manifest_view);
             Destroy(construct_loader);
+            base.OnDestroy();
         }
 
         public override void OnStart(StartState state)
