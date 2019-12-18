@@ -154,4 +154,7 @@
         <None Include="GameData\GroundConstruction\Plugins\PluginData\GroundConstruction\GroundConstruction.glob" />
         <None Include="GameData\GroundConstruction\Parts\Workshops\OrbitalAssemblySpace.cfg" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Include="GameData\GroundConstruction\Parts\MagneticFork\MagneticFork.cfg" />
+    </ItemGroup>
 </Project>
