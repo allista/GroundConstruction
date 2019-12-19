@@ -1,7 +1,23 @@
 #Ground Construction ChangeLog
 
 
-* **v2.5.1 -- Better Recycling**
+* **v2.6.0 -- Magnetic Forklift**
+    * Added **Magnetic Forklift**
+        * It is a utility part that makes handling of containers and other
+          cargo more easy, compared to using docking ports or the Klaw.
+        * It operates like the magnetic damper in Orbital Assembly Space,
+          but it has several controls in PAW that allow to actively manipulate
+          the cargo ([see the video](https://youtu.be/G8Q3Nd_8m8E)).
+        * It can also dock with the grabbed cargo (if it has a properly oriented
+          docking port) for long hauls.
+        * But beware the energy consumption while using it: moving heavy cargo
+          with electromagnets costs a lot of EC.
+    * Recycler: traversing vessel part tree using parent/children instead 
+      of Attach Nodes. This handles any vessel structure, including some
+      non-standard attach techniques like that used by Universal Storage.
+    * Various fixes and adaptations to AT_Utils API changes. 
+
+* v2.5.1 -- **Better Recycling**
     * Recycler UI:
         * **Part tree may be filtered** by part name
             * Search term is case insensitive and will match any part whose
