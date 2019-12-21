@@ -100,6 +100,8 @@ namespace GroundConstruction
         public override void OnAwake()
         {
             base.OnAwake();
+            //vessel spawner
+            vessel_spawner = gameObject.AddComponent<VesselSpawner>();
             //add UI components
             kitname_editor = gameObject.AddComponent<SimpleTextEntry>();
             kitname_editor.yesCallback = () =>
@@ -123,17 +125,18 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
-            base.OnDestroy();
+            Destroy(vessel_spawner);
             Destroy(deploy_hint_mesh.gameObject);
             Destroy(kitname_editor);
             Destroy(resource_manifest_view);
             Destroy(construct_loader);
+            base.OnDestroy();
         }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            vessel_spawner = new VesselSpawner(part);
+            vessel_spawner.Init(part);
             Events["DeployEvent"].active = !Empty && State == DeploymentState.IDLE;
             Events["LaunchEvent"].active =
                 !Empty && State == DeploymentState.DEPLOYED && kit.Complete;
@@ -529,7 +532,7 @@ namespace GroundConstruction
 
         protected virtual void on_vessel_launched(Vessel vsl) => kit.TransferCrewToKit(vsl);
 
-        protected abstract IEnumerator<YieldInstruction> launch(ShipConstruct construct);
+        protected abstract IEnumerator launch(ShipConstruct construct);
 
         IEnumerator<YieldInstruction> launch_complete_construct()
         {
@@ -544,6 +547,7 @@ namespace GroundConstruction
             //save the game
             GroundConstructionScenario.SaveGame(kit.Name + "-before_launch");
             yield return null;
+            yield return new WaitForFixedUpdate();
             //load ship construct and launch it
             var construct = kit.LoadConstruct();
             if(construct == null)

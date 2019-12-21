@@ -38,7 +38,9 @@ namespace GroundConstruction
 
         bool find_connected_workshops(Part next_part, HashSet<uint> visited)
         {
-//            this.Log($"Searching for CWS and AWS in {next_part.GetID()}");//debug
+#if DEBUG
+            this.Log($"Searching for CWS and AWS in {next_part.GetID()}");
+#endif
             if(next_part == null || visited.Contains(next_part.persistentId))
                 return false;
             visited.Add(next_part.persistentId);
@@ -48,7 +50,9 @@ namespace GroundConstruction
             if(connected_assembly_ws == null)
                 connected_assembly_ws =
                     next_part.FindModuleImplementing<AssemblyWorkshop>();
-//            this.Log($"Found so far: CWS: {connected_construction_ws.GetID()}, AWS: {connected_assembly_ws.GetID()}");//debug
+#if DEBUG
+            this.Log($"Found so far: CWS: {connected_construction_ws.GetID()}, AWS: {connected_assembly_ws.GetID()}");
+#endif
             if(connected_construction_ws != null && connected_assembly_ws != null)
                 return true;
             foreach(var d in next_part.FindModulesImplementing<ModuleDockingNode>())
@@ -57,9 +61,11 @@ namespace GroundConstruction
                 if(find_connected_workshops(docked_part, visited))
                     return true;
             }
-            for(int i = 0, len = next_part.attachNodes.Count; i < len; i++)
+            if(find_connected_workshops(next_part.parent, visited))
+                return true;
+            for(int i = 0, len = next_part.children.Count; i < len; i++)
             {
-                if(find_connected_workshops(next_part.attachNodes[i].attachedPart, visited))
+                if(find_connected_workshops(next_part.children[i], visited))
                     return true;
             }
             return false;
@@ -483,24 +489,23 @@ namespace GroundConstruction
             }
         }
 
-        protected override IEnumerator<YieldInstruction> launch(ShipConstruct construct)
+        protected override IEnumerator launch(ShipConstruct construct)
         {
             var bounds = get_deployed_bounds();
             var docking_offset = construct_docking_node?.DockingOffset ?? Vector3.zero;
             var spawn_transform = get_deploy_transform(bounds.size, out var spawn_offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(construct,
-                        spawn_transform,
-                        spawn_offset
-                        - bounds.center
-                        - docking_offset
-                        + construct.Parts[0].localRoot.transform.position,
-                        Vector3.zero,
-                        null,
-                        on_vessel_loaded,
-                        null,
-                        on_vessel_launched));
+            vessel_spawner.SpawnShipConstruct(construct,
+                spawn_transform,
+                spawn_offset
+                - bounds.center
+                - docking_offset
+                + construct.Parts[0].localRoot.transform.position,
+                Vector3.zero,
+                null,
+                on_vessel_loaded,
+                null,
+                on_vessel_launched);
+            yield return vessel_spawner.WaitForLaunch;
         }
 
         public override void Launch()

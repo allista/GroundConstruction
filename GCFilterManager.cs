@@ -9,7 +9,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
+    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class GCFilterManager : SimplePartFilter
     {
         public GCFilterManager()

@@ -10,7 +10,7 @@ using AT_Utils;
 
 namespace GroundConstruction
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, true)]
     public class GCAppToolbar : AppToolbar<GCAppToolbar>
     {
         protected override string TB_ICON => "GroundConstruction/Icons/toolbar-icon";

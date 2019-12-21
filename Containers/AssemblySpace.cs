@@ -6,6 +6,7 @@
 //  Copyright (c) 2018 Allis Tauri
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
@@ -17,6 +18,7 @@ namespace GroundConstruction
     {
         [KSPField] public string Title = "Assembly Space";
         [KSPField] public string AnimatorID = string.Empty;
+        [KSPField] public string DamperID = string.Empty;
 
         [KSPField(isPersistant = true)] public string KitPart = "DIYKit";
 
@@ -24,17 +26,29 @@ namespace GroundConstruction
 
         [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
         VesselSpawner vessel_spawner;
-        MultiAnimator animator;
+        IAnimator animator;
+        private ATMagneticDamper damper;
         bool can_construct_in_situ;
+
+        public override void OnAwake()
+        {
+            base.OnAwake();
+            vessel_spawner = gameObject.AddComponent<VesselSpawner>();
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(vessel_spawner);
+        }
 
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            vessel_spawner = new VesselSpawner(part);
+            vessel_spawner.Init(part);
             SpawnManager.Init(part);
             SpawnManager.SetupSensor();
-            if(!string.IsNullOrEmpty(AnimatorID))
-                animator = part.GetAnimator(AnimatorID);
+            animator = part.GetAnimator(AnimatorID);
+            damper = ATMagneticDamper.GetDamper(part, DamperID);
             if(animator != null)
                 StartCoroutine(Utils.SlowUpdate(spawn_space_keeper));
             if(Kit && !Kit.Empty)
@@ -104,110 +118,127 @@ namespace GroundConstruction
                 animator.Close();
         }
 
-        public bool Opened => animator == null || animator.State != AnimatorState.Closed;
+        public bool Opened =>
+            animator == null || animator.GetAnimatorState() != AnimatorState.Closed;
 
-        public void SpawnKit()
+        public void SpawnKit() => StartCoroutine(spawn_kit());
+
+        public void SpawnEmptyContainer(string part_name) =>
+            StartCoroutine(spawn_empty_container(part_name));
+
+        IEnumerator<YieldInstruction> spawn_kit()
         {
             if(!Kit)
-                return;
+                yield break;
             //this.Log("Spawning kit: {}\nReqs: {}", Kit, Kit.RemainingRequirements());//debug
             if(vessel_spawner.LaunchInProgress)
             {
                 Utils.Message("In progress...");
-                return;
+                yield break;
             }
             if(!Kit.StageComplete(DIYKit.ASSEMBLY))
             {
                 Utils.Message("The kit is not yet assembled");
-                return;
+                yield break;
             }
             if(Kit.StageStarted(DIYKit.CONSTRUCTION))
             {
                 Utils.Message("Kit construction is already started");
-                return;
+                yield break;
             }
             if(Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
-                return;
+                yield break;
             }
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForFixedUpdate();
             var kit_ship = Kit.CreateShipConstruct(KitPart, part.flagURL);
-            if(kit_ship != null)
-            {
-                GroundConstructionScenario.SaveGame(Kit.Name + "-before_spawn");
-                StartCoroutine(spawn_kit_vessel(kit_ship));
-            }
+            if(kit_ship == null)
+                yield break;
+            GroundConstructionScenario.SaveGame(Kit.Name + "-before_spawn");
+            yield return StartCoroutine(spawn_kit_vessel(kit_ship));
         }
 
-        public void SpawnEmptyContainer(string part_name)
+        IEnumerator<YieldInstruction> spawn_empty_container(string part_name)
         {
             if(vessel_spawner.LaunchInProgress)
             {
                 Utils.Message("In progress...");
-                return;
+                yield break;
             }
             if(Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
-                return;
+                yield break;
             }
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForFixedUpdate();
             var kit_ship = new VesselKit().CreateShipConstruct(part_name, part.flagURL);
-            if(kit_ship != null)
+            if(kit_ship == null)
+                yield break;
+            var kit_metric =
+                new Metric(kit_ship.Bounds(kit_ship.parts[0].localRoot.partTransform));
+            if(!SpawnManager.MetricFits(kit_metric))
             {
-                var kit_metric =
-                    new Metric(kit_ship.Bounds(kit_ship.parts[0].localRoot.partTransform));
-                if(!SpawnManager.MetricFits(kit_metric))
-                {
-                    kit_ship.Unload();
-                    Utils.Message("Container is too big for this assembly space");
-                    return;
-                }
-                PartKit.GetRequirements(kit_ship.Parts[0],
-                    out var assembly_reqs,
-                    out var construction_reqs);
-                var need_ec = assembly_reqs.energy + construction_reqs.energy;
-                if(!part.TryUseResource(Utils.ElectricCharge.id, need_ec))
-                {
-                    Utils.Message("Not enough energy to make the container");
-                    kit_ship.Unload();
-                    return;
-                }
-                if(assembly_reqs
-                   && !part.TryUseResource(assembly_reqs.resource.id,
-                       assembly_reqs.resource_amount))
-                {
-                    Utils.Message("Not enough {0} to make the container",
-                        assembly_reqs.resource.name);
-                    kit_ship.Unload();
-                    return;
-                }
-                if(construction_reqs
-                   && !part.TryUseResource(construction_reqs.resource.id,
-                       construction_reqs.resource_amount))
-                {
-                    Utils.Message("Not enough {0} to make the container",
-                        construction_reqs.resource.name);
-                    kit_ship.Unload();
-                    return;
-                }
-                GroundConstructionScenario.SaveGame(vessel.name + "-before_spawn_empty");
-                StartCoroutine(spawn_kit_vessel(kit_ship));
+                kit_ship.Unload();
+                Utils.Message("Container is too big for this assembly space");
+                yield break;
             }
+            PartKit.GetRequirements(kit_ship.Parts[0],
+                out var assembly_reqs,
+                out var construction_reqs);
+            var need_ec = assembly_reqs.energy + construction_reqs.energy;
+            if(!part.TryUseResource(Utils.ElectricCharge.id, need_ec))
+            {
+                Utils.Message("Not enough energy to make the container");
+                kit_ship.Unload();
+                yield break;
+            }
+            if(assembly_reqs
+               && !part.TryUseResource(assembly_reqs.resource.id,
+                   assembly_reqs.resource_amount))
+            {
+                Utils.Message("Not enough {0} to make the container",
+                    assembly_reqs.resource.name);
+                kit_ship.Unload();
+                yield break;
+            }
+            if(construction_reqs
+               && !part.TryUseResource(construction_reqs.resource.id,
+                   construction_reqs.resource_amount))
+            {
+                Utils.Message("Not enough {0} to make the container",
+                    construction_reqs.resource.name);
+                kit_ship.Unload();
+                yield break;
+            }
+            GroundConstructionScenario.SaveGame(vessel.name + "-before_spawn_empty");
+            yield return StartCoroutine(spawn_kit_vessel(kit_ship));
         }
 
-        IEnumerator<YieldInstruction> spawn_kit_vessel(ShipConstruct kit_ship)
+        private void enable_damper()
         {
+            if(damper == null)
+                return;
+            damper.EnableDamper(true);
+            damper.AttractorEnabled = true;
+            damper.InvertAttractor = false;
+        }
+
+        IEnumerator spawn_kit_vessel(ShipConstruct kit_ship)
+        {
+            enable_damper();
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(kit_ship,
-                        spawn_transform,
-                        offset - bounds.center,
-                        Vector3.zero));
+            vessel_spawner.SpawnShipConstruct(kit_ship,
+                spawn_transform,
+                offset - bounds.center,
+                Vector3.zero);
+            yield return vessel_spawner.WaitForLaunch;
             Kit = new VesselKit();
             Open();
         }
@@ -259,7 +290,7 @@ namespace GroundConstruction
             StartCoroutine(launch_complete_construct());
         }
 
-        IEnumerator<YieldInstruction> launch_complete_construct()
+        private IEnumerator launch_complete_construct()
         {
             if(!HighLogic.LoadedSceneIsFlight)
                 yield break;
@@ -270,6 +301,7 @@ namespace GroundConstruction
             //save the game
             GroundConstructionScenario.SaveGame(Kit.Name + "-before_launch");
             yield return null;
+            yield return new WaitForFixedUpdate();
             //load ship construct and launch it
             var construct = Kit.LoadConstruct();
             if(construct == null)
@@ -282,20 +314,20 @@ namespace GroundConstruction
                 vessel_spawner.AbortLaunch();
                 yield break;
             }
+            enable_damper();
             var bounds = new Metric(construct, world_space: true).bounds;
-            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
-            yield return
-                StartCoroutine(vessel_spawner
-                    .SpawnShipConstruct(construct,
-                        spawn_transform,
-                        offset
-                        - bounds.center
-                        + construct.Parts[0].localRoot.transform.position,
-                        Vector3.zero,
-                        null,
-                        null,
-                        null,
-                        Kit.TransferCrewToKit));
+            var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var spawn_offset);
+            vessel_spawner.SpawnShipConstruct(construct,
+                spawn_transform,
+                spawn_offset
+                - bounds.center
+                + construct.Parts[0].localRoot.transform.position,
+                Vector3.zero,
+                null,
+                null,
+                null,
+                Kit.TransferCrewToKit);
+            yield return vessel_spawner.WaitForLaunch;
             Kit = new VesselKit();
             Open();
         }
