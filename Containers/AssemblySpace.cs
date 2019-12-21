@@ -18,6 +18,7 @@ namespace GroundConstruction
     {
         [KSPField] public string Title = "Assembly Space";
         [KSPField] public string AnimatorID = string.Empty;
+        [KSPField] public string DamperID = string.Empty;
 
         [KSPField(isPersistant = true)] public string KitPart = "DIYKit";
 
@@ -26,6 +27,7 @@ namespace GroundConstruction
         [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
         VesselSpawner vessel_spawner;
         IAnimator animator;
+        private ATMagneticDamper damper;
         bool can_construct_in_situ;
 
         public override void OnAwake()
@@ -46,6 +48,7 @@ namespace GroundConstruction
             SpawnManager.Init(part);
             SpawnManager.SetupSensor();
             animator = part.GetAnimator(AnimatorID);
+            damper = ATMagneticDamper.GetDamper(part, DamperID);
             if(animator != null)
                 StartCoroutine(Utils.SlowUpdate(spawn_space_keeper));
             if(Kit && !Kit.Empty)
@@ -216,8 +219,18 @@ namespace GroundConstruction
             yield return StartCoroutine(spawn_kit_vessel(kit_ship));
         }
 
+        private void enable_damper()
+        {
+            if(damper == null)
+                return;
+            damper.EnableDamper(true);
+            damper.AttractorEnabled = true;
+            damper.InvertAttractor = false;
+        }
+
         IEnumerator spawn_kit_vessel(ShipConstruct kit_ship)
         {
+            enable_damper();
             //spawn the ship construct
             var bounds = kit_ship.Bounds(kit_ship.Parts[0].localRoot.transform);
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var offset);
@@ -301,6 +314,7 @@ namespace GroundConstruction
                 vessel_spawner.AbortLaunch();
                 yield break;
             }
+            enable_damper();
             var bounds = new Metric(construct, world_space: true).bounds;
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var spawn_offset);
             vessel_spawner.SpawnShipConstruct(construct,
