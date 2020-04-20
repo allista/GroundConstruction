@@ -1,7 +1,10 @@
 #Ground Construction ChangeLog
 
+* **v2.6.1**
+    * Added auto activation/deactivation feature to Magnetic Forklift
+    * Compiled against AT_Utils 1.9.1
 
-* **v2.6.0 -- Magnetic Forklift**
+* v2.6.0 -- **Magnetic Forklift**
     * Added **Magnetic Forklift**
         * It is a utility part that makes handling of containers and other
           cargo more easy, compared to using docking ports or the Klaw.
