@@ -12,7 +12,7 @@ namespace GroundConstruction
 {
     public class Globals : PluginGlobals<Globals>
     {
-        public UIBundle AssetBundle = new UIBundle("GroundConstruction/gc_ui");
+        public UIBundle AssetBundle = new UIBundle("GroundConstruction/gc_ui.ksp");
         
         #region Resources
         [Persistent] public ResourceUsageInfo AssemblyResource = new ResourceUsageInfo("SpecializedParts");
