@@ -1,6 +1,10 @@
 #Ground Construction ChangeLog
 
-* **v2.6.1**
+* **v2.6.1.1**
+    * **Compatible with KSP-1.9**
+    * Compiled against AT_Utils 1.9.2
+
+* v2.6.1
     * Added auto activation/deactivation feature to Magnetic Forklift
     * Compiled against AT_Utils 1.9.1
 
