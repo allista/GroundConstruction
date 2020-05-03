@@ -1,6 +1,13 @@
 #Ground Construction ChangeLog
 
-* **v2.6.1.1**
+* **v2.6.2**
+    * Fixed game freeze on opening Recycler node with too many subnodes
+    * Fixed deployment dimensions for SPH crafts in Ground kit
+    * Fixed USI-LS integration thanks to @Marschig
+    * Fixed Recycler UI disappearing after scene switch
+    * Compiled against AT_Utils 1.9.3
+
+* v2.6.1.1
     * **Compatible with KSP-1.9**
     * Compiled against AT_Utils 1.9.2
 
