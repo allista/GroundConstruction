@@ -21,8 +21,8 @@ namespace GroundConstruction
     public interface IAssemblySpace : IKitContainer, IPartCostModifier, IPartMassModifier
     {
         new bool Valid { get; }
-        bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio);
-        void SetKit(VesselKit kit, string part_name);
+        bool CheckKit(VesselKit vessel_kit, string part_name, out float kit2space_ratio);
+        void SetKit(VesselKit vessel_kit, string part_name);
         void SpawnKit();
     }
 
@@ -30,7 +30,7 @@ namespace GroundConstruction
     {
         new bool Valid { get; }
         bool ConstructionComplete { get; }
-        bool CanConstruct(VesselKit kit);
+        bool CanConstruct(VesselKit vessel_kit);
         void Launch();
     }
 

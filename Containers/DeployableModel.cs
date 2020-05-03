@@ -269,9 +269,9 @@ namespace GroundConstruction
             Destroy(warning);
         }
 
-        public override void OnStart(StartState state)
+        public override void OnStart(StartState startState)
         {
-            base.OnStart(state);
+            base.OnStart(startState);
             just_started = true;
             StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
             if(State == DeploymentState.DEPLOYING)

@@ -142,14 +142,13 @@ namespace GC.UI
             var activate_subnodes = false;
             foreach(var childInfo in info.GetChildren())
             {
-                if(node_ids.Contains(childInfo.ID))
-                {
-                    activate_subnodes = true;
-                    var subnode = add_subnode(childInfo);
-                    var subnode_coro = subnode.show_filtered_subnodes(node_ids);
-                    while(subnode_coro.MoveNext())
-                        yield return subnode_coro.Current;
-                }
+                if(!node_ids.Contains(childInfo.ID))
+                    continue;
+                activate_subnodes = true;
+                var subnode = add_subnode(childInfo);
+                var subnode_coro = subnode.show_filtered_subnodes(node_ids);
+                while(subnode_coro.MoveNext())
+                    yield return subnode_coro.Current;
             }
             if(activate_subnodes)
             {
@@ -214,11 +213,10 @@ namespace GC.UI
 
         private void recycle()
         {
-            if(info != null)
-            {
-                ui.reportPane.Clear();
-                info.Recycle(discardExcess.isOn, on_recycled);
-            }
+            if(info == null)
+                return;
+            ui.reportPane.Clear();
+            info.Recycle(discardExcess.isOn, on_recycled);
         }
 
         private void onPointerEnter(PointerEventData eventData)
