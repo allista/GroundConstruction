@@ -34,6 +34,7 @@ namespace GC.UI
         private IRecyclable info;
         private Dictionary<uint, GameObject> children = new Dictionary<uint, GameObject>();
 
+        public GameObject prefab;
         public RecyclerUI ui;
         public Toggle subnodesToggle;
         public OnHoverTrigger hoverTrigger;
@@ -71,6 +72,7 @@ namespace GC.UI
         private RecyclableTreeNode add_subnode(IRecyclable child_info)
         {
             var subnodeObj = Instantiate(gameObject, subnodes);
+            var subnodeObj = Instantiate(prefab, subnodes);
             var subnode = subnodeObj.GetComponent<RecyclableTreeNode>();
             subnode.ui = ui;
             subnode.subnodesToggle.group = null;
