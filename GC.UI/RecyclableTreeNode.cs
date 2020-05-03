@@ -32,7 +32,7 @@ namespace GC.UI
     public class RecyclableTreeNode : PanelledUI
     {
         private IRecyclable info;
-        private Dictionary<uint, GameObject> children = new Dictionary<uint, GameObject>();
+        private readonly Dictionary<uint, RecyclableTreeNode> children = new Dictionary<uint, RecyclableTreeNode>();
 
         public GameObject prefab;
         public RecyclerUI ui;
@@ -71,14 +71,15 @@ namespace GC.UI
 
         private RecyclableTreeNode add_subnode(IRecyclable child_info)
         {
-            var subnodeObj = Instantiate(gameObject, subnodes);
+            if(children.TryGetValue(child_info.ID, out var node))
+                return node;
             var subnodeObj = Instantiate(prefab, subnodes);
             var subnode = subnodeObj.GetComponent<RecyclableTreeNode>();
             subnode.ui = ui;
             subnode.subnodesToggle.group = null;
             subnode.subnodesToggle.SetIsOnAndColorWithoutNotify(false);
             subnode.SetRecyclableInfo(child_info);
-            children[child_info.ID] = subnodeObj;
+            children[child_info.ID] = subnode;
             subnodeObj.SetActive(true);
             return subnode;
         }
@@ -181,8 +182,7 @@ namespace GC.UI
                 foreach(var childInfo in info.GetChildren())
                 {
                     ids.Add(childInfo.ID);
-                    if(!children.ContainsKey(childInfo.ID))
-                        add_subnode(childInfo);
+                    add_subnode(childInfo);
                 }
                 foreach(var pid in children.Keys.ToList())
                 {
