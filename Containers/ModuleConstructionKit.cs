@@ -1,4 +1,4 @@
-﻿//   ModuleConstructionKit.cs
+//   ModuleConstructionKit.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -67,14 +67,6 @@ namespace GroundConstruction
                 }
             }
             return minT;
-        }
-
-        protected override Vector3 get_deployed_size()
-        {
-            var size = kit.ShipMetric.size;
-            if(Facility == EditorFacility.SPH)
-                size = new Vector3(size.x, size.z, size.y);
-            return size;
         }
 
         protected override bool can_deploy()
