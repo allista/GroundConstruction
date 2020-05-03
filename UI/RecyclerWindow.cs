@@ -68,10 +68,7 @@ namespace GroundConstruction
             if(vsl == null || vsl.rootPart == null)
                 return;
             if(root_parts.TryGetValue(vsl.rootPart.persistentId, out var rp))
-            {
-                Utils.Log("onVesselModified: {}", vsl.GetID()); //debug
                 rp.Update();
-            }
         }
 
         void onRecyclerCrewModified(Vessel vsl)
@@ -79,10 +76,7 @@ namespace GroundConstruction
             if(vsl == null || recycler == null)
                 return;
             if(recycler is PartModule pm && pm.vessel == vsl)
-            {
-                Utils.Log("onRecyclerCrewModified: {}", vsl.GetID()); //debug
                 Update();
-            }
         }
 
         void onGameSaved(ConfigNode _config_node) => this.SaveState();
