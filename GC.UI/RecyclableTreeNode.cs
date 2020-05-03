@@ -47,14 +47,14 @@ namespace GC.UI
 
         public void SetRecyclableInfo(IRecyclable recyclable_info)
         {
-            show_subnodes(false);
+            hide_subnodes();
             info = recyclable_info;
             recyclable_info.SetDisplay(this);
         }
 
         private void Awake()
         {
-            subnodesToggle.onValueChanged.AddListener(show_subnodes);
+            subnodesToggle.onValueChanged.AddListener(toggle_submodules);
             recycleButton.onClick.AddListener(recycle);
             hoverTrigger.onPointerEnterEvent.AddListener(onPointerEnter);
             hoverTrigger.onPointerExitEvent.AddListener(onPointerExit);
@@ -63,7 +63,7 @@ namespace GC.UI
         private void OnDestroy()
         {
             info?.SetDisplay(null);
-            subnodesToggle.onValueChanged.RemoveListener(show_subnodes);
+            subnodesToggle.onValueChanged.RemoveListener(toggle_submodules);
             recycleButton.onClick.RemoveListener(recycle);
             hoverTrigger.onPointerEnterEvent.RemoveListener(onPointerEnter);
             hoverTrigger.onPointerExitEvent.RemoveListener(onPointerExit);
@@ -84,24 +84,34 @@ namespace GC.UI
             return subnode;
         }
 
-        private void show_subnodes(bool show)
+        private void toggle_submodules(bool show)
         {
             if(show)
-            {
-                if(info != null)
-                {
-                    foreach(var childInfo in info.GetChildren())
-                        add_subnode(childInfo);
-                    subnodes.gameObject.SetActive(true);
-                }
-            }
+                StartCoroutine(show_subnodes());
             else
+                hide_subnodes();
+        }
+
+        private IEnumerator<YieldInstruction> show_subnodes()
+        {
+            if(info == null)
+                yield break;
+            subnodesToggle.SetInteractable(false);
+            foreach(var childInfo in info.GetChildren())
             {
+                add_subnode(childInfo);
+                yield return null;
+            }
+            subnodes.gameObject.SetActive(true);
+            subnodesToggle.SetInteractable(true);
+        }
+
+        private void hide_subnodes()
+        {
                 children.Clear();
                 subnodes.gameObject.SetActive(false);
                 for(var i = subnodes.childCount - 1; i >= 0; i--)
                     Destroy(subnodes.GetChild(i).gameObject);
-            }
         }
 
         private static IEnumerator<YieldInstruction> find_children(
@@ -125,7 +135,7 @@ namespace GC.UI
 
         private IEnumerator<YieldInstruction> show_filtered_subnodes(HashSet<uint> node_ids)
         {
-            show_subnodes(false);
+            hide_subnodes();
             subnodesToggle.interactable = false;
             if(info == null || !node_ids.Contains(info.ID))
                 yield break;
