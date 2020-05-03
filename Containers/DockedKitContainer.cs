@@ -26,9 +26,9 @@ namespace GroundConstruction
         public bool DockableDisplay;
 
         [KSPField(isPersistant = true)] public int ConstructDockingNode = -1;
-        ConstructDockingNode construct_docking_node;
+        private ConstructDockingNode construct_docking_node;
 
-        Bounds get_deployed_bounds() =>
+        private Bounds get_deployed_bounds() =>
             ConstructDockingNode >= 0 && kit.DockingPossible
                 ? kit.GetBoundsForDocking(ConstructDockingNode)
                 : kit.ShipMetric.bounds;
@@ -36,7 +36,7 @@ namespace GroundConstruction
         private ConstructionWorkshop connected_construction_ws;
         private AssemblyWorkshop connected_assembly_ws;
 
-        bool find_connected_workshops(Part next_part, HashSet<uint> visited)
+        private bool find_connected_workshops(Part next_part, HashSet<uint> visited)
         {
 #if DEBUG
             this.Log($"Searching for CWS and AWS in {next_part.GetID()}");
@@ -71,7 +71,7 @@ namespace GroundConstruction
             return false;
         }
 
-        void find_connected_workshops()
+        private void find_connected_workshops()
         {
             connected_assembly_ws = null;
             connected_construction_ws = null;
@@ -86,7 +86,7 @@ namespace GroundConstruction
                 find_connected_workshops(construction_node.attachedPart, visited_parts);
         }
 
-        void onVesselModified(Vessel vsl)
+        private void onVesselModified(Vessel vsl)
         {
             if(vsl != null && vsl == vessel)
                 find_connected_workshops();
@@ -104,9 +104,9 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        public override void OnStart(StartState state)
+        public override void OnStart(StartState startState)
         {
-            base.OnStart(state);
+            base.OnStart(startState);
             SpawnManager.Init(part);
             if(!string.IsNullOrEmpty(ConstructionNode))
             {
@@ -128,7 +128,8 @@ namespace GroundConstruction
             }
             if(kit && ConstructDockingNode >= 0)
                 construct_docking_node = kit.DockingNodes[ConstructDockingNode];
-            StartCoroutine(CallbackUtil.DelayedCallback(1, find_connected_workshops));
+            if(vessel != null)
+                StartCoroutine(CallbackUtil.DelayedCallback(1, find_connected_workshops));
         }
 
         protected override void update_part_events()
@@ -158,7 +159,7 @@ namespace GroundConstruction
         protected override bool ValidAssemblySpace => connected_assembly_ws != null;
         protected override bool ValidConstructionSpace => connected_construction_ws != null;
 
-        public override bool CanConstruct(VesselKit kit) => !kit.HasLaunchClamps;
+        public override bool CanConstruct(VesselKit vessel_kit) => !vessel_kit.HasLaunchClamps;
 
         protected override bool can_deploy()
         {
@@ -213,7 +214,7 @@ namespace GroundConstruction
             base.update_kit_hull_mesh(deployT, deployed_size, spawn_offset);
         }
 
-        Part get_construction_part()
+        private Part get_construction_part()
         {
             var cpart = construction_node.attachedPart;
             if(cpart == null && construction_port != null)
@@ -263,9 +264,9 @@ namespace GroundConstruction
                 yield return i;
         }
 
-        static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
+        private static readonly GUIContent launch_label = new GUIContent("Launch", "Launch the vessel.");
 
-        static readonly GUIContent docked_label = new GUIContent("Dock",
+        private static readonly GUIContent docked_label = new GUIContent("Dock",
             "Dock the constructed vessel to the main vessel after launch.");
 
         public override void DrawOptions()
@@ -355,7 +356,7 @@ namespace GroundConstruction
         #endregion
 
         //TODO: extract this method somewhere to use both here and in VesselKit
-        AttachNode find_closest_free_node(
+        private AttachNode find_closest_free_node(
             IEnumerable<Part> parts,
             Vector3 world_pos,
             Vector3 world_fwd,
@@ -392,7 +393,7 @@ namespace GroundConstruction
             return best_node;
         }
 
-        void update_recipient_node(Part construction_part)
+        private void update_recipient_node(Part construction_part)
         {
             var construction_node_pos =
                 part.partTransform.TransformPoint(construction_node.position);

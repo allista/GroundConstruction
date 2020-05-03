@@ -32,8 +32,9 @@ namespace GC.UI
     public class RecyclableTreeNode : PanelledUI
     {
         private IRecyclable info;
-        private Dictionary<uint, GameObject> children = new Dictionary<uint, GameObject>();
+        private readonly Dictionary<uint, RecyclableTreeNode> children = new Dictionary<uint, RecyclableTreeNode>();
 
+        public GameObject prefab;
         public RecyclerUI ui;
         public Toggle subnodesToggle;
         public OnHoverTrigger hoverTrigger;
@@ -46,14 +47,14 @@ namespace GC.UI
 
         public void SetRecyclableInfo(IRecyclable recyclable_info)
         {
-            show_subnodes(false);
+            hide_subnodes();
             info = recyclable_info;
             recyclable_info.SetDisplay(this);
         }
 
         private void Awake()
         {
-            subnodesToggle.onValueChanged.AddListener(show_subnodes);
+            subnodesToggle.onValueChanged.AddListener(toggle_submodules);
             recycleButton.onClick.AddListener(recycle);
             hoverTrigger.onPointerEnterEvent.AddListener(onPointerEnter);
             hoverTrigger.onPointerExitEvent.AddListener(onPointerExit);
@@ -62,7 +63,7 @@ namespace GC.UI
         private void OnDestroy()
         {
             info?.SetDisplay(null);
-            subnodesToggle.onValueChanged.RemoveListener(show_subnodes);
+            subnodesToggle.onValueChanged.RemoveListener(toggle_submodules);
             recycleButton.onClick.RemoveListener(recycle);
             hoverTrigger.onPointerEnterEvent.RemoveListener(onPointerEnter);
             hoverTrigger.onPointerExitEvent.RemoveListener(onPointerExit);
@@ -70,35 +71,47 @@ namespace GC.UI
 
         private RecyclableTreeNode add_subnode(IRecyclable child_info)
         {
-            var subnodeObj = Instantiate(gameObject, subnodes);
+            if(children.TryGetValue(child_info.ID, out var node))
+                return node;
+            var subnodeObj = Instantiate(prefab, subnodes);
             var subnode = subnodeObj.GetComponent<RecyclableTreeNode>();
             subnode.ui = ui;
             subnode.subnodesToggle.group = null;
             subnode.subnodesToggle.SetIsOnAndColorWithoutNotify(false);
             subnode.SetRecyclableInfo(child_info);
-            children[child_info.ID] = subnodeObj;
+            children[child_info.ID] = subnode;
             subnodeObj.SetActive(true);
             return subnode;
         }
 
-        private void show_subnodes(bool show)
+        private void toggle_submodules(bool show)
         {
             if(show)
-            {
-                if(info != null)
-                {
-                    foreach(var childInfo in info.GetChildren())
-                        add_subnode(childInfo);
-                    subnodes.gameObject.SetActive(true);
-                }
-            }
+                StartCoroutine(show_subnodes());
             else
+                hide_subnodes();
+        }
+
+        private IEnumerator<YieldInstruction> show_subnodes()
+        {
+            if(info == null)
+                yield break;
+            subnodesToggle.SetInteractable(false);
+            foreach(var childInfo in info.GetChildren())
             {
+                add_subnode(childInfo);
+                yield return null;
+            }
+            subnodes.gameObject.SetActive(true);
+            subnodesToggle.SetInteractable(true);
+        }
+
+        private void hide_subnodes()
+        {
                 children.Clear();
                 subnodes.gameObject.SetActive(false);
                 for(var i = subnodes.childCount - 1; i >= 0; i--)
                     Destroy(subnodes.GetChild(i).gameObject);
-            }
         }
 
         private static IEnumerator<YieldInstruction> find_children(
@@ -122,21 +135,20 @@ namespace GC.UI
 
         private IEnumerator<YieldInstruction> show_filtered_subnodes(HashSet<uint> node_ids)
         {
-            show_subnodes(false);
+            hide_subnodes();
             subnodesToggle.interactable = false;
             if(info == null || !node_ids.Contains(info.ID))
                 yield break;
             var activate_subnodes = false;
             foreach(var childInfo in info.GetChildren())
             {
-                if(node_ids.Contains(childInfo.ID))
-                {
-                    activate_subnodes = true;
-                    var subnode = add_subnode(childInfo);
-                    var subnode_coro = subnode.show_filtered_subnodes(node_ids);
-                    while(subnode_coro.MoveNext())
-                        yield return subnode_coro.Current;
-                }
+                if(!node_ids.Contains(childInfo.ID))
+                    continue;
+                activate_subnodes = true;
+                var subnode = add_subnode(childInfo);
+                var subnode_coro = subnode.show_filtered_subnodes(node_ids);
+                while(subnode_coro.MoveNext())
+                    yield return subnode_coro.Current;
             }
             if(activate_subnodes)
             {
@@ -179,8 +191,7 @@ namespace GC.UI
                 foreach(var childInfo in info.GetChildren())
                 {
                     ids.Add(childInfo.ID);
-                    if(!children.ContainsKey(childInfo.ID))
-                        add_subnode(childInfo);
+                    add_subnode(childInfo);
                 }
                 foreach(var pid in children.Keys.ToList())
                 {
@@ -202,11 +213,10 @@ namespace GC.UI
 
         private void recycle()
         {
-            if(info != null)
-            {
-                ui.reportPane.Clear();
-                info.Recycle(discardExcess.isOn, on_recycled);
-            }
+            if(info == null)
+                return;
+            ui.reportPane.Clear();
+            info.Recycle(discardExcess.isOn, on_recycled);
         }
 
         private void onPointerEnter(PointerEventData eventData)

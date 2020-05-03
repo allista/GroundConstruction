@@ -49,54 +49,46 @@ namespace GroundConstruction
 
         public void SetVessels(IEnumerable<Vessel> vessels)
         {
-            if(recycler != null)
+            if(recycler == null)
+                return;
+            root_parts.Clear();
+            if(Controller != null)
+                Controller.Clear();
+            foreach(var vsl in vessels)
             {
-                root_parts.Clear();
-                if(Controller != null)
-                    Controller.Clear();
-                foreach(var vsl in vessels)
-                {
-                    var rp = root_parts.Add(vsl.rootPart);
-                    if(rp != null)
-                        on_add_root(rp);
-                }
+                var rp = root_parts.Add(vsl.rootPart);
+                if(rp != null)
+                    on_add_root(rp);
             }
         }
 
-        void onVesselModified(Vessel vsl)
+        private void onVesselModified(Vessel vsl)
         {
             if(vsl == null || vsl.rootPart == null)
                 return;
             if(root_parts.TryGetValue(vsl.rootPart.persistentId, out var rp))
-            {
-                Utils.Log("onVesselModified: {}", vsl.GetID()); //debug
                 rp.Update();
-            }
         }
 
-        void onRecyclerCrewModified(Vessel vsl)
+        private void onRecyclerCrewModified(Vessel vsl)
         {
             if(vsl == null || recycler == null)
                 return;
             if(recycler is PartModule pm && pm.vessel == vsl)
-            {
-                Utils.Log("onRecyclerCrewModified: {}", vsl.GetID()); //debug
                 Update();
-            }
         }
 
-        void onGameSaved(ConfigNode _config_node) => this.SaveState();
+        private void onGameSaved(ConfigNode _config_node) => this.SaveState();
 
-        void on_add_root(RecyclablePart rp)
+        private void on_add_root(RecyclablePart rp)
         {
-            if(Controller != null)
-            {
-                rp.Update();
-                Controller.AddRoot(rp);
-            }
+            if(Controller == null)
+                return;
+            rp.Update();
+            Controller.AddRoot(rp);
         }
 
-        void on_remove_root(uint root_part_id)
+        private void on_remove_root(uint root_part_id)
         {
             if(Controller != null)
                 Controller.DeleteRoot(root_part_id);
@@ -172,11 +164,7 @@ namespace GroundConstruction
                 UpdateDisplay();
         }
 
-        public IEnumerable<IRecyclable> GetChildren()
-        {
-            foreach(var child in children)
-                yield return child;
-        }
+        public IEnumerable<IRecyclable> GetChildren() => children;
 
         private static string format_resource(DIYKit.Requirements req) =>
             req.Valid
@@ -202,7 +190,7 @@ namespace GroundConstruction
             Display.subnodesToggle.interactable = children.Count > 0;
         }
 
-        void on_recycled(bool _success)
+        private void on_recycled(bool _success)
         {
             if(Display != null && Display.ui != null)
                 Display.ui.reportPane.SetReport(Recycler.GetRecycleReport().ToArray());
@@ -211,11 +199,10 @@ namespace GroundConstruction
 
         public void Recycle(bool discard_excess_resources, Action<bool> on_finished)
         {
-            if(Recycler != null && !Recycler.IsRecycling)
-            {
-                on_finished += on_recycled;
-                Recycler.Recycle(part, discard_excess_resources, on_finished);
-            }
+            if(Recycler == null || Recycler.IsRecycling)
+                return;
+            on_finished += on_recycled;
+            Recycler.Recycle(part, discard_excess_resources, on_finished);
         }
 
         public void OnPointerEnter()
@@ -248,24 +235,20 @@ namespace GroundConstruction
 
         public virtual RecyclablePart Add(Part part)
         {
-            if(!map.ContainsKey(part.persistentId))
-            {
-                var rp = new RecyclablePart(part, recycler);
-                order.Add(rp.ID);
-                map[rp.ID] = rp;
-                return rp;
-            }
-            return null;
+            if(map.ContainsKey(part.persistentId))
+                return null;
+            var rp = new RecyclablePart(part, recycler);
+            order.Add(rp.ID);
+            map[rp.ID] = rp;
+            return rp;
         }
 
         public virtual bool Remove(uint part_id)
         {
-            if(map.Remove(part_id))
-            {
-                order.Remove(part_id);
-                return true;
-            }
-            return false;
+            if(!map.Remove(part_id))
+                return false;
+            order.Remove(part_id);
+            return true;
         }
 
         public virtual void Clear()
@@ -292,20 +275,18 @@ namespace GroundConstruction
             {
                 var pid = part.persistentId;
                 ids.Add(pid);
-                if(!map.ContainsKey(pid))
-                {
-                    var rp = Add(part);
-                    if(rp != null)
-                        on_add?.Invoke(rp);
-                }
+                if(map.ContainsKey(pid))
+                    continue;
+                var rp = Add(part);
+                if(rp != null)
+                    on_add?.Invoke(rp);
             }
             foreach(var pid in map.Keys.ToList())
             {
-                if(!ids.Contains(pid))
-                {
-                    if(Remove(pid))
-                        on_remove?.Invoke(pid);
-                }
+                if(ids.Contains(pid))
+                    continue;
+                if(Remove(pid))
+                    on_remove?.Invoke(pid);
             }
         }
 
@@ -324,7 +305,7 @@ namespace GroundConstruction
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    class ChildPartsRegistry : PartsRegistry
+    internal class ChildPartsRegistry : PartsRegistry
     {
         private readonly RecyclablePart parent;
 
@@ -343,13 +324,11 @@ namespace GroundConstruction
 
         public override bool Remove(uint part_id)
         {
-            if(base.Remove(part_id))
-            {
-                if(parent.Display != null)
-                    parent.Display.RefreshSubnodes();
-                return true;
-            }
-            return false;
+            if(!base.Remove(part_id))
+                return false;
+            if(parent.Display != null)
+                parent.Display.RefreshSubnodes();
+            return true;
         }
 
         public override void Clear()

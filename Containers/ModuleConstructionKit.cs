@@ -14,24 +14,23 @@ namespace GroundConstruction
 {
     public class ModuleConstructionKit : DeployableKitContainer
     {
-        readonly List<Transform> spawn_transforms = new List<Transform>();
+        private readonly List<Transform> spawn_transforms = new List<Transform>();
         [KSPField] public string SpawnTransforms;
 
-        ATGroundAnchor anchor;
+        private ATGroundAnchor anchor;
 
-        public override void OnStart(StartState state)
+        public override void OnStart(StartState startState)
         {
-            base.OnStart(state);
+            base.OnStart(startState);
             anchor = part.FindModuleImplementing<ATGroundAnchor>();
-            if(!string.IsNullOrEmpty(SpawnTransforms))
+            if(string.IsNullOrEmpty(SpawnTransforms))
+                return;
+            foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
             {
-                foreach(var t in Utils.ParseLine(SpawnTransforms, Utils.Whitespace))
-                {
-                    var transforms = part.FindModelTransforms(t);
-                    if(transforms == null || transforms.Length == 0)
-                        continue;
-                    spawn_transforms.AddRange(transforms);
-                }
+                var transforms = part.FindModelTransforms(t);
+                if(transforms == null || transforms.Length == 0)
+                    continue;
+                spawn_transforms.AddRange(transforms);
             }
         }
 
@@ -54,11 +53,8 @@ namespace GroundConstruction
                     i++)
                 {
                     var T = spawn_transforms[i];
-                    double t_alt;
-                    if(vessel != null)
-                        t_alt = vessel.mainBody.GetAltitude(T.position);
-                    else
-                        t_alt = T.position.y;
+                    var position = T.position;
+                    var t_alt = vessel != null ? vessel.mainBody.GetAltitude(position) : position.y;
                     if(t_alt < alt)
                     {
                         alt = t_alt;
@@ -67,14 +63,6 @@ namespace GroundConstruction
                 }
             }
             return minT;
-        }
-
-        protected override Vector3 get_deployed_size()
-        {
-            var size = kit.ShipMetric.size;
-            if(Facility == EditorFacility.SPH)
-                size = new Vector3(size.x, size.z, size.y);
-            return size;
         }
 
         protected override bool can_deploy()
@@ -88,7 +76,7 @@ namespace GroundConstruction
             }
             if(vessel.srfSpeed > GLB.DeployMaxSpeed)
             {
-                Utils.Message("Cannot deploy construction kit while mooving.");
+                Utils.Message("Cannot deploy construction kit while moving.");
                 return false;
             }
             if(vessel.angularVelocity.sqrMagnitude > GLB.DeployMaxAV)
@@ -99,19 +87,14 @@ namespace GroundConstruction
             return true;
         }
 
-        bool kit_is_settled
-        {
-            get
-            {
-                return vessel.srfSpeed < GLB.DeployMaxSpeed
-                       && vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
-            }
-        }
+        private bool kit_is_settled =>
+            vessel.srfSpeed < GLB.DeployMaxSpeed
+            && vessel.angularVelocity.sqrMagnitude < GLB.DeployMaxAV;
 
-        RealTimer settled_timer = new RealTimer(3);
-        ActionDamper message_damper = new ActionDamper(1);
+        private readonly RealTimer settled_timer = new RealTimer(3);
+        private readonly ActionDamper message_damper = new ActionDamper(1);
 
-        IEnumerable wait_for_ground_contact(string wait_message)
+        private IEnumerable wait_for_ground_contact(string wait_message)
         {
             settled_timer.Reset();
             while(!settled_timer.RunIf(part.GroundContact && kit_is_settled))

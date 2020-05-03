@@ -74,17 +74,17 @@ namespace GroundConstruction
         public VesselKit GetKit(Guid id) => Kit.id == id ? Kit : null;
         public List<VesselKit> GetKits() => new List<VesselKit> { Kit };
 
-        public bool CheckKit(VesselKit kit, string part_name, out float kit2space_ratio)
+        public bool CheckKit(VesselKit vessel_kit, string part_name, out float kit2space_ratio)
         {
             kit2space_ratio = -1;
-            if(!kit)
+            if(!vessel_kit)
                 return false;
-            var kit_part = kit.CreatePart(part_name, part.flagURL, false);
+            var kit_part = vessel_kit.CreatePart(part_name, part.flagURL, false);
             if(kit_part == null)
                 return false;
             var kit_metric = new Metric(kit_part);
             var kit_module = kit_part.FindModuleImplementing<DeployableKitContainer>();
-            var can_construct = kit_module != null && kit_module.CanConstruct(kit);
+            var can_construct = kit_module != null && kit_module.CanConstruct(vessel_kit);
             DestroyImmediate(kit_part.gameObject);
             if(!can_construct)
                 return false;
@@ -92,11 +92,11 @@ namespace GroundConstruction
             return SpawnManager.MetricFits(kit_metric);
         }
 
-        public void SetKit(VesselKit kit, string part_name)
+        public void SetKit(VesselKit vessel_kit, string part_name)
         {
-            if(kit != null)
+            if(vessel_kit != null)
             {
-                Kit = kit;
+                Kit = vessel_kit;
                 KitPart = part_name;
                 Kit.Host = this;
                 can_construct_in_situ = CanConstruct(Kit);
@@ -255,10 +255,10 @@ namespace GroundConstruction
         #endregion
 
         #region IConstructionSpace
-        public bool CanConstruct(VesselKit kit) =>
-            (!kit.HasLaunchClamps
+        public bool CanConstruct(VesselKit vessel_kit) =>
+            (!vessel_kit.HasLaunchClamps
              && SpawnManager != null
-             && SpawnManager.MetricFits(kit.ShipMetric));
+             && SpawnManager.MetricFits(vessel_kit.ShipMetric));
 
         bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
         public bool ConstructionComplete => Kit && Kit.Complete;
