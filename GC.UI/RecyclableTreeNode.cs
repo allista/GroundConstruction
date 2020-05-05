@@ -104,14 +104,14 @@ namespace GC.UI
         {
             if(info == null)
                 yield break;
-            subnodesToggle.SetInteractable(false);
+            subnodesToggle.interactable = false;
             foreach(var childInfo in info.GetChildren())
             {
                 add_subnode(childInfo);
                 yield return null;
             }
             subnodes.gameObject.SetActive(true);
-            subnodesToggle.SetInteractable(true);
+            subnodesToggle.interactable = true;
         }
 
         private void hide_subnodes()
