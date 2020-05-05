@@ -1,4 +1,4 @@
-//   PartTreeNode.cs
+﻿//   PartTreeNode.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -116,10 +116,10 @@ namespace GC.UI
 
         private void hide_subnodes()
         {
-                children.Clear();
-                subnodes.gameObject.SetActive(false);
-                for(var i = subnodes.childCount - 1; i >= 0; i--)
-                    Destroy(subnodes.GetChild(i).gameObject);
+            children.Clear();
+            subnodes.gameObject.SetActive(false);
+            for(var i = subnodes.childCount - 1; i >= 0; i--)
+                Destroy(subnodes.GetChild(i).gameObject);
         }
 
         private static IEnumerator<YieldInstruction> find_children(
