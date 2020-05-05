@@ -215,8 +215,9 @@ namespace GC.UI
 
         private void on_recycled(bool success)
         {
-            if(success)
-                Destroy(gameObject);
+            if(!success || this == null || gameObject == null)
+                return;
+            Destroy(gameObject);
         }
 
         private void recycle()
