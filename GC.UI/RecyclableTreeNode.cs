@@ -1,4 +1,4 @@
-﻿//   PartTreeNode.cs
+//   PartTreeNode.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -82,6 +82,14 @@ namespace GC.UI
             children[child_info.ID] = subnode;
             subnodeObj.SetActive(true);
             return subnode;
+        }
+
+        private void remove_subnode(uint ID)
+        {
+            if(!children.TryGetValue(ID, out var node))
+                return;
+            Destroy(node.gameObject);
+            children.Remove(ID);
         }
 
         private void toggle_submodules(bool show)
@@ -196,7 +204,7 @@ namespace GC.UI
                 foreach(var pid in children.Keys.ToList())
                 {
                     if(!ids.Contains(pid))
-                        Destroy(children[pid]);
+                        remove_subnode(pid);
                 }
                 if(children.Count == 0)
                     subnodesToggle.isOn = false;
