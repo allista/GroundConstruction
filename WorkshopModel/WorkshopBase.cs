@@ -1,4 +1,4 @@
-﻿//   WorkshopBase.cs
+//   WorkshopBase.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -112,21 +112,7 @@ namespace GroundConstruction
         protected virtual void update_max_workforce() =>
         max_workforce = part.CrewCapacity * KerbalRoster.GetExperienceMaxLevel();
 
-        protected virtual void update_workforce<E>()
-            where E : ExperienceEffect
-        {
-            workforce = 0;
-            foreach(var kerbal in part.protoModuleCrew)
-            {
-                var trait = kerbal.experienceTrait;
-                for(int i = 0, traitEffectsCount = trait.Effects.Count; i < traitEffectsCount; i++)
-                    if(trait.Effects[i] is E)
-                    {
-                        workforce += Mathf.Max(trait.CrewMemberExperienceLevel(), 0.5f);
-                        break;
-                    }
-            }
-        }
+        protected abstract void update_workforce();
 
         protected abstract void start();
 
@@ -141,20 +127,6 @@ namespace GroundConstruction
             checkin();
         }
         protected virtual void on_stop(bool reset) { }
-
-        protected double get_delta_time()
-        {
-            if(Time.timeSinceLevelLoad < 1 || !FlightGlobals.ready) return -1;
-            if(LastUpdateTime < 0)
-            {
-                LastUpdateTime = Planetarium.GetUniversalTime();
-                return TimeWarp.fixedDeltaTime;
-            }
-            var time = Planetarium.GetUniversalTime();
-            var dT = time - LastUpdateTime;
-            LastUpdateTime = time;
-            return dT;
-        }
 
         protected virtual bool can_construct()
         {
@@ -301,7 +273,8 @@ namespace GroundConstruction
 
         protected Type worker_effect => typeof(E);
 
-        protected virtual void update_workforce() => update_workforce<E>();
+        protected override void update_workforce() => 
+            workforce = ConstructionUtils.PartWorkforce<E>(part, 0.5f);
 
         protected void update_and_checkin(Vessel vsl)
         {
@@ -431,7 +404,7 @@ namespace GroundConstruction
                 stop();
                 return;
             }
-            var deltaTime = get_delta_time();
+            var deltaTime = ConstructionUtils.GetDeltaTime(ref LastUpdateTime);
             if(deltaTime < 0)
                 return;
             //check current kit
