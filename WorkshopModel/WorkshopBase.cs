@@ -1,9 +1,10 @@
-//   WorkshopBase.cs
+﻿//   WorkshopBase.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2017 Allis Tauri
+
 using System;
 using System.Linq;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace GroundConstruction
 
     public abstract class WorkshopBase : PartModule
     {
-        protected static Globals GLB { get { return Globals.Instance; } }
+        protected static Globals GLB => Globals.Instance;
 
         protected float workforce = 0;
         protected float max_workforce = 0;
@@ -47,42 +48,38 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public double LastUpdateTime = -1;
         [KSPField(isPersistant = true)] public double EndUT = -1;
 
-        public bool isOperable
-        {
-            get
-            {
-                var status = string.Empty;
-                return IsOperable(vessel, workshopType, ref status);
-            }
-        }
+        public bool isOperable => IsOperable(vessel, workshopType, out _);
 
         public abstract string Stage_Display { get; }
 
         public string ETA_Display { get; protected set; } = "Stalled...";
 
-        public string Workforce_Display =>
-        string.Format("Workforce: {0:F1}/{1:F1} SK", workforce, max_workforce);
+        public string Workforce_Display => $"Workforce: {workforce:F1}/{max_workforce:F1} SK";
 
         public float Workforce => workforce;
         public virtual float EffectiveWorkforce => workforce;
 
-        public static bool IsOperable(Vessel vsl, WorkshopType workshopType, ref string status)
+        public static bool IsOperable(Vessel vsl, WorkshopType workshopType, out string status)
         {
             status = string.Empty;
+            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch(workshopType)
             {
-            case WorkshopType.OMNI:
-                return true;
-            case WorkshopType.GROUND:
-                if(vsl.Landed) return true;
-                status = "The workshop can only operate when the vessel is landed";
-                return false;
-            case WorkshopType.ORBITAL:
-                if(vsl.InOrbit()) return true;
-                status = "The workshop can only operate when the vessel is in orbit";
-                return false;
+                case WorkshopType.OMNI:
+                    return true;
+                case WorkshopType.GROUND:
+                    if(vsl.Landed)
+                        return true;
+                    status = "The workshop can only operate when the vessel is landed";
+                    return false;
+                case WorkshopType.ORBITAL:
+                    if(vsl.InOrbit())
+                        return true;
+                    status = "The workshop can only operate when the vessel is in orbit";
+                    return false;
+                default:
+                    return false;
             }
-            return false;
         }
 
         public abstract IWorkshopTask GetCurrentTask();
@@ -91,13 +88,15 @@ namespace GroundConstruction
 
         protected virtual void onVesselPacked(Vessel vsl)
         {
-            if(vsl != vessel) return;
+            if(vsl != vessel)
+                return;
             loadedUT = -1;
         }
 
         protected virtual void onVesselUpacked(Vessel vsl)
         {
-            if(vsl != vessel) return;
+            if(vsl != vessel)
+                return;
             loadedUT = Planetarium.GetUniversalTime();
         }
 
@@ -110,7 +109,7 @@ namespace GroundConstruction
         }
 
         protected virtual void update_max_workforce() =>
-        max_workforce = part.CrewCapacity * KerbalRoster.GetExperienceMaxLevel();
+            max_workforce = part.CrewCapacity * KerbalRoster.GetExperienceMaxLevel();
 
         protected abstract void update_workforce();
 
@@ -126,6 +125,7 @@ namespace GroundConstruction
             on_stop(reset);
             checkin();
         }
+
         protected virtual void on_stop(bool reset) { }
 
         protected virtual bool can_construct()
@@ -137,8 +137,7 @@ namespace GroundConstruction
             }
             if(loadedUT < 0 || Planetarium.GetUniversalTime() - loadedUT < 3)
                 return true;
-            var status = string.Empty;
-            if(!IsOperable(vessel, workshopType, ref status))
+            if(!IsOperable(vessel, workshopType, out var status))
             {
                 Utils.Message("{0}: {1}", part.Title(), status);
                 return false;
@@ -199,23 +198,31 @@ namespace GroundConstruction
 
         [KSPEvent(guiName = "Workshop Window", guiActive = true, active = true)]
         public void ToggleWindow()
-        { show_window = !show_window; }
+        {
+            show_window = !show_window;
+        }
 
         protected abstract void draw();
         protected virtual void unlock() { }
 
-        protected void BeginScroll(int num_items, ref Vector2 scroll_pos,
-                                   int row_height = 60, int max_rows = 2)
+        protected static void BeginScroll(
+            int num_items,
+            ref Vector2 scroll_pos,
+            int row_height = 60,
+            int max_rows = 2
+        )
         {
             scroll_pos = GUILayout.BeginScrollView(scroll_pos,
-                                                   GUILayout.Height(row_height * Math.Min(num_items, max_rows)),
-                                                   GUILayout.Width(width));
+                GUILayout.Height(row_height * Math.Min(num_items, max_rows)),
+                GUILayout.Width(width));
         }
 
-        void OnGUI()
+        private void OnGUI()
         {
-            if(Time.timeSinceLevelLoad < 3) return;
-            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
+            if(Time.timeSinceLevelLoad < 3)
+                return;
+            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint)
+                return;
             if(show_window && GUIWindowBase.HUD_enabled && vessel.isActiveVessel)
             {
                 Styles.Init();
@@ -228,18 +235,19 @@ namespace GroundConstruction
             }
         }
 
-        public string DeployableStatus(IDeployable deployable)
+        public static string DeployableStatus(IDeployable deployable)
         {
             switch(deployable.State)
             {
-            case DeploymentState.IDLE:
-                return "Idle";
-            case DeploymentState.DEPLOYING:
-                return "Deploying";
-            case DeploymentState.DEPLOYED:
-                return "Deployed";
+                case DeploymentState.IDLE:
+                    return "Idle";
+                case DeploymentState.DEPLOYING:
+                    return "Deploying";
+                case DeploymentState.DEPLOYED:
+                    return "Deployed";
+                default:
+                    return "";
             }
-            return "";
         }
         #endregion
     }
@@ -255,8 +263,7 @@ namespace GroundConstruction
 
         public override void StartTask(IWorkshopTask task)
         {
-            if(task is T Task && CurrentTask.ID != Task.ID &&
-               check_task(Task) && init_task(Task))
+            if(task is T Task && CurrentTask.ID != Task.ID && check_task(Task) && init_task(Task))
             {
                 if(CurrentTask.Valid)
                 {
@@ -278,8 +285,7 @@ namespace GroundConstruction
 
         protected void update_and_checkin(Vessel vsl)
         {
-            if(vsl != null && vsl == vessel &&
-               part.started && isEnabled)
+            if(vsl != null && vsl == vessel && part.started && isEnabled)
             {
                 if(Working && CurrentTask.Recheck())
                     update_ETA();
@@ -297,10 +303,12 @@ namespace GroundConstruction
             on_start();
             checkin();
         }
+
         protected virtual void on_start() { }
 
         protected virtual bool check_task(T task) => task.Recheck();
         protected abstract bool init_task(T task);
+
         protected override bool start_next_item()
         {
             reset_current_task();
@@ -341,7 +349,8 @@ namespace GroundConstruction
 
         protected virtual void update_ui_data()
         {
-            if(Queue.Count == 0) return;
+            if(Queue.Count == 0)
+                return;
             Queue = new PersistentQueue<T>(Queue.Where(task => check_task(task) && !task.Complete));
         }
 
@@ -368,9 +377,10 @@ namespace GroundConstruction
             }
         }
 
-        void Update()
+        private void Update()
         {
-            if(!HighLogic.LoadedSceneIsFlight) return;
+            if(!HighLogic.LoadedSceneIsFlight)
+                return;
             if(!FlightDriver.Pause && FlightGlobals.ready && Time.timeSinceLevelLoad > 1)
             {
                 if(CurrentTask.Valid)
@@ -380,8 +390,10 @@ namespace GroundConstruction
                         //update ETA if working
                         if(Working)
                         {
-                            if(can_construct()) update_ETA();
-                            else stop();
+                            if(can_construct())
+                                update_ETA();
+                            else
+                                stop();
                         }
                         else if(CurrentTask.Complete)
                             stop(true);
@@ -395,9 +407,9 @@ namespace GroundConstruction
             on_update();
         }
 
-        void FixedUpdate()
+        private void FixedUpdate()
         {
-            if(!Working || !HighLogic.LoadedSceneIsFlight) 
+            if(!Working || !HighLogic.LoadedSceneIsFlight)
                 return;
             if(EffectiveWorkforce.Equals(0))
             {
@@ -458,9 +470,7 @@ namespace GroundConstruction
             {
                 foreach(var p in highlighted_parts)
                 {
-                    if(p != null &&
-                       (highlight_part == null ||
-                        p != highlight_part))
+                    if(p != null && (highlight_part == null || p != highlight_part))
                     {
                         p.SetHighlightDefault();
                     }
@@ -477,7 +487,8 @@ namespace GroundConstruction
                 selected_task = null;
         }
 
-        Vector2 queue_scroll = Vector2.zero;
+        private Vector2 queue_scroll = Vector2.zero;
+
         protected virtual void queue_pane()
         {
             if(Queue.Count > 0)
@@ -492,10 +503,12 @@ namespace GroundConstruction
                     GUILayout.BeginHorizontal();
                     draw_task(task);
                     if(GUILayout.Button(new GUIContent("^", "Move up"),
-                                        Styles.normal_button, GUILayout.Width(25)))
+                        Styles.normal_button,
+                        GUILayout.Width(25)))
                         up = task;
                     if(GUILayout.Button(new GUIContent("X", "Remove from Queue"),
-                                        Styles.danger_button, GUILayout.Width(25)))
+                        Styles.danger_button,
+                        GUILayout.Width(25)))
                         del = task;
                     GUILayout.EndHorizontal();
                 }
@@ -504,7 +517,8 @@ namespace GroundConstruction
                     Queue.Remove(del);
                     clear_if_selected(del);
                 }
-                else if(up != null) Queue.MoveUp(up);
+                else if(up != null)
+                    Queue.MoveUp(up);
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
             }
@@ -512,4 +526,3 @@ namespace GroundConstruction
         #endregion
     }
 }
-
