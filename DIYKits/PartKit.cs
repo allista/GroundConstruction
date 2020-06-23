@@ -32,8 +32,8 @@ namespace GroundConstruction
             Name = name;
             craftID = 0;
             PseudoPart = true;
-            Mass.Add(assembly_fraction, mass);
-            Cost.Add(assembly_fraction, cost);
+            Mass.Add(1, mass);
+            Cost.Add(1, cost);
             Complexity = assembly_fraction;
             var assembly_mass = mass * assembly_fraction;
             var assembly_work = additional_work * assembly_fraction;
