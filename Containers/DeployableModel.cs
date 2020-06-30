@@ -259,6 +259,7 @@ namespace GroundConstruction
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
             showDeploymentETA(false);
+            TimeWarp.SetRate(0, false);
         }
 
         public virtual bool IsJointUnlocked()
