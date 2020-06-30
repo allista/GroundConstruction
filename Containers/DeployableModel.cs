@@ -316,7 +316,7 @@ namespace GroundConstruction
                     if(metric_mesh != null)
                         metric = new Metric(metric_mesh, part.transform);
                     else
-                        this.Log("[WARNING] MeshMetric: no such MeshFilter: {}", MetricMesh);
+                        this.Warning($"MeshMetric: no such MeshFilter: {MetricMesh.GetID()}");
                 }
                 if(metric.Empty)
                     metric = part_metric;
