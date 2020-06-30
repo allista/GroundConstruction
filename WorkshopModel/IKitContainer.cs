@@ -43,6 +43,7 @@ namespace GroundConstruction
     public interface IDeployable : IJointLockState
     {
         DeploymentState State { get; }
+        string DeploymentInfo { get; }
         void Deploy();
     }
 

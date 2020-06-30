@@ -242,7 +242,7 @@ namespace GroundConstruction
                 case DeploymentState.IDLE:
                     return "Idle";
                 case DeploymentState.DEPLOYING:
-                    return "Deploying";
+                    return $"Deploying\n{deployable.DeploymentInfo}";
                 case DeploymentState.DEPLOYED:
                     return "Deployed";
                 default:

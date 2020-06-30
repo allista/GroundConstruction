@@ -51,6 +51,12 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public Vector3 TargetSize;
         [KSPField(isPersistant = true)] public DeploymentState state;
         [KSPField(isPersistant = true)] public bool ShowDeployHint;
+
+        [KSPField(guiName = "Deployment", guiActive = true)]
+        public string DeploymentETA;
+
+        public string DeploymentInfo => DeploymentETA;
+
         bool just_started;
 
         protected SimpleWarning warning;
@@ -58,6 +64,12 @@ namespace GroundConstruction
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
         public DeploymentState State => state;
+
+        private void showDeploymentETA(bool show = true)
+        {
+            DeploymentETA = string.Empty;
+            Fields[nameof(DeploymentETA)].guiActive = show;
+        }
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
@@ -192,6 +204,7 @@ namespace GroundConstruction
                 yield break;
             foreach(var i in prepare_resize())
                 yield return i;
+            showDeploymentETA();
             var start = Size;
             var time = 0f;
             var speed = Mathf.Min(GLB.MaxDeploymentMomentum
@@ -218,10 +231,19 @@ namespace GroundConstruction
             change_servos_lock(false);
             GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
             yield return null;
+            var timeRemaining = 1 / speed;
+            var timeDisplay = timeRemaining;
+            DeploymentETA = Utils.formatTimeDelta(timeDisplay);
             while(time < 1)
             {
                 var old_size = Size;
                 time += speed * TimeWarp.fixedDeltaTime;
+                timeRemaining -= TimeWarp.fixedDeltaTime;
+                if(timeDisplay - timeRemaining > 1)
+                {
+                    timeDisplay = timeRemaining;
+                    DeploymentETA = Utils.formatTimeDelta(timeDisplay);
+                }
                 Size = Vector3.Lerp(start, TargetSize, time);
                 update_model(true);
                 GameEvents.onActiveJointNeedUpdate.Fire(vessel);
@@ -236,6 +258,7 @@ namespace GroundConstruction
             if(FlightGlobals.overrideOrbit)
                 FlightGlobals.overrideOrbit = false;
             Size = TargetSize;
+            showDeploymentETA(false);
         }
 
         public virtual bool IsJointUnlocked()
@@ -273,6 +296,7 @@ namespace GroundConstruction
         {
             base.OnStart(startState);
             just_started = true;
+            showDeploymentETA(false);
             StartCoroutine(CallbackUtil.DelayedCallback(1, create_deploy_hint_mesh));
             if(State == DeploymentState.DEPLOYING)
                 StartCoroutine(deploy());
