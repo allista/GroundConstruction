@@ -1,6 +1,9 @@
 #Ground Construction ChangeLog
 
-* **v2.6.3**
+* **v.2.6.3.1**
+    * Compiled against KSP-1.10
+
+* v2.6.3
     * Added deployment ETA display to container PAW and workshop window
     * When deployment is finished, time warp is stopped automatically
     * Fixed construction of heat-shields and other parts requiring Ablator
