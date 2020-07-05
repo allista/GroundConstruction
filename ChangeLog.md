@@ -1,15 +1,15 @@
 #Ground Construction ChangeLog
 
 * **v2.6.3**
-  * Added deployment ETA display to container PAW and workshop window
-  * When deployment is finished, time warp is stopped automatically
-  * Fixed construction of heat-shields and other parts requiring Ablator
-  * Moved ConstructionSkill to AT_Utils to also use it
-  in Cargo Accelerators
-  * Fixed USI-LS integration (this time for sure) thanks (again)
-  to @Marschig
-  * Fixed several bugs in Recycler UI
-  * Fixed spot-lights
+    * Added deployment ETA display to container PAW and workshop window
+    * When deployment is finished, time warp is stopped automatically
+    * Fixed construction of heat-shields and other parts requiring Ablator
+    * Moved ConstructionSkill to AT_Utils to also use it
+    in Cargo Accelerators
+    * Fixed USI-LS integration (this time for sure) thanks (again)
+    to @Marschig
+    * Fixed several bugs in Recycler UI
+    * Fixed spot-lights
 
 * v2.6.2
     * Fixed game freeze on opening Recycler node with too many subnodes
