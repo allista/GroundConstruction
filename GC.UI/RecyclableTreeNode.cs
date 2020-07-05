@@ -84,6 +84,14 @@ namespace GC.UI
             return subnode;
         }
 
+        private void remove_subnode(uint ID)
+        {
+            if(!children.TryGetValue(ID, out var node))
+                return;
+            Destroy(node.gameObject);
+            children.Remove(ID);
+        }
+
         private void toggle_submodules(bool show)
         {
             if(show)
@@ -96,22 +104,22 @@ namespace GC.UI
         {
             if(info == null)
                 yield break;
-            subnodesToggle.SetInteractable(false);
+            subnodesToggle.interactable = false;
             foreach(var childInfo in info.GetChildren())
             {
                 add_subnode(childInfo);
                 yield return null;
             }
             subnodes.gameObject.SetActive(true);
-            subnodesToggle.SetInteractable(true);
+            subnodesToggle.interactable = true;
         }
 
         private void hide_subnodes()
         {
-                children.Clear();
-                subnodes.gameObject.SetActive(false);
-                for(var i = subnodes.childCount - 1; i >= 0; i--)
-                    Destroy(subnodes.GetChild(i).gameObject);
+            children.Clear();
+            subnodes.gameObject.SetActive(false);
+            for(var i = subnodes.childCount - 1; i >= 0; i--)
+                Destroy(subnodes.GetChild(i).gameObject);
         }
 
         private static IEnumerator<YieldInstruction> find_children(
@@ -196,7 +204,7 @@ namespace GC.UI
                 foreach(var pid in children.Keys.ToList())
                 {
                     if(!ids.Contains(pid))
-                        Destroy(children[pid]);
+                        remove_subnode(pid);
                 }
                 if(children.Count == 0)
                     subnodesToggle.isOn = false;
@@ -207,8 +215,9 @@ namespace GC.UI
 
         private void on_recycled(bool success)
         {
-            if(success)
-                Destroy(gameObject);
+            if(!success || this == null || gameObject == null)
+                return;
+            Destroy(gameObject);
         }
 
         private void recycle()

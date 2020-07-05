@@ -37,14 +37,7 @@ namespace GroundConstruction
             }
         }
 
-        public bool isOperable
-        {
-            get
-            {
-                var status = string.Empty;
-                return WorkshopBase.IsOperable(Vessel, workshopTypes, ref status);
-            }
-        }
+        public bool isOperable => WorkshopBase.IsOperable(Vessel, workshopTypes, out _);
 
         void add_protoworkshop(ProtoWorkshop info)
         {

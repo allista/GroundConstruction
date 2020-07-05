@@ -73,7 +73,6 @@
         <Compile Include="Globals.cs" />
         <Compile Include="GroundConstructionScenario.cs" />
         <Compile Include="GCAppToolbar.cs" />
-        <Compile Include="ConstructionSkill.cs" />
         <Compile Include="GCFilterManager.cs" />
         <Compile Include="UI\RecyclerWindow.cs" />
         <Compile Include="VesselInfo.cs" />
