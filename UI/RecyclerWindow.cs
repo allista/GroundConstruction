@@ -184,7 +184,7 @@ namespace GroundConstruction
             var ec = assembly_requirements.energy + construction_requirements.energy;
             Display.requirementsInfo.text =
                 $"Requires: {Utils.formatBigValue((float)ec, " EC")}";
-            Display.subnodesToggle.interactable = children.Count > 0;
+            Display.subnodesToggle.SetInteractable(children.Count > 0);
         }
 
         private void on_recycled(bool _success)
