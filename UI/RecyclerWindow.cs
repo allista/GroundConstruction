@@ -37,14 +37,12 @@ namespace GroundConstruction
             root_parts = new PartsRegistry(recycler);
             GameEvents.onVesselWasModified.Add(onVesselModified);
             GameEvents.onVesselCrewWasModified.Add(onRecyclerCrewModified);
-            GameEvents.onGameStateSave.Add(onGameSaved);
         }
 
         ~RecyclerWindow()
         {
             GameEvents.onVesselWasModified.Remove(onVesselModified);
             GameEvents.onVesselCrewWasModified.Remove(onRecyclerCrewModified);
-            GameEvents.onGameStateSave.Remove(onGameSaved);
         }
 
         public void SetVessels(IEnumerable<Vessel> vessels)
@@ -77,8 +75,6 @@ namespace GroundConstruction
             if(recycler is PartModule pm && pm.vessel == vsl)
                 Update();
         }
-
-        private void onGameSaved(ConfigNode _config_node) => this.SaveState();
 
         private void on_add_root(RecyclablePart rp)
         {
