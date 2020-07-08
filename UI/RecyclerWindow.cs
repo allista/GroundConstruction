@@ -97,6 +97,7 @@ namespace GroundConstruction
 
         protected override void init_controller()
         {
+            base.init_controller();
             root_parts.ForEach(rp =>
             {
                 rp.Update();
