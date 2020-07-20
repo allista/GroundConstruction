@@ -1,4 +1,4 @@
-//   DeployableModel.cs
+﻿//   DeployableModel.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -398,24 +398,21 @@ namespace GroundConstruction
         protected Bounds get_deployed_part_bounds(bool to_model_space)
         {
             var T = get_deploy_transform(Vector3.zero, out _);
-            if(T != null)
-            {
-                var depl_size = get_deployed_part_size();
-                if (!depl_size.IsZero())
-                {
-                    var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
-                    var part_center = model.TransformPoint(PartCenter);
-                    var growth_point = get_point_of_growth();
-                    var scale = Vector3.Scale(depl_size, part_size.Inverse());
-                    var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
-                    var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
-                    if(to_model_space)
-                        return new Bounds(center.Local2LocalDir(T, model),
-                            depl_size.Local2LocalDir(T, model).AbsComponents());
-                    return new Bounds(center, depl_size);    
-                }
-            }
-            return default(Bounds);
+            if(T == null)
+                return default;
+            var deployed_size = get_deployed_part_size();
+            if(deployed_size.IsZero())
+                return default;
+            var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
+            var part_center = model.TransformPoint(PartCenter);
+            var growth_point = get_point_of_growth();
+            var scale = Vector3.Scale(deployed_size, part_size.Inverse());
+            var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
+            var centerW = growth_point + T.TransformDirection(growth);
+            return to_model_space
+                ? new Bounds(model.InverseTransformPointUnscaled(centerW),
+                    deployed_size.Local2LocalDir(T, model).AbsComponents())
+                : new Bounds(T.InverseTransformPointUnscaled(centerW), deployed_size);
         }
 
         protected virtual void create_deploy_hint_mesh()
@@ -468,14 +465,17 @@ namespace GroundConstruction
                 for(int j = 0, pMhullPointsCount = pM.hull.Points.Count; j < pMhullPointsCount; j++)
                 {
                     var c = pM.hull.Points[j];
-                    var lc = model.InverseTransformDirection(c - model.position);
-                    if(B.Contains(lc))
+                    var lc = model.InverseTransformPointUnscaled(c);
+                    if(!B.Contains(lc))
+                        continue;
+                    p.HighlightAlways(Colors.Danger.color);
+                    StartCoroutine(CallbackUtil.DelayedCallback(3f, _p =>
                     {
-                        p.HighlightAlways(Colors.Danger.color);
-                        StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
-                        ShowDeployHint = true;
-                        return true;
-                    }
+                        if(_p != null)
+                            _p.SetHighlightDefault();
+                    }, p));
+                    ShowDeployHint = true;
+                    return true;
                 }
             }
             return false;
