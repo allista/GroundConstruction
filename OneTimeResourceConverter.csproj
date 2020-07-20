@@ -33,7 +33,7 @@
         <WarningLevel>4</WarningLevel>
         <DefineConstants>NIGHTBUILD</DefineConstants>
     </PropertyGroup>
-    <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets"/>
+    <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
     <ItemGroup>
         <Reference Include="Assembly-CSharp">
             <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -75,6 +75,10 @@
             <Name>ConfigurableContainers</Name>
             <Private>False</Private>
         </ProjectReference>
+        <ProjectReference Include="..\AT_Utils\Unity\AT_Utils.UI.csproj">
+          <Project>{0b711e55-8312-144f-53ad-eda5a8cee04a}</Project>
+          <Name>AT_Utils.UI</Name>
+        </ProjectReference>
         <ProjectReference Include="GroundConstruction.csproj">
             <Project>{EF214F4D-30E8-47E6-AD75-50679ADA77E3}</Project>
             <Name>GroundConstruction</Name>
@@ -82,7 +86,7 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Properties\AssemblyInfo-OTRC.cs"/>
-        <Compile Include="OneTimeResourceConverter.cs"/>
+        <Compile Include="Properties\AssemblyInfo-OTRC.cs" />
+        <Compile Include="OneTimeResourceConverter.cs" />
     </ItemGroup>
 </Project>

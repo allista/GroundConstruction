@@ -175,20 +175,20 @@ namespace GroundConstruction
 
         public override void Deploy()
         {
-            warning.Message = "Deployment cannot be undone.";
+            var warning = StringBuilderCache.Acquire();
+            warning.AppendLine("Deployment cannot be undone.");
             if(kit && kit.DockingPossible)
             {
                 if(ConstructDockingNode >= 0)
-                    warning.Message +=
-                        Colors.Warning.Tag(
-                            "\nYou have chosen to <b>dock the vessel</b> after construction.");
+                    warning.AppendLine(
+                        $"You have chosen to <b>{Colors.Warning.Tag("dock the vessel")}</b> after construction.");
                 else
-                    warning.Message +=
-                        Colors.Warning.Tag(
-                            "\nYou have chosen to <b>launch the vessel</b> after construction.");
-                warning.Message += "\nYou cannot change it after deployment.";
+                    warning.AppendLine(
+                        $"You have chosen to <b>{Colors.Warning.Tag("launch the vessel")}</b> after construction.");
+                warning.AppendLine("You cannot change it after deployment.");
             }
-            warning.Message += "\nAre you sure?";
+            warning.AppendLine("Are you sure?");
+            deploymentWarning = warning.ToStringAndRelease();
             base.Deploy();
         }
 

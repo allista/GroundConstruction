@@ -1,4 +1,4 @@
-﻿//   DeployableModel.cs
+//   DeployableModel.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -58,8 +58,6 @@ namespace GroundConstruction
         public string DeploymentInfo => DeploymentETA;
 
         bool just_started;
-
-        protected SimpleWarning warning;
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
@@ -271,9 +269,6 @@ namespace GroundConstruction
         {
             base.OnAwake();
             scenery_mask = Utils.GetLayer("Local Scenery");
-            warning = gameObject.AddComponent<SimpleWarning>();
-            warning.Message = "Deployment cannot be undone.\nAre you sure?";
-            warning.yesCallback = start_deployment;
             model = part.transform.Find("model");
             //add deploy hints
             var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
@@ -290,7 +285,6 @@ namespace GroundConstruction
         protected virtual void OnDestroy()
         {
             Destroy(deploy_hint_mesh.gameObject);
-            Destroy(warning);
         }
 
         public override void OnStart(StartState startState)
@@ -512,21 +506,27 @@ namespace GroundConstruction
             StartCoroutine(deploy());
         }
 
+
+        protected string deploymentWarning = "Deployment cannot be undone.\nAre you sure?";
+        private void showDeploymentWarning(object context) =>
+            DialogFactory.Danger(deploymentWarning, start_deployment, context: context);
+
         public virtual void Deploy()
         {
-            if(can_deploy())
+            if(!can_deploy())
+                return;
+            if(same_vessel_collision_if_deployed())
             {
-                if(same_vessel_collision_if_deployed())
-                {
-                    warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
-                        " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
-                        "will not collide with anything when launched.\n" +
-                        Colors.Danger.Tag("Start the deployment?"),
-                    () => warning.Show(true));
-                }
-                else
-                    warning.Show(true);
+                DialogFactory.Danger(Name
+                                     + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>")
+                                     + " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel "
+                                     + "will not collide with anything when launched.\n"
+                                     + Colors.Danger.Tag("Start the deployment?"),
+                    () => showDeploymentWarning($"{GetInstanceID()}-deployment-warning"),
+                    context: this);
             }
+            else
+                showDeploymentWarning(this);
         }
         #endregion
 
