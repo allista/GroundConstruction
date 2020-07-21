@@ -188,7 +188,7 @@ namespace GroundConstruction
                 warning.AppendLine("You cannot change it after deployment.");
             }
             warning.AppendLine("Are you sure?");
-            deploymentWarning = warning.ToStringAndRelease();
+            deploymentWarning = warning.ToStringAndRelease().Trim();
             base.Deploy();
         }
 
