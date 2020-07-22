@@ -2,6 +2,7 @@
 
 
 * **v2.6.4**
+    * **Fixed ship loading into kits**
     * Fixed the _same vessel collision if deployed_ check
     * Using new uGUI dialogs from AT_Utils
     * Adapted to changes in AT_Utils
