@@ -37,14 +37,12 @@ namespace GroundConstruction
             root_parts = new PartsRegistry(recycler);
             GameEvents.onVesselWasModified.Add(onVesselModified);
             GameEvents.onVesselCrewWasModified.Add(onRecyclerCrewModified);
-            GameEvents.onGameStateSave.Add(onGameSaved);
         }
 
         ~RecyclerWindow()
         {
             GameEvents.onVesselWasModified.Remove(onVesselModified);
             GameEvents.onVesselCrewWasModified.Remove(onRecyclerCrewModified);
-            GameEvents.onGameStateSave.Remove(onGameSaved);
         }
 
         public void SetVessels(IEnumerable<Vessel> vessels)
@@ -78,8 +76,6 @@ namespace GroundConstruction
                 Update();
         }
 
-        private void onGameSaved(ConfigNode _config_node) => this.SaveState();
-
         private void on_add_root(RecyclablePart rp)
         {
             if(Controller == null)
@@ -101,6 +97,7 @@ namespace GroundConstruction
 
         protected override void init_controller()
         {
+            base.init_controller();
             root_parts.ForEach(rp =>
             {
                 rp.Update();
@@ -187,7 +184,7 @@ namespace GroundConstruction
             var ec = assembly_requirements.energy + construction_requirements.energy;
             Display.requirementsInfo.text =
                 $"Requires: {Utils.formatBigValue((float)ec, " EC")}";
-            Display.subnodesToggle.interactable = children.Count > 0;
+            Display.subnodesToggle.SetInteractable(children.Count > 0);
         }
 
         private void on_recycled(bool _success)

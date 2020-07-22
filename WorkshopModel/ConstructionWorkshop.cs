@@ -83,7 +83,6 @@ namespace GroundConstruction
         {
             base.OnStart(state);
             recycler_window = new RecyclerWindow(this);
-            recycler_window.LoadState();
         }
 
         public override void OnAwake()
@@ -95,7 +94,6 @@ namespace GroundConstruction
 
         protected override void OnDestroy()
         {
-            recycler_window?.SaveState();
             recycler_window?.Close();
             Destroy(resources_window);
             Destroy(crew_window);

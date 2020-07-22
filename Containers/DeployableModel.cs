@@ -59,8 +59,6 @@ namespace GroundConstruction
 
         bool just_started;
 
-        protected SimpleWarning warning;
-
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
         public DeploymentState State => state;
@@ -271,9 +269,6 @@ namespace GroundConstruction
         {
             base.OnAwake();
             scenery_mask = Utils.GetLayer("Local Scenery");
-            warning = gameObject.AddComponent<SimpleWarning>();
-            warning.Message = "Deployment cannot be undone.\nAre you sure?";
-            warning.yesCallback = start_deployment;
             model = part.transform.Find("model");
             //add deploy hints
             var obj = new GameObject("DeployHintsMesh", typeof(MeshFilter), typeof(MeshRenderer));
@@ -290,7 +285,6 @@ namespace GroundConstruction
         protected virtual void OnDestroy()
         {
             Destroy(deploy_hint_mesh.gameObject);
-            Destroy(warning);
         }
 
         public override void OnStart(StartState startState)
@@ -404,24 +398,21 @@ namespace GroundConstruction
         protected Bounds get_deployed_part_bounds(bool to_model_space)
         {
             var T = get_deploy_transform(Vector3.zero, out _);
-            if(T != null)
-            {
-                var depl_size = get_deployed_part_size();
-                if (!depl_size.IsZero())
-                {
-                    var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
-                    var part_center = model.TransformPoint(PartCenter);
-                    var growth_point = get_point_of_growth();
-                    var scale = Vector3.Scale(depl_size, part_size.Inverse());
-                    var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
-                    var center = T.InverseTransformPointUnscaled(growth_point+T.TransformDirection(growth));
-                    if(to_model_space)
-                        return new Bounds(center.Local2LocalDir(T, model),
-                            depl_size.Local2LocalDir(T, model).AbsComponents());
-                    return new Bounds(center, depl_size);    
-                }
-            }
-            return default(Bounds);
+            if(T == null)
+                return default;
+            var deployed_size = get_deployed_part_size();
+            if(deployed_size.IsZero())
+                return default;
+            var part_size = Vector3.Scale(Size, metric_to_part_scale).Local2LocalDir(model, T).AbsComponents();
+            var part_center = model.TransformPoint(PartCenter);
+            var growth_point = get_point_of_growth();
+            var scale = Vector3.Scale(deployed_size, part_size.Inverse());
+            var growth = Vector3.Scale(T.InverseTransformDirection(part_center - growth_point), scale);
+            var centerW = growth_point + T.TransformDirection(growth);
+            return to_model_space
+                ? new Bounds(model.InverseTransformPointUnscaled(centerW),
+                    deployed_size.Local2LocalDir(T, model).AbsComponents())
+                : new Bounds(T.InverseTransformPointUnscaled(centerW), deployed_size);
         }
 
         protected virtual void create_deploy_hint_mesh()
@@ -474,14 +465,17 @@ namespace GroundConstruction
                 for(int j = 0, pMhullPointsCount = pM.hull.Points.Count; j < pMhullPointsCount; j++)
                 {
                     var c = pM.hull.Points[j];
-                    var lc = model.InverseTransformDirection(c - model.position);
-                    if(B.Contains(lc))
+                    var lc = model.InverseTransformPointUnscaled(c);
+                    if(!B.Contains(lc))
+                        continue;
+                    p.HighlightAlways(Colors.Danger.color);
+                    StartCoroutine(CallbackUtil.DelayedCallback(3f, _p =>
                     {
-                        p.HighlightAlways(Colors.Danger.color);
-                        StartCoroutine(CallbackUtil.DelayedCallback(3f, () => p?.SetHighlightDefault()));
-                        ShowDeployHint = true;
-                        return true;
-                    }
+                        if(_p != null)
+                            _p.SetHighlightDefault();
+                    }, p));
+                    ShowDeployHint = true;
+                    return true;
                 }
             }
             return false;
@@ -512,21 +506,27 @@ namespace GroundConstruction
             StartCoroutine(deploy());
         }
 
+
+        protected string deploymentWarning = "Deployment cannot be undone.\nAre you sure?";
+        private void showDeploymentWarning(object context) =>
+            DialogFactory.Danger(deploymentWarning, start_deployment, context: context);
+
         public virtual void Deploy()
         {
-            if(can_deploy())
+            if(!can_deploy())
+                return;
+            if(same_vessel_collision_if_deployed())
             {
-                if(same_vessel_collision_if_deployed())
-                {
-                    warning.Show(Name + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>") +
-                        " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel " +
-                        "will not collide with anything when launched.\n" +
-                        Colors.Danger.Tag("Start the deployment?"),
-                    () => warning.Show(true));
-                }
-                else
-                    warning.Show(true);
+                DialogFactory.Danger(Name
+                                     + Colors.Warning.Tag(" <b>will intersect other parts of the vessel</b>")
+                                     + " if deployed.\nYou may proceed with the deployment if you are sure the constructed vessel "
+                                     + "will not collide with anything when launched.\n"
+                                     + Colors.Danger.Tag("Start the deployment?"),
+                    () => showDeploymentWarning($"{GetInstanceID()}-deployment-warning"),
+                    context: this);
             }
+            else
+                showDeploymentWarning(this);
         }
         #endregion
 

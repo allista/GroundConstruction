@@ -8,6 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using AT_Utils;
+using AT_Utils.UI;
 
 namespace GroundConstruction
 {
@@ -15,23 +16,6 @@ namespace GroundConstruction
     {
         [KSPField] public string ConvertFrom = "";
         PartResourceDefinition old_res;
-
-        public override void OnAwake()
-        {
-            base.OnAwake();
-            warning = gameObject.AddComponent<SimpleWarning>();
-            warning.yesCallback = () =>
-            {
-                StartCoroutine(convert_vessel(to_convert));
-                to_convert = null;
-            };
-            warning.noCallback = () => to_convert = null;
-        }
-
-        void OnDestroy()
-        {
-            Destroy(warning);
-        }
 
         public override void OnStart(StartState state)
         {
@@ -47,7 +31,7 @@ namespace GroundConstruction
             }
         }
 
-        Vessel to_convert = null;
+        Vessel to_convert;
         IEnumerator<YieldInstruction> convert_vessel(Vessel vsl)
         {
             yield return null;
@@ -135,7 +119,6 @@ namespace GroundConstruction
         const float height = 150;
         Rect WindowPos = new Rect((Screen.width - width) / 2, Screen.height / 4, width, height * 4);
         Vector2 vessels_scroll = Vector2.zero;
-        SimpleWarning warning;
 
         void main_window(int WindowID)
         {
@@ -150,13 +133,18 @@ namespace GroundConstruction
                     if(to_convert == null)
                     {
                         to_convert = vsl;
-                        warning.Message = string.Format(
-                            "This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n" +
-                            "<color=red><b>This cannot be undone!</b></color>\n" +
-                            "It is best that you <b>save the game</b> before doing this.\n" +
-                            "Are you sure you wish to continue?",
-                            old_res.name, Globals.Instance.ConstructionResource.name);
-                        warning.Show(true);
+                        DialogFactory.Danger(
+                            string.Format(
+                                "This will convert '{0}' resource into '{1}' by mass in every part that contains it.\n"
+                                + "<color=red><b>This cannot be undone!</b></color>\n"
+                                + "It is best that you <b>save the game</b> before doing this.\n"
+                                + "Are you sure you wish to continue?",
+                                old_res.name,
+                                Globals.Instance.ConstructionResource.name),
+                            () => StartCoroutine(convert_vessel(to_convert)),
+                            onClose: () => to_convert = null,
+                            context: this
+                        );
                     }
                 }
                 GUILayout.EndHorizontal();
