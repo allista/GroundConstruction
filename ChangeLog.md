@@ -1,6 +1,12 @@
-#Ground Construction ChangeLog
+# Ground Construction ChangeLog
 
-* **v.2.6.3.1**
+
+* **v2.6.4**
+    * Fixed the _same vessel collision if deployed_ check
+    * Using new uGUI dialogs from AT_Utils
+    * Adapted to changes in AT_Utils
+
+* v2.6.3.1
     * Compiled against KSP-1.10
 
 * v2.6.3
