@@ -1,4 +1,4 @@
-﻿//   GCEditorGUI.cs
+//   GCEditorGUI.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
@@ -77,7 +77,7 @@ namespace GroundConstruction
 
         void Update()
         {
-            var ship = EditorLogic.fetch?.ship;
+            var ship = EditorLogic.fetch != null? EditorLogic.fetch.ship : null;
             if(update)
             {
                 highlight_all = all_highlighted;
