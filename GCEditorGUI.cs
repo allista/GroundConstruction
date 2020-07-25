@@ -1,16 +1,15 @@
-//   GCEditorGUI.cs
+﻿//   GCEditorGUI.cs
 //
 //  Author:
 //       Allis Tauri <allista@gmail.com>
 //
 //  Copyright (c) 2019 Allis Tauri
 
-using System;
-using UnityEngine;
+using System.Collections.Generic;
 using AT_Utils;
 using AT_Utils.UI;
 using KSP.UI.Screens;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace GroundConstruction
 {
