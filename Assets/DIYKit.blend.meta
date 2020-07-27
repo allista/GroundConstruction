@@ -1,0 +1,146 @@
+fileFormatVersion: 2
+guid: 66c5368fe7ddf244bb8122aa9cae2c03
+timeCreated: 1480433138
+licenseType: Free
+ModelImporter:
+  serializedVersion: 21
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: hull-collider
+    100004: launch-position_000
+    100006: launch-position_001
+    100008: launch-position_002
+    100010: launch-position_003
+    100012: launch-position_004
+    100014: launch-position_005
+    100016: rib-collider
+    100018: rib-collider_001
+    100020: rib-collider_002
+    100022: rib-collider_003
+    100024: rib-collider_004
+    100026: rib-collider_005
+    100028: rib-collider_006
+    100030: rib-collider_007
+    400000: //RootNode
+    400002: hull-collider
+    400004: launch-position_000
+    400006: launch-position_001
+    400008: launch-position_002
+    400010: launch-position_003
+    400012: launch-position_004
+    400014: launch-position_005
+    400016: rib-collider
+    400018: rib-collider_001
+    400020: rib-collider_002
+    400022: rib-collider_003
+    400024: rib-collider_004
+    400026: rib-collider_005
+    400028: rib-collider_006
+    400030: rib-collider_007
+    2300000: //RootNode
+    2300002: hull-collider
+    2300004: rib-collider
+    2300006: rib-collider_001
+    2300008: rib-collider_002
+    2300010: rib-collider_003
+    2300012: rib-collider_004
+    2300014: rib-collider_005
+    2300016: rib-collider_006
+    2300018: rib-collider_007
+    3300000: //RootNode
+    3300002: hull-collider
+    3300004: rib-collider
+    3300006: rib-collider_001
+    3300008: rib-collider_002
+    3300010: rib-collider_003
+    3300012: rib-collider_004
+    3300014: rib-collider_005
+    3300016: rib-collider_006
+    3300018: rib-collider_007
+    4300000: DIYKit
+    4300002: rib-collider_007
+    4300004: rib-collider_006
+    4300006: rib-collider_005
+    4300008: rib-collider_004
+    4300010: rib-collider_003
+    4300012: rib-collider_002
+    4300014: rib-collider_001
+    4300016: rib-collider
+    4300018: hull-collider
+    7400000: Default Take
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 0
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

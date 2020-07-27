@@ -1,0 +1,210 @@
+fileFormatVersion: 2
+guid: 2a8f1b716309ae543baf08358255a40c
+timeCreated: 1480790746
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: arm
+    100002: arm-collider
+    100004: RCS
+    100006: RCS_001
+    100008: RCS_002
+    100010: RCS_003
+    100012: //RootNode
+    100014: tank-bottom-collider
+    100016: tank-bottom-collider_001
+    100018: tank-middle-collider
+    100020: tank-top-collider
+    100022: base
+    100024: base-bottom-collider
+    100026: base-head-collider_000
+    100028: base-head-collider_005
+    100030: base-head-collider_006
+    100032: base-head-collider_007
+    100034: base-head-collider_1
+    100036: base-head-collider_2
+    100038: base-head-collider_3
+    100040: base-head-collider_4
+    100042: base-middle-collider
+    100044: bulge-collider
+    100046: bulge-collider_001
+    100048: bulge-collider_002
+    100050: bulge-collider_003
+    100052: core
+    100054: core-collider
+    100056: tank
+    400000: arm
+    400002: arm-collider
+    400004: RCS
+    400006: RCS_001
+    400008: RCS_002
+    400010: RCS_003
+    400012: //RootNode
+    400014: tank-bottom-collider
+    400016: tank-bottom-collider_001
+    400018: tank-middle-collider
+    400020: tank-top-collider
+    400022: base
+    400024: base-bottom-collider
+    400026: base-head-collider_000
+    400028: base-head-collider_005
+    400030: base-head-collider_006
+    400032: base-head-collider_007
+    400034: base-head-collider_1
+    400036: base-head-collider_2
+    400038: base-head-collider_3
+    400040: base-head-collider_4
+    400042: base-middle-collider
+    400044: bulge-collider
+    400046: bulge-collider_001
+    400048: bulge-collider_002
+    400050: bulge-collider_003
+    400052: core
+    400054: core-collider
+    400056: tank
+    2300000: arm
+    2300002: arm-collider
+    2300004: //RootNode
+    2300006: tank-bottom-collider
+    2300008: tank-bottom-collider_001
+    2300010: tank-middle-collider
+    2300012: tank-top-collider
+    2300014: base
+    2300016: base-bottom-collider
+    2300018: base-head-collider_000
+    2300020: base-head-collider_005
+    2300022: base-head-collider_006
+    2300024: base-head-collider_007
+    2300026: base-head-collider_1
+    2300028: base-head-collider_2
+    2300030: base-head-collider_3
+    2300032: base-head-collider_4
+    2300034: base-middle-collider
+    2300036: bulge-collider
+    2300038: bulge-collider_001
+    2300040: bulge-collider_002
+    2300042: bulge-collider_003
+    2300044: core
+    2300046: core-collider
+    2300048: tank
+    3300000: arm
+    3300002: arm-collider
+    3300004: //RootNode
+    3300006: tank-bottom-collider
+    3300008: tank-bottom-collider_001
+    3300010: tank-middle-collider
+    3300012: tank-top-collider
+    3300014: base
+    3300016: base-bottom-collider
+    3300018: base-head-collider_000
+    3300020: base-head-collider_005
+    3300022: base-head-collider_006
+    3300024: base-head-collider_007
+    3300026: base-head-collider_1
+    3300028: base-head-collider_2
+    3300030: base-head-collider_3
+    3300032: base-head-collider_4
+    3300034: base-middle-collider
+    3300036: bulge-collider
+    3300038: bulge-collider_001
+    3300040: bulge-collider_002
+    3300042: bulge-collider_003
+    3300044: core
+    3300046: core-collider
+    3300048: tank
+    4300000: tank
+    4300002: tank-top-collider
+    4300004: tank-bottom-collider_001
+    4300006: tank-bottom-collider
+    4300008: tank-middle-collider
+    4300010: arm
+    4300012: arm-collider
+    4300014: base
+    4300016: core
+    4300018: core-collider
+    4300020: base-head-collider_005
+    4300022: base-head-collider_007
+    4300024: base-head-collider_006
+    4300026: base-head-collider_000
+    4300028: bulge-collider_003
+    4300030: bulge-collider_002
+    4300032: bulge-collider_001
+    4300034: bulge-collider
+    4300036: base-head-collider_4
+    4300038: base-head-collider_3
+    4300040: base-head-collider_2
+    4300042: base-head-collider_1
+    4300044: base-bottom-collider
+    4300046: base-middle-collider
+    7400000: Default Take
+    9500000: //RootNode
+    11100000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 100
+    meshCompression: 2
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 1
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,237 @@
+fileFormatVersion: 2
+guid: 1231fb16dbe85d048bfac15edd93c966
+timeCreated: 1480791047
+licenseType: Free
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: base-bottom-collider
+    100002: base-head-collider_000
+    100004: base-head-collider_005
+    100006: base-head-collider_006
+    100008: base-head-collider_007
+    100010: base-head-collider_1
+    100012: base-head-collider_2
+    100014: base-head-collider_3
+    100016: base-head-collider_4
+    100018: base-middle-collider
+    100020: bulge-collider
+    100022: bulge-collider_001
+    100024: bulge-collider_002
+    100026: bulge-collider_003
+    100028: core
+    100030: core-collider
+    100032: //RootNode
+    100034: arm
+    100036: arm-collider
+    100038: base
+    100040: grapple_node
+    100042: RCS
+    100044: RCS_001
+    100046: RCS_002
+    100048: RCS_003
+    100050: tank
+    100052: tank-bottom-collider
+    100054: tank-bottom-collider_001
+    100056: tank-middle-collider
+    100058: tank-top-collider
+    400000: base-bottom-collider
+    400002: base-head-collider_000
+    400004: base-head-collider_005
+    400006: base-head-collider_006
+    400008: base-head-collider_007
+    400010: base-head-collider_1
+    400012: base-head-collider_2
+    400014: base-head-collider_3
+    400016: base-head-collider_4
+    400018: base-middle-collider
+    400020: bulge-collider
+    400022: bulge-collider_001
+    400024: bulge-collider_002
+    400026: bulge-collider_003
+    400028: core
+    400030: core-collider
+    400032: //RootNode
+    400034: arm
+    400036: arm-collider
+    400038: base
+    400040: grapple_node
+    400042: RCS
+    400044: RCS_001
+    400046: RCS_002
+    400048: RCS_003
+    400050: tank
+    400052: tank-bottom-collider
+    400054: tank-bottom-collider_001
+    400056: tank-middle-collider
+    400058: tank-top-collider
+    2300000: base-bottom-collider
+    2300002: base-head-collider_000
+    2300004: base-head-collider_005
+    2300006: base-head-collider_006
+    2300008: base-head-collider_007
+    2300010: base-head-collider_1
+    2300012: base-head-collider_2
+    2300014: base-head-collider_3
+    2300016: base-head-collider_4
+    2300018: base-middle-collider
+    2300020: bulge-collider
+    2300022: bulge-collider_001
+    2300024: bulge-collider_002
+    2300026: bulge-collider_003
+    2300028: core
+    2300030: core-collider
+    2300032: //RootNode
+    2300034: arm
+    2300036: arm-collider
+    2300038: base
+    2300040: tank
+    2300042: tank-bottom-collider
+    2300044: tank-bottom-collider_001
+    2300046: tank-middle-collider
+    2300048: tank-top-collider
+    3300000: base-bottom-collider
+    3300002: base-head-collider_000
+    3300004: base-head-collider_005
+    3300006: base-head-collider_006
+    3300008: base-head-collider_007
+    3300010: base-head-collider_1
+    3300012: base-head-collider_2
+    3300014: base-head-collider_3
+    3300016: base-head-collider_4
+    3300018: base-middle-collider
+    3300020: bulge-collider
+    3300022: bulge-collider_001
+    3300024: bulge-collider_002
+    3300026: bulge-collider_003
+    3300028: core
+    3300030: core-collider
+    3300032: //RootNode
+    3300034: arm
+    3300036: arm-collider
+    3300038: base
+    3300040: tank
+    3300042: tank-bottom-collider
+    3300044: tank-bottom-collider_001
+    3300046: tank-middle-collider
+    3300048: tank-top-collider
+    4300000: base
+    4300002: core
+    4300004: core-collider
+    4300006: base-head-collider_005
+    4300008: base-head-collider_007
+    4300010: base-head-collider_006
+    4300012: base-head-collider_000
+    4300014: bulge-collider_003
+    4300016: bulge-collider_002
+    4300018: bulge-collider_001
+    4300020: bulge-collider
+    4300022: base-head-collider_4
+    4300024: base-head-collider_3
+    4300026: base-head-collider_2
+    4300028: base-head-collider_1
+    4300030: base-bottom-collider
+    4300032: base-middle-collider
+    4300034: tank
+    4300036: tank-top-collider
+    4300038: tank-bottom-collider_001
+    4300040: tank-bottom-collider
+    4300042: tank-middle-collider
+    4300044: arm
+    4300046: arm-collider
+    7400000: Default Take
+    9500000: //RootNode
+    11100000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material__SpaceCrane_png
+    second: {fileID: 2100000, guid: 7a0f01d36e63eea459450ba8f688dbb9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__SpaceCrane_png
+    second: {fileID: 2100000, guid: 7a0f01d36e63eea459450ba8f688dbb9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: unnamed
+    second: {fileID: 2100000, guid: f99b979ea0ffbc04ba4fdd9fa4fb229b, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 100
+    meshCompression: 2
+    addColliders: 0
+    importVisibility: 0
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 1
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

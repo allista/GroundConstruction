@@ -2,6 +2,7 @@
 *.swp
 *.mdb
 *.blend1
+*.blend1.meta
 
 bin
 obj

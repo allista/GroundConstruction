@@ -1,0 +1,343 @@
+fileFormatVersion: 2
+guid: 6c7179e4745724108b3fe45cd2831245
+ModelImporter:
+  serializedVersion: 26
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: airlock-trigger
+  - first:
+      1: 100002
+    second: door
+  - first:
+      1: 100004
+    second: //RootNode
+  - first:
+      1: 100006
+    second: InlineGroundWorkshop_collider
+  - first:
+      1: 100008
+    second: InlineGroundWorkshop_collider_001
+  - first:
+      1: 100010
+    second: window_000
+  - first:
+      1: 100012
+    second: window_001
+  - first:
+      1: 100014
+    second: window_002
+  - first:
+      1: 100016
+    second: window_003
+  - first:
+      1: 100018
+    second: window_004
+  - first:
+      1: 100020
+    second: cap
+  - first:
+      1: 100022
+    second: InlineGroundWorkshop
+  - first:
+      1: 100024
+    second: stairs-trigger
+  - first:
+      4: 400000
+    second: airlock-trigger
+  - first:
+      4: 400002
+    second: door
+  - first:
+      4: 400004
+    second: //RootNode
+  - first:
+      4: 400006
+    second: InlineGroundWorkshop_collider
+  - first:
+      4: 400008
+    second: InlineGroundWorkshop_collider_001
+  - first:
+      4: 400010
+    second: window_000
+  - first:
+      4: 400012
+    second: window_001
+  - first:
+      4: 400014
+    second: window_002
+  - first:
+      4: 400016
+    second: window_003
+  - first:
+      4: 400018
+    second: window_004
+  - first:
+      4: 400020
+    second: cap
+  - first:
+      4: 400022
+    second: InlineGroundWorkshop
+  - first:
+      4: 400024
+    second: stairs-trigger
+  - first:
+      23: 2300000
+    second: airlock-trigger
+  - first:
+      23: 2300002
+    second: door
+  - first:
+      23: 2300004
+    second: //RootNode
+  - first:
+      23: 2300006
+    second: InlineGroundWorkshop_collider
+  - first:
+      23: 2300008
+    second: InlineGroundWorkshop_collider_001
+  - first:
+      23: 2300010
+    second: window_000
+  - first:
+      23: 2300012
+    second: window_001
+  - first:
+      23: 2300014
+    second: window_002
+  - first:
+      23: 2300016
+    second: window_003
+  - first:
+      23: 2300018
+    second: window_004
+  - first:
+      23: 2300020
+    second: cap
+  - first:
+      23: 2300022
+    second: InlineGroundWorkshop
+  - first:
+      23: 2300024
+    second: stairs-trigger
+  - first:
+      33: 3300000
+    second: airlock-trigger
+  - first:
+      33: 3300002
+    second: door
+  - first:
+      33: 3300004
+    second: //RootNode
+  - first:
+      33: 3300006
+    second: InlineGroundWorkshop_collider
+  - first:
+      33: 3300008
+    second: InlineGroundWorkshop_collider_001
+  - first:
+      33: 3300010
+    second: window_000
+  - first:
+      33: 3300012
+    second: window_001
+  - first:
+      33: 3300014
+    second: window_002
+  - first:
+      33: 3300016
+    second: window_003
+  - first:
+      33: 3300018
+    second: window_004
+  - first:
+      33: 3300020
+    second: cap
+  - first:
+      33: 3300022
+    second: InlineGroundWorkshop
+  - first:
+      33: 3300024
+    second: stairs-trigger
+  - first:
+      43: 4300000
+    second: InlineGroundWorkshop
+  - first:
+      43: 4300002
+    second: InlineGroundWorkshop_collider_001
+  - first:
+      43: 4300004
+    second: InlineGroundWorkshop_collider
+  - first:
+      43: 4300006
+    second: window_004
+  - first:
+      43: 4300008
+    second: window_000
+  - first:
+      43: 4300010
+    second: window_003
+  - first:
+      43: 4300012
+    second: window_002
+  - first:
+      43: 4300014
+    second: door
+  - first:
+      43: 4300016
+    second: airlock-trigger
+  - first:
+      43: 4300018
+    second: window_001
+  - first:
+      43: 4300020
+    second: cap
+  - first:
+      43: 4300022
+    second: stairs-trigger
+  - first:
+      74: 7400000
+    second: Default Take
+  - first:
+      95: 9500000
+    second: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: 1aa4836820fa74db49cd37f9b92c05ea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material__InlineGroundWorkshop_png
+    second: {fileID: 2100000, guid: 1aa4836820fa74db49cd37f9b92c05ea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: No Name
+    second: {fileID: 2100000, guid: 192bc7948a9817782b5c279adb728538, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__InlineGroundWorkshop_png
+    second: {fileID: 2100000, guid: 1aa4836820fa74db49cd37f9b92c05ea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__cap
+    second: {fileID: 2100000, guid: d2e57f43146584e1e910b0d1ea2933d2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: door_000__InlineGroundWorkshop_png
+    second: {fileID: 2100000, guid: 1aa4836820fa74db49cd37f9b92c05ea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: door_000__space-door_png_000
+    second: {fileID: 2100000, guid: edf82feb408116643af1394808bba9a5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: unnamed
+    second: {fileID: 2100000, guid: f99b979ea0ffbc04ba4fdd9fa4fb229b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: window
+    second: {fileID: 2100000, guid: c69476337c38e7745a813a74dd264896, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: window__window_png
+    second: {fileID: 2100000, guid: c69476337c38e7745a813a74dd264896, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 2
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 1
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
