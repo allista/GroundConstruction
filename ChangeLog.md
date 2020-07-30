@@ -1,5 +1,8 @@
 # Ground Construction ChangeLog
 
+* **v2.6.4.1**
+    * Fixed **Part Printer** and **Replicator** converters in Assembly Lines
+    _broken by Squad in KSP-1.10_
 
 * **v2.6.4**
     * **Fixed ship loading into kits**
