@@ -5,12 +5,11 @@
 //
 //  Copyright (c) 2019 Allis Tauri
 
-using System;
-using UnityEngine;
+using System.Collections.Generic;
 using AT_Utils;
 using AT_Utils.UI;
 using KSP.UI.Screens;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace GroundConstruction
 {
@@ -77,7 +76,7 @@ namespace GroundConstruction
 
         void Update()
         {
-            var ship = EditorLogic.fetch?.ship;
+            var ship = EditorLogic.fetch != null? EditorLogic.fetch.ship : null;
             if(update)
             {
                 highlight_all = all_highlighted;

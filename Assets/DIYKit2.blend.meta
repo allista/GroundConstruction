@@ -1,0 +1,150 @@
+fileFormatVersion: 2
+guid: d1dfed71b4ab345239b6b5416f002ea7
+timeCreated: 1527490626
+licenseType: Free
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: COL
+    100002: //RootNode
+    100004: launch-position
+    100006: launch-position_001
+    100008: launch-position_002
+    100010: launch-position_003
+    100012: launch-position_004
+    100014: launch-position_005
+    100016: dockingNode
+    100018: Cube
+    100020: DIYKit
+    100022: docking-port
+    400000: COL
+    400002: //RootNode
+    400004: launch-position
+    400006: launch-position_001
+    400008: launch-position_002
+    400010: launch-position_003
+    400012: launch-position_004
+    400014: launch-position_005
+    400016: dockingNode
+    400018: Cube
+    400020: DIYKit
+    400022: docking-port
+    2300000: COL
+    2300002: //RootNode
+    2300004: Cube
+    2300006: DIYKit
+    2300008: docking-port
+    3300000: COL
+    3300002: //RootNode
+    3300004: Cube
+    3300006: DIYKit
+    3300008: docking-port
+    4300000: DIYKit
+    4300002: COL
+    4300004: Cube
+    4300006: docking-port
+    7400000: Default Take
+    9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DIYKit
+    second: {fileID: 2100000, guid: be2302cecdab249fabec87fc1e50f65b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DIYKit__DIYKit2_png
+    second: {fileID: 2100000, guid: be2302cecdab249fabec87fc1e50f65b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DIYKit__DIYKit_dds
+    second: {fileID: 2100000, guid: 97cfadfd81a0840ea899bc329dbe16a9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: None__DIYKit2_png
+    second: {fileID: 2100000, guid: be2302cecdab249fabec87fc1e50f65b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: unnamed
+    second: {fileID: 2100000, guid: f99b979ea0ffbc04ba4fdd9fa4fb229b, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 1
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 2
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

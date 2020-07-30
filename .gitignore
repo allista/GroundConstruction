@@ -1,8 +1,8 @@
 *~
 *.swp
 *.mdb
-*.meta
 *.blend1
+*.blend1.meta
 
 bin
 obj

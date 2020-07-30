@@ -1,0 +1,464 @@
+fileFormatVersion: 2
+guid: 78ce3309d52819947949df394f2928fc
+timeCreated: 1481031637
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: collider_000
+    100002: collider_1
+    100004: collider_2
+    100006: collider_3
+    100008: collider_4
+    100010: collider_5
+    100012: collider_6
+    100014: collider_7
+    100016: door
+    100018: door_001
+    100020: door_002
+    100022: //RootNode
+    100024: panel_000
+    100026: panel_1
+    100028: panel_2
+    100030: window_000
+    100032: window_004
+    100034: window_005
+    100036: window_006
+    100038: window_007
+    100040: window_1
+    100042: window_2
+    100044: window_3
+    100046: lamp
+    100048: lamp_001
+    100050: door-trigger
+    100052: door-trigger_001
+    100054: door-trigger_002
+    100056: flagTransform
+    100058: ladder
+    100060: ladder-trigger
+    100062: ladder-trigger_001
+    100064: ladder-trigger_002
+    100066: ladder-trigger_003
+    100068: ladder-trigger_004
+    100070: ladder-trigger_005
+    100072: ladder-trigger_006
+    100074: ladder-trigger_007
+    100076: ladder-trigger_008
+    100078: ladder_001
+    100080: ladder_002
+    100082: ladder_003
+    100084: ladder_004
+    100086: ladder_005
+    100088: ladder_006
+    100090: ladder_007
+    100092: ladder_008
+    100094: tank
+    100096: tank_001
+    100098: top-tank
+    100100: top-tank_001
+    100102: fuel-plug
+    100104: plugNode
+    400000: collider_000
+    400002: collider_1
+    400004: collider_2
+    400006: collider_3
+    400008: collider_4
+    400010: collider_5
+    400012: collider_6
+    400014: collider_7
+    400016: door
+    400018: door_001
+    400020: door_002
+    400022: //RootNode
+    400024: panel_000
+    400026: panel_1
+    400028: panel_2
+    400030: window_000
+    400032: window_004
+    400034: window_005
+    400036: window_006
+    400038: window_007
+    400040: window_1
+    400042: window_2
+    400044: window_3
+    400046: lamp
+    400048: lamp_001
+    400050: door-trigger
+    400052: door-trigger_001
+    400054: door-trigger_002
+    400056: flagTransform
+    400058: ladder
+    400060: ladder-trigger
+    400062: ladder-trigger_001
+    400064: ladder-trigger_002
+    400066: ladder-trigger_003
+    400068: ladder-trigger_004
+    400070: ladder-trigger_005
+    400072: ladder-trigger_006
+    400074: ladder-trigger_007
+    400076: ladder-trigger_008
+    400078: ladder_001
+    400080: ladder_002
+    400082: ladder_003
+    400084: ladder_004
+    400086: ladder_005
+    400088: ladder_006
+    400090: ladder_007
+    400092: ladder_008
+    400094: tank
+    400096: tank_001
+    400098: top-tank
+    400100: top-tank_001
+    400102: fuel-plug
+    400104: plugNode
+    2300000: collider_000
+    2300002: collider_1
+    2300004: collider_2
+    2300006: collider_3
+    2300008: collider_4
+    2300010: collider_5
+    2300012: collider_6
+    2300014: collider_7
+    2300016: door
+    2300018: door_001
+    2300020: door_002
+    2300022: //RootNode
+    2300024: panel_000
+    2300026: panel_1
+    2300028: panel_2
+    2300030: window_000
+    2300032: window_004
+    2300034: window_005
+    2300036: window_006
+    2300038: window_007
+    2300040: window_1
+    2300042: window_2
+    2300044: window_3
+    2300046: door-trigger
+    2300048: door-trigger_001
+    2300050: door-trigger_002
+    2300052: flagTransform
+    2300054: ladder
+    2300056: ladder-trigger
+    2300058: ladder-trigger_001
+    2300060: ladder-trigger_002
+    2300062: ladder-trigger_003
+    2300064: ladder-trigger_004
+    2300066: ladder-trigger_005
+    2300068: ladder-trigger_006
+    2300070: ladder-trigger_007
+    2300072: ladder-trigger_008
+    2300074: ladder_001
+    2300076: ladder_002
+    2300078: ladder_003
+    2300080: ladder_004
+    2300082: ladder_005
+    2300084: ladder_006
+    2300086: ladder_007
+    2300088: ladder_008
+    2300090: tank
+    2300092: tank_001
+    2300094: top-tank
+    2300096: top-tank_001
+    2300098: fuel-plug
+    3300000: collider_000
+    3300002: collider_1
+    3300004: collider_2
+    3300006: collider_3
+    3300008: collider_4
+    3300010: collider_5
+    3300012: collider_6
+    3300014: collider_7
+    3300016: door
+    3300018: door_001
+    3300020: door_002
+    3300022: //RootNode
+    3300024: panel_000
+    3300026: panel_1
+    3300028: panel_2
+    3300030: window_000
+    3300032: window_004
+    3300034: window_005
+    3300036: window_006
+    3300038: window_007
+    3300040: window_1
+    3300042: window_2
+    3300044: window_3
+    3300046: door-trigger
+    3300048: door-trigger_001
+    3300050: door-trigger_002
+    3300052: flagTransform
+    3300054: ladder
+    3300056: ladder-trigger
+    3300058: ladder-trigger_001
+    3300060: ladder-trigger_002
+    3300062: ladder-trigger_003
+    3300064: ladder-trigger_004
+    3300066: ladder-trigger_005
+    3300068: ladder-trigger_006
+    3300070: ladder-trigger_007
+    3300072: ladder-trigger_008
+    3300074: ladder_001
+    3300076: ladder_002
+    3300078: ladder_003
+    3300080: ladder_004
+    3300082: ladder_005
+    3300084: ladder_006
+    3300086: ladder_007
+    3300088: ladder_008
+    3300090: tank
+    3300092: tank_001
+    3300094: top-tank
+    3300096: top-tank_001
+    3300098: fuel-plug
+    4300000: MobileWorkshop
+    4300002: collider_000
+    4300004: collider_7
+    4300006: collider_6
+    4300008: collider_5
+    4300010: collider_4
+    4300012: collider_3
+    4300014: collider_2
+    4300016: collider_1
+    4300018: door
+    4300020: window_007
+    4300022: window_006
+    4300024: panel_000
+    4300026: door_001
+    4300028: door_002
+    4300030: window_005
+    4300032: window_000
+    4300034: window_3
+    4300036: window_2
+    4300038: window_1
+    4300040: window_004
+    4300042: panel_2
+    4300044: panel_1
+    4300046: door-trigger_002
+    4300048: door-trigger_001
+    4300050: door-trigger
+    4300052: flagTransform
+    4300054: top-tank_001
+    4300056: top-tank
+    4300058: ladder_006
+    4300060: ladder-trigger_008
+    4300062: ladder_007
+    4300064: ladder-trigger_007
+    4300066: ladder_008
+    4300068: ladder-trigger_006
+    4300070: ladder_003
+    4300072: ladder_004
+    4300074: ladder_005
+    4300076: ladder-trigger_005
+    4300078: ladder-trigger_004
+    4300080: ladder-trigger_001
+    4300082: tank_001
+    4300084: tank
+    4300086: ladder
+    4300088: ladder-trigger
+    4300090: ladder_001
+    4300092: ladder-trigger_002
+    4300094: ladder_002
+    4300096: ladder-trigger_003
+    4300098: fuel-plug
+    7400000: MobileWorkshop-ladders
+    9500000: //RootNode
+    11100000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: MobileWorkshop-ladders
+      takeName: Default Take
+      firstFrame: 0
+      lastFrame: 99
+      wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: collider_000
+        weight: 1
+      - path: collider_1
+        weight: 1
+      - path: collider_2
+        weight: 1
+      - path: collider_3
+        weight: 1
+      - path: collider_4
+        weight: 1
+      - path: collider_5
+        weight: 1
+      - path: collider_6
+        weight: 1
+      - path: collider_7
+        weight: 1
+      - path: door
+        weight: 1
+      - path: door/door-trigger_002
+        weight: 1
+      - path: door_001
+        weight: 1
+      - path: door_001/door-trigger_001
+        weight: 1
+      - path: door_002
+        weight: 1
+      - path: door_002/door-trigger
+        weight: 1
+      - path: flagTransform
+        weight: 1
+      - path: ladder
+        weight: 1
+      - path: ladder/ladder-trigger
+        weight: 1
+      - path: ladder/ladder_001
+        weight: 1
+      - path: ladder/ladder_001/ladder-trigger_002
+        weight: 1
+      - path: ladder/ladder_001/ladder_002
+        weight: 1
+      - path: ladder/ladder_001/ladder_002/ladder-trigger_003
+        weight: 1
+      - path: ladder_003
+        weight: 1
+      - path: ladder_003/ladder-trigger_001
+        weight: 1
+      - path: ladder_003/ladder_004
+        weight: 1
+      - path: ladder_003/ladder_004/ladder-trigger_004
+        weight: 1
+      - path: ladder_003/ladder_004/ladder_005
+        weight: 1
+      - path: ladder_003/ladder_004/ladder_005/ladder-trigger_005
+        weight: 1
+      - path: ladder_006
+        weight: 1
+      - path: ladder_006/ladder-trigger_008
+        weight: 1
+      - path: ladder_006/ladder_007
+        weight: 1
+      - path: ladder_006/ladder_007/ladder-trigger_007
+        weight: 1
+      - path: ladder_006/ladder_007/ladder_008
+        weight: 1
+      - path: ladder_006/ladder_007/ladder_008/ladder-trigger_006
+        weight: 1
+      - path: lamp
+        weight: 1
+      - path: lamp_001
+        weight: 1
+      - path: panel_000
+        weight: 1
+      - path: panel_1
+        weight: 1
+      - path: panel_2
+        weight: 1
+      - path: tank
+        weight: 1
+      - path: tank_001
+        weight: 1
+      - path: top-tank
+        weight: 1
+      - path: top-tank_001
+        weight: 1
+      - path: window_000
+        weight: 1
+      - path: window_1
+        weight: 1
+      - path: window_2
+        weight: 1
+      - path: window_3
+        weight: 1
+      - path: window_004
+        weight: 1
+      - path: window_005
+        weight: 1
+      - path: window_006
+        weight: 1
+      - path: window_007
+        weight: 1
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 100
+    meshCompression: 2
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 1
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

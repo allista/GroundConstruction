@@ -48,7 +48,7 @@
             "install_to": "GameData/GroundConstruction"
         },
         {
-            "file": "GameData/GroundConstruction/gc_ui.ksp",
+            "file": "GameData/GroundConstruction/gc_ui.bundle",
             "install_to": "GameData/GroundConstruction"
         },
         {
