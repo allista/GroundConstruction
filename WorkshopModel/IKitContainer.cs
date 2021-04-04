@@ -44,6 +44,7 @@ namespace GroundConstruction
     {
         DeploymentState State { get; }
         string DeploymentInfo { get; }
+        double DeploymentETA { get; }
         void Deploy();
     }
 

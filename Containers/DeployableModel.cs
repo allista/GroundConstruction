@@ -53,11 +53,12 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public bool ShowDeployHint;
 
         [KSPField(guiName = "Deployment", guiActive = true)]
-        public string DeploymentETA;
+        public string DeploymentETA_Display;
 
-        public string DeploymentInfo => DeploymentETA;
+        public double DeploymentETA { get; private set; }
 
         bool just_started;
+        public string DeploymentInfo => DeploymentETA_Display;
 
         Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
@@ -65,8 +66,9 @@ namespace GroundConstruction
 
         private void showDeploymentETA(bool show = true)
         {
-            DeploymentETA = string.Empty;
-            Fields[nameof(DeploymentETA)].guiActive = show;
+            DeploymentETA = 0;
+            DeploymentETA_Display = string.Empty;
+            Fields[nameof(DeploymentETA_Display)].guiActive = show;
         }
 
         Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
@@ -229,18 +231,18 @@ namespace GroundConstruction
             change_servos_lock(false);
             GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
             yield return null;
-            var timeRemaining = 1 / speed;
-            var timeDisplay = timeRemaining;
-            DeploymentETA = Utils.formatTimeDelta(timeDisplay);
+            DeploymentETA = 1 / speed;
+            var timeDisplay = DeploymentETA;
+            DeploymentETA_Display = Utils.formatTimeDelta(timeDisplay);
             while(time < 1)
             {
                 var old_size = Size;
                 time += speed * TimeWarp.fixedDeltaTime;
-                timeRemaining -= TimeWarp.fixedDeltaTime;
-                if(timeDisplay - timeRemaining > 1)
+                DeploymentETA -= TimeWarp.fixedDeltaTime;
+                if(timeDisplay - DeploymentETA > 1)
                 {
-                    timeDisplay = timeRemaining;
-                    DeploymentETA = Utils.formatTimeDelta(timeDisplay);
+                    timeDisplay = DeploymentETA;
+                    DeploymentETA_Display = Utils.formatTimeDelta(timeDisplay);
                 }
                 Size = Vector3.Lerp(start, TargetSize, time);
                 update_model(true);

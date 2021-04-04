@@ -432,10 +432,19 @@ namespace GroundConstruction
                             deploy = depl;
                     }
                     else
+                    {
                         GUILayout.Label(DeployableStatus(depl),
                             Styles.boxed_label,
                             GUILayout.ExpandWidth(true),
                             GUILayout.ExpandHeight(true));
+                        if(GUILayout.Button(ProtoWorkshop.WarpToButton,
+                            Styles.enabled_button,
+                            GUILayout.ExpandWidth(false),
+                            GUILayout.ExpandHeight(true)))
+                        {
+                            TimeWarp.fetch.WarpTo(Planetarium.GetUniversalTime() + depl.DeploymentETA);
+                        }
+                    }
                 }
                 else if(GUILayout.Button(
                     new GUIContent("Add", "Add this kit to construction queue"),
