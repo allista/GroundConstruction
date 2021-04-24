@@ -339,7 +339,7 @@ namespace GroundConstruction
                     GUILayout.BeginHorizontal(Styles.white);
                     GUILayout.Label("Dock via:");
                     GUILayout.FlexibleSpace();
-                    var choice = Utils.LeftRightChooser(construct_docking_node.ToString());
+                    var choice = Utils.LeftRightChooser(construct_docking_node?.ToString());
                     if(choice != 0)
                     {
                         ConstructDockingNode =
