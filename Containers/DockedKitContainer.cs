@@ -28,10 +28,13 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public int ConstructDockingNode = -1;
         private ConstructDockingNode construct_docking_node;
 
-        private Bounds get_deployed_bounds() =>
-            ConstructDockingNode >= 0 && kit.DockingPossible
+        private Bounds get_deployed_bounds()
+        {
+            var b = ConstructDockingNode >= 0 && kit.DockingPossible
                 ? kit.GetBoundsForDocking(ConstructDockingNode)
                 : kit.ShipMetric.bounds;
+            return new Bounds(b.center, Vector3.Max(b.size, Size));
+        }
 
         private ConstructionWorkshop connected_construction_ws;
         private AssemblyWorkshop connected_assembly_ws;
