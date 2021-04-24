@@ -30,22 +30,30 @@ namespace GroundConstruction
         public double WorkLeftInStage(int stage)
         {
             var work = 0.0;
-            Jobs.ForEach(j => work += j[stage].WorkLeft);
+            Jobs.ForEach(j =>
+            {
+                if(j.StagesCount > stage)
+                    work += j[stage].WorkLeft;
+            });
             return work;
         }
         
         public double TotalWorkInStage(int stage)
         {
             var work = 0.0;
-            Jobs.ForEach(j => work += j[stage].TotalWork);
+            Jobs.ForEach(j =>
+            {
+                if(j.StagesCount > stage)
+                    work += j[stage].TotalWork;
+            });
             return work;
         }
 
         public override bool Complete => Jobs.TrueForAll(j => j.Complete);
 
-        public bool StageStarted(int stage) => Jobs.Any(j => j[stage].WorkDone > 0);
+        public bool StageStarted(int stage) => Jobs.Any(j => j.StagesCount > stage && j[stage].WorkDone > 0);
 
-        public bool StageComplete(int stage) => Jobs.TrueForAll(j => j[stage].Complete);
+        public bool StageComplete(int stage) => Jobs.TrueForAll(j => j.StagesCount <= stage || j[stage].Complete);
 
         public T CurrentJob => CurrentIndex < Jobs.Count ? Jobs[CurrentIndex] : null;
 
