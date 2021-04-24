@@ -167,7 +167,7 @@ namespace GroundConstruction
                 {
                     var time = Planetarium.GetUniversalTime();
                     EndUT = time + ETA;
-                    ETA_Display = "Time left: " + KSPUtil.PrintTimeCompact(ETA, false);
+                    ETA_Display = $"Time left: {Utils.formatTimeDelta(ETA)}";
                 }
             }
             else
