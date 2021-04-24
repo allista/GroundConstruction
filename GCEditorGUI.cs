@@ -41,6 +41,7 @@ namespace GroundConstruction
             GameEvents.onEditorLoad.Add(OnShipLoad);
             GameEvents.onEditorRestart.Add(Restart);
             GameEvents.onEditorStarted.Add(Started);
+            GameEvents.onEditorVesselNamingChanged.Add(OnShipNamingChanged);
             Show(false);
         }
 
@@ -51,6 +52,7 @@ namespace GroundConstruction
             GameEvents.onEditorLoad.Remove(OnShipLoad);
             GameEvents.onEditorRestart.Remove(Restart);
             GameEvents.onEditorStarted.Remove(Started);
+            GameEvents.onEditorVesselNamingChanged.Remove(OnShipNamingChanged);
             base.OnDestroy();
         }
 
@@ -74,9 +76,14 @@ namespace GroundConstruction
             update = true;
         }
 
-        void Update()
+        private void OnShipNamingChanged(GameEvents.HostedFromToAction<ShipConstruct, string> action)
         {
-            var ship = EditorLogic.fetch != null? EditorLogic.fetch.ship : null;
+            update = true;
+        }
+
+        private void Update()
+        {
+            var ship = EditorLogic.fetch != null ? EditorLogic.fetch.ship : null;
             if(update)
             {
                 highlight_all = all_highlighted;
