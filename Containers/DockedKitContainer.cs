@@ -7,6 +7,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using AT_Utils;
 using AT_Utils.UI;
@@ -27,6 +28,15 @@ namespace GroundConstruction
 
         [KSPField(isPersistant = true)] public int ConstructDockingNode = -1;
         private ConstructDockingNode construct_docking_node;
+
+        [KSPField(isPersistant = true,
+            guiName = "Wield Docking Port",
+            guiActive = false,
+            guiActiveEditor = false,
+            guiActiveUnfocused = true,
+            unfocusedRange = 50)]
+        [UI_Toggle(scene = UI_Scene.Flight, enabledText = "Yes", disabledText = "No")]
+        public bool WieldDockingPort;
 
         private Bounds get_deployed_bounds()
         {
@@ -155,7 +165,10 @@ namespace GroundConstruction
             {
                 ConstructDockingNode = -1;
                 construct_docking_node = null;
+                WieldDockingPort = false;
             }
+            var wieldField = Fields[nameof(WieldDockingPort)];
+            wieldField.guiActive = wieldField.guiActiveEditor = DockableDisplay;
         }
 
         #region Deployment
@@ -272,6 +285,9 @@ namespace GroundConstruction
         private static readonly GUIContent docked_label = new GUIContent("Dock",
             "Dock the constructed vessel to the main vessel after launch.");
 
+        private static readonly GUIContent wield_label = new GUIContent("Wield",
+            "Wield the construct with the construction docking port (if any).");
+
         public override void DrawOptions()
         {
             GUILayout.BeginVertical();
@@ -305,9 +321,14 @@ namespace GroundConstruction
                     }
                 }
                 else if(ConstructDockingNode >= 0)
-                    GUILayout.Label("Dock " + construct_docking_node,
+                {
+                    GUILayout.Label($"Dock via: {construct_docking_node}",
                         Styles.enabled,
                         GUILayout.ExpandWidth(false));
+                    Utils.ButtonSwitch(wield_label,
+                        ref WieldDockingPort,
+                        GUILayout.ExpandWidth(false));
+                }
                 else
                     GUILayout.Label(launch_label,
                         Styles.enabled,
@@ -329,6 +350,9 @@ namespace GroundConstruction
                         update_part_events();
                         create_deploy_hint_mesh();
                     }
+                    Utils.ButtonSwitch(wield_label,
+                        ref WieldDockingPort,
+                        GUILayout.ExpandWidth(false));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -359,16 +383,16 @@ namespace GroundConstruction
         #endregion
 
         //TODO: extract this method somewhere to use both here and in VesselKit
-        private AttachNode find_closest_free_node(
+        private AttachNode find_closest_node(
             IEnumerable<Part> parts,
             Vector3 world_pos,
             Vector3 world_fwd,
-            out Vector3 world_delta
+            out Vector3 world_delta,
+            bool free
         )
         {
             world_delta = Vector3.zero;
             var best_dist = float.MaxValue;
-            Part best_part = null;
             AttachNode best_node = null;
             foreach(var p in parts)
             {
@@ -381,7 +405,6 @@ namespace GroundConstruction
                         var dist = delta.sqrMagnitude;
                         if(best_node == null || dist < best_dist)
                         {
-                            best_part = p;
                             best_node = n;
                             best_dist = dist;
                             world_delta = delta;
@@ -389,7 +412,8 @@ namespace GroundConstruction
                     }
                 }
             }
-            if(best_node != null
+            if(free
+               && best_node != null
                && best_node.attachedPart != null
                && best_node.attachedPart != part)
                 best_node = null;
@@ -403,15 +427,24 @@ namespace GroundConstruction
             var construction_node_fwd = part.partTransform
                 .TransformDirection(construction_node.orientation)
                 .normalized;
-            recipient_node = construction_part.FindAttachNodeByPart(part);
-            if(recipient_node == null)
+            // handle port wielding
+            if(WieldDockingPort && construction_part.HasModuleImplementing<ModuleDockingNode>())
             {
-                Vector3 _delta;
-                recipient_node = find_closest_free_node(new[] { construction_part },
+                recipient_node = find_closest_node(construction_part.AllAttachedParts().Where(p => p != part),
                     construction_node_pos,
                     -construction_node_fwd,
-                    out _delta);
+                    out _,
+                    false);
+                return;
             }
+            recipient_node = construction_part.FindAttachNodeByPart(part);
+            if(recipient_node != null)
+                return;
+            recipient_node = find_closest_node(new[] { construction_part },
+                construction_node_pos,
+                -construction_node_fwd,
+                out _,
+                true);
         }
 
         protected override void on_vessel_launched(Vessel vsl)
@@ -419,45 +452,68 @@ namespace GroundConstruction
             base.on_vessel_launched(vsl);
             if(recipient_node != null)
             {
-                var construction_node_pos =
-                    part.partTransform.TransformPoint(construction_node.position);
-                var construction_part = recipient_node.owner;
+                var recipient_part = recipient_node.owner;
+                var construction_part = get_construction_part();
+                var dockingWithConstructionPart = recipient_part == construction_part;
+                var reciprocal_part = dockingWithConstructionPart
+                    ? part
+                    : recipient_node.attachedPart;
+                var reciprocal_node = dockingWithConstructionPart
+                    ? construction_node
+                    : reciprocal_part.FindAttachNodeByPart(recipient_part);
+                if(reciprocal_node == null)
+                {
+                    Utils.Message(
+                        "No suitable attachment node found in \"{0}\" to dock it to the {1}",
+                        vsl.GetDisplayName(),
+                        recipient_part.Title());
+                    return;
+                }
+                var reciprocal_node_pos =
+                    reciprocal_part.partTransform.TransformPoint(reciprocal_node.position);
                 var docking_node = kit.GetDockingNode(vsl, ConstructDockingNode);
                 if(docking_node == null)
                 {
                     Utils.Message(
                         "No suitable attachment node found in \"{0}\" to dock it to the {1}",
                         vsl.GetDisplayName(),
-                        construction_part.Title());
+                        recipient_part.Title());
                     return;
                 }
                 var docking_offset =
                     docking_node.owner.partTransform.TransformPoint(docking_node.position)
-                    - construction_node_pos;
-                FXMonger.Explode(part, construction_node_pos, 0);
+                    - reciprocal_node_pos;
+                FXMonger.Explode(part, reciprocal_node_pos, 0);
                 var docking_part = docking_node.owner;
-                this.Log("Docking {} to {}", docking_part.GetID(), construction_part.GetID());
+                this.Log("Docking {} to {}", docking_part.GetID(), recipient_part.GetID());
                 // vessels' position and rotation
-                construction_part.vessel.SetPosition(construction_part.vessel.transform.position,
+                recipient_part.vessel.SetPosition(recipient_part.vessel.transform.position,
                     true);
-                construction_part.vessel.SetRotation(construction_part.vessel.transform.rotation);
+                recipient_part.vessel.SetRotation(recipient_part.vessel.transform.rotation);
                 docking_part.vessel.SetPosition(
                     docking_part.vessel.transform.position - docking_offset,
                     true);
                 docking_part.vessel.SetRotation(docking_part.vessel.transform.rotation);
-                construction_part.vessel.IgnoreGForces(10);
+                recipient_part.vessel.IgnoreGForces(10);
                 docking_part.vessel.IgnoreGForces(10);
-                if(construction_part == part.parent)
+                if(recipient_part == part.parent)
                     part.decouple();
-                else
+                else if(recipient_part == construction_part.parent)
                     construction_part.decouple();
+                else
+                    recipient_part.decouple();
+                if(!dockingWithConstructionPart)
+                {
+                    FXMonger.Explode(construction_part, construction_part.transform.position, 0);
+                    construction_part.Die();
+                }
                 recipient_node.attachedPart = docking_part;
                 recipient_node.attachedPartId = docking_part.flightID;
-                docking_node.attachedPart = construction_part;
-                docking_node.attachedPartId = construction_part.flightID;
-                docking_part.Couple(construction_part);
+                docking_node.attachedPart = recipient_part;
+                docking_node.attachedPartId = recipient_part.flightID;
+                docking_part.Couple(recipient_part);
                 // manage docking ports, if any
-                foreach(var port in construction_part.FindModulesImplementing<ModuleDockingNode>())
+                foreach(var port in recipient_part.FindModulesImplementing<ModuleDockingNode>())
                 {
                     if(port.referenceNode == recipient_node)
                     {
@@ -470,26 +526,27 @@ namespace GroundConstruction
                 {
                     if(port.referenceNode == docking_node)
                     {
-                        port.dockedPartUId = construction_part.persistentId;
+                        port.dockedPartUId = recipient_part.persistentId;
                         port.fsm.StartFSM(port.st_preattached);
                         break;
                     }
                 }
                 // add fuel lookups
-                construction_part.fuelLookupTargets.Add(docking_part);
-                docking_part.fuelLookupTargets.Add(construction_part);
+                recipient_part.fuelLookupTargets.Add(docking_part);
+                docking_part.fuelLookupTargets.Add(recipient_part);
                 GameEvents.onPartFuelLookupStateChange.Fire(
                     new GameEvents.HostedFromToAction<bool, Part>(true,
                         docking_part,
-                        construction_part));
-                FlightGlobals.ForceSetActiveVessel(construction_part.vessel);
+                        recipient_part));
+                // activate current vessel again vessel
+                FlightGlobals.ForceSetActiveVessel(recipient_part.vessel);
                 FlightInputHandler.SetNeutralControls();
-                GameEvents.onVesselWasModified.Fire(construction_part.vessel);
+                GameEvents.onVesselWasModified.Fire(recipient_part.vessel);
                 recipient_node = null;
                 this.Log("Docked {} to {}, new vessel {}",
                     docking_part,
-                    construction_part,
-                    construction_part.vessel.GetID());
+                    recipient_part,
+                    recipient_part.vessel.GetID());
             }
         }
 
@@ -516,11 +573,11 @@ namespace GroundConstruction
         {
             if(ConstructDockingNode >= 0)
             {
-                var recipient_part = get_construction_part();
-                update_recipient_node(recipient_part);
+                var construction_part = get_construction_part();
+                update_recipient_node(construction_part);
                 if(recipient_node == null)
                 {
-                    Utils.Message("Cannot attach the construction to {0}", recipient_part.name);
+                    Utils.Message("Cannot attach the construction to {0}", construction_part.name);
                     return;
                 }
             }
