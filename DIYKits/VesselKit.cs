@@ -96,7 +96,13 @@ namespace GroundConstruction
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
             foreach(var p in ship.Parts)
             {
-                foreach(var n in p.attachNodes)
+                var variants = p.Modules.GetModule<ModulePartVariants>();
+                var attachNodes = p.attachNodes;
+                if(variants != null)
+                {
+                    attachNodes = variants.SelectedVariant.AttachNodes;
+                }
+                foreach(var n in attachNodes)
                 {
                     if(n.attachedPart != null)
                         continue;
