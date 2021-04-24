@@ -375,12 +375,13 @@ namespace GroundConstruction
                 {
                     if(!req)
                         continue;
-                    result |= transfer_resource(from,
+                    var res_result = transfer_resource(from,
                         req.resource.id,
                         req.resource_amount,
                         discard_excess_resources);
-                    if(result != TransferState.FULL)
+                    if(res_result != TransferState.FULL)
                         recycle_report.Add($"No space left for '{req.resource.def.name}'.");
+                    result |= res_result;
                 }
                 if(ec > 0 && result == TransferState.ZERO)
                     part.RequestResource(Utils.ElectricCharge.id, -ec);
