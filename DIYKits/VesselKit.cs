@@ -148,7 +148,7 @@ namespace GroundConstruction
                 Blueprint = ship.SaveShip();
             }
             var create_resources = count_kit_resources(ship, assembled);
-            ShipMetric = new Metric(ship, true, true);
+            ShipMetric = new Metric((IShipconstruct)ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
             var final_assembly_work = 0f;
             ship.Parts.ForEach(p =>
