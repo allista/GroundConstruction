@@ -148,6 +148,7 @@ namespace GroundConstruction
         {
             Host = host;
             Name = Localizer.Format(ship.shipName);
+            ship.Parts.ForEach(p => p.UpdateMass());
             if(!simulate)
             {
                 strip_resources(ship, assembled);
