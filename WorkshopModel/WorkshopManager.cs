@@ -16,8 +16,7 @@ namespace GroundConstruction
     public class WorkshopManager : VesselModule
     {
         public Dictionary<uint, WorkshopBase> Workshops = new Dictionary<uint, WorkshopBase>();
-        public Dictionary<uint, ProtoWorkshop> ProtoWorkshops = new Dictionary<uint, ProtoWorkshop>();
-        public SortedDictionary<string,uint> DisplayOrder = new SortedDictionary<string,uint>();
+        public SortedDictionary<uint, ProtoWorkshop> ProtoWorkshops = new SortedDictionary<uint, ProtoWorkshop>();
 
         public bool IsActive => FlightGlobals.ActiveVessel != null && vessel.id == FlightGlobals.ActiveVessel.id;
         public string VesselName => vessel.vesselName;
@@ -42,7 +41,6 @@ namespace GroundConstruction
         private void add_protoworkshop(ProtoWorkshop info)
         {
             ProtoWorkshops[info.id] = info;
-            DisplayOrder[info.PartName] = info.id;
         }
 
         private void add_workshop(WorkshopBase workshop)
@@ -60,7 +58,6 @@ namespace GroundConstruction
             if(ProtoWorkshops.TryGetValue(workshop.part.flightID, out info))
             {
                 ProtoWorkshops.Remove(info.id);
-                DisplayOrder.Remove(info.PartName);
             }
         }
 
@@ -72,7 +69,6 @@ namespace GroundConstruction
                 {
                     Workshops.Clear();
                     ProtoWorkshops.Clear();
-                    DisplayOrder.Clear();
                     foreach(var p in vessel.Parts)
                     {
                         var ws = p.Modules.GetModule<WorkshopBase>();
@@ -132,7 +128,6 @@ namespace GroundConstruction
         {
             base.OnLoad(node);
             ProtoWorkshops.Clear();
-            DisplayOrder.Clear();
             var wnode = node.GetNode("Workshops");
             if(wnode != null)
             {
@@ -248,21 +243,31 @@ namespace GroundConstruction
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
             IWorkshopTask sync_task = null;
-            foreach(var item in DisplayOrder)
+            foreach(var item in ProtoWorkshops)
             {
-                var pw = ProtoWorkshops[item.Value];
-                if(!pw.isOperable) continue;
+                var pw = item.Value;
+                if(!pw.isOperable)
+                    continue;
                 GUILayout.BeginHorizontal();
                 pw.Draw();
                 if(IsActive && ProtoWorkshops.Count > 1)
                 {
-                    var task = Workshops[item.Value].GetCurrentTask();
-                    if(!task.Valid)
-                        GUILayout.Label(new GUIContent("⇶", "Workshop is idle"),
-                                        Styles.inactive, GUILayout.Width(25));
-                    else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"),
-                                             Styles.enabled_button, GUILayout.Width(25)))
-                        sync_task = task;
+                    if(Workshops.TryGetValue(item.Key, out var ws))
+                    {
+                        var task = ws.GetCurrentTask();
+                        if(!task.Valid)
+                        {
+                            GUILayout.Label(new GUIContent("⇶", "Workshop is idle"),
+                                Styles.inactive,
+                                GUILayout.Width(25));
+                        }
+                        else if(GUILayout.Button(new GUIContent("⇶", "Construct this Kit using all workshops"),
+                            Styles.enabled_button,
+                            GUILayout.Width(25)))
+                        {
+                            sync_task = task;
+                        }
+                    }
                 }
                 GUILayout.EndHorizontal();
             }
