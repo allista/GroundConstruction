@@ -197,10 +197,20 @@ namespace GroundConstruction
 
         protected virtual void info_pane()
         {
+            GUILayout.BeginHorizontal();
+            if(GUILayout.Button(dismissCrewButton,
+                Styles.danger_button,
+                GUILayout.ExpandWidth(false)))
+                do_crew_transfer = -1;
             GUILayout.Label(
                 $"<color=silver>Workforce:</color> <b>{workforce:F1}</b>/{max_workforce:F1} SK",
                 Styles.boxed_label,
                 GUILayout.ExpandWidth(true));
+            if(GUILayout.Button(getCrewButton,
+                Styles.enabled_button,
+                GUILayout.ExpandWidth(false)))
+                do_crew_transfer = 1;
+            GUILayout.EndHorizontal();
         }
 
         protected Vector2 unbuilt_scroll = Vector2.zero;

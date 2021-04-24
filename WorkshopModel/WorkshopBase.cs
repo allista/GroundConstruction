@@ -283,7 +283,30 @@ namespace GroundConstruction
         protected override void update_workforce() => 
             workforce = ConstructionUtils.PartWorkforce<E>(part, 0.5f);
 
-        protected void update_and_checkin(Vessel vsl)
+        protected int do_crew_transfer;
+
+        private void get_required_crew()
+        {
+            if(part.CrewCapacity <= part.protoModuleCrew.Count)
+                return;
+            var sortedCrew = vessel.GetVesselCrew();
+            sortedCrew.Sort((a, b) => -a.experienceLevel.CompareTo(b.experienceLevel));
+            CrewTransferBatch.moveCrew(vessel,
+                part,
+                ConstructionUtils.GetCrewWithEffect<E>(sortedCrew.Where(k =>
+                        !k.KerbalRef.InPart.HasModuleImplementing<WorkshopBase>()))
+                    .ToList());
+        }
+
+        private void dismiss_crew()
+        {
+            if(part.protoModuleCrew.Count == 0)
+                return;
+            CrewTransferBatch.moveCrew(part,
+                vessel.Parts.Where(p => !p.HasModuleImplementing<WorkshopBase>()).ToList());
+        }
+
+        private void update_and_checkin(Vessel vsl)
         {
             if(vsl != null && vsl == vessel && part.started && isEnabled)
             {
@@ -337,6 +360,12 @@ namespace GroundConstruction
 
         protected virtual void on_update()
         {
+            //transfer required crew if requested
+            if(do_crew_transfer > 0)
+                get_required_crew();
+            else if(do_crew_transfer < 0)
+                dismiss_crew();
+            do_crew_transfer = 0;
             //highlight kit under the mouse
             disable_highlights();
             if(highlight_part != null)
@@ -442,6 +471,14 @@ namespace GroundConstruction
         protected HashSet<Part> highlighted_parts = new HashSet<Part>();
         protected Part highlight_part;
         protected T selected_task;
+
+        protected readonly GUIContent getCrewButton =
+            new GUIContent("Get Crew",
+                "Try to transfer required crew TO this workshop from other <i>non-workshop</i> parts of the vessel.");
+
+        protected readonly GUIContent dismissCrewButton =
+            new GUIContent("Dismiss Crew",
+                "Try to transfer all crew FROM this workshop to other <i>non-workshop</i> parts of the vessel.");
 
         protected abstract void set_highlighted_task(T task);
 
