@@ -297,45 +297,37 @@ namespace GroundConstruction
 
         protected virtual void resources_pane()
         {
-            if(selected_task != null)
+            if(selected_task == null)
+                return;
+            if(!check_task(selected_task))
+                selected_task = null;
+            else if(selected_task.Kit.AdditionalResources.Count > 0)
             {
-                var close = false;
-                if(!check_task(selected_task))
-                    selected_task = null;
-                else if(selected_task.Kit.AdditionalResources.Count > 0)
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>",
-                            selected_task.Name),
-                        Styles.label,
-                        GUILayout.ExpandWidth(true));
-                    GUILayout.EndHorizontal();
-                    var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
-                    resources_scroll = GUILayout.BeginScrollView(resources_scroll,
-                        GUILayout.Height(h));
-                    selected_task.Kit.AdditionalResources.Draw();
-                    GUILayout.EndScrollView();
-                }
-                if(close)
-                    selected_task = null;
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>",
+                        selected_task.Name),
+                    Styles.label,
+                    GUILayout.ExpandWidth(true));
+                GUILayout.EndHorizontal();
+                var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
+                resources_scroll = GUILayout.BeginScrollView(resources_scroll,
+                    GUILayout.Height(h));
+                selected_task.Kit.AdditionalResources.Draw();
+                GUILayout.EndScrollView();
             }
         }
 
         private void kit_configuration()
         {
-            if(selected_task != null)
+            var cfg = selected_task?.Configurator;
+            if(cfg != null && cfg.IsConfigurable)
             {
-                var cfg = selected_task.Configurator;
-                if(cfg != null && cfg.IsConfigurable)
-                {
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(string.Format("Construction options for <b>{0}</b>",
-                            selected_task.Name),
-                        Styles.label,
-                        GUILayout.ExpandWidth(true));
-                    cfg.DrawOptions();
-                    GUILayout.EndVertical();
-                }
+                GUILayout.BeginVertical();
+                GUILayout.Label($"Construction options for <b>{selected_task.Name}</b>",
+                    Styles.label,
+                    GUILayout.ExpandWidth(true));
+                cfg.DrawOptions();
+                GUILayout.EndVertical();
             }
         }
 

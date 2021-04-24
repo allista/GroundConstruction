@@ -420,7 +420,9 @@ namespace GroundConstruction
                             Styles.enabled_button,
                             GUILayout.ExpandWidth(false),
                             GUILayout.ExpandHeight(true)))
+                        {
                             add = info;
+                        }
                     }
                     else if(depl.State != DeploymentState.DEPLOYING)
                     {
@@ -429,7 +431,9 @@ namespace GroundConstruction
                             Styles.active_button,
                             GUILayout.ExpandWidth(false),
                             GUILayout.ExpandHeight(true)))
+                        {
                             deploy = depl;
+                        }
                     }
                     else
                     {
@@ -451,7 +455,9 @@ namespace GroundConstruction
                     Styles.enabled_button,
                     GUILayout.ExpandWidth(false),
                     GUILayout.ExpandHeight(true)))
+                {
                     add = info;
+                }
                 GUILayout.EndHorizontal();
             }
             if(add != null)
