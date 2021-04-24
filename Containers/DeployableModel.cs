@@ -15,7 +15,7 @@ namespace GroundConstruction
 {
     public abstract class DeployableModel : SerializableFiledsPartModule, IDeployable
     {
-        class DockAnchor
+        private class DockAnchor
         {
             public Vector3 vesselAnchor, localAnchor;
 
@@ -57,10 +57,11 @@ namespace GroundConstruction
 
         public double DeploymentETA { get; private set; }
 
-        bool just_started;
         public string DeploymentInfo => DeploymentETA_Display;
 
-        Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
+        private bool just_started;
+
+        private readonly Dictionary<Part, DockAnchor> dock_anchors = new Dictionary<Part, DockAnchor>();
 
         public DeploymentState State => state;
 
@@ -71,12 +72,12 @@ namespace GroundConstruction
             Fields[nameof(DeploymentETA_Display)].guiActive = show;
         }
 
-        Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
+        private Vector3 get_scale() => Vector3.Scale(Size, OrigSize.Inverse());
 
-        void save_dock_anchor(Part p, Vector3 scale) =>
+        private void save_dock_anchor(Part p, Vector3 scale) =>
         dock_anchors[p] = new DockAnchor(part, find_dock_anchor(p), scale);
 
-        Vector3 find_dock_anchor(Part docked)
+        private Vector3 find_dock_anchor(Part docked)
         {
             foreach(var d in part.FindModulesImplementing<ModuleDockingNode>())
             {
@@ -92,7 +93,7 @@ namespace GroundConstruction
             return j.Host.transform.TransformPoint(j.HostAnchor);
         }
 
-        void update_attach_node(AttachNode node, Vector3 scale, float scale_quad, HashSet<Part> updated_parts, bool update_parts)
+        private void update_attach_node(AttachNode node, Vector3 scale, float scale_quad, HashSet<Part> updated_parts, bool update_parts)
         {
             node.position = Vector3.Scale(node.originalPosition, scale);
             //update node breaking forces
@@ -108,7 +109,7 @@ namespace GroundConstruction
             }
         }
 
-        void update_other_node(AttachNode other, Vector3 rel_scale, HashSet<Part> updated_parts)
+        private void update_other_node(AttachNode other, Vector3 rel_scale, HashSet<Part> updated_parts)
         {
             var cur_pos = part.transform
                               .InverseTransformPoint(other.owner.transform.position
@@ -119,7 +120,7 @@ namespace GroundConstruction
             updated_parts.Add(other.owner);
         }
 
-        void update_docked_part(Part docked, Vector3 scale, HashSet<Part> updated_parts)
+        private void update_docked_part(Part docked, Vector3 scale, HashSet<Part> updated_parts)
         {
             DockAnchor anchor;
             if(dock_anchors.TryGetValue(docked, out anchor))
@@ -186,9 +187,9 @@ namespace GroundConstruction
         }
 
         private int scenery_mask;
-        bool servos_locked;
+        private bool servos_locked;
 
-        void change_servos_lock(bool is_locked)
+        private void change_servos_lock(bool is_locked)
         {
             GameEvents.onRoboticPartLockChanging.Fire(part, servos_locked);
             if(vessel != null)
@@ -196,9 +197,10 @@ namespace GroundConstruction
             servos_locked = is_locked;
             GameEvents.onRoboticPartLockChanged.Fire(part, servos_locked);
         }
-        
-        IEnumerator<YieldInstruction> resize_coro;
-        IEnumerator<YieldInstruction> _resize()
+
+        private IEnumerator<YieldInstruction> resize_coro;
+
+        private IEnumerator<YieldInstruction> _resize()
         {
             if(Size == TargetSize)
                 yield break;
@@ -455,7 +457,7 @@ namespace GroundConstruction
 
         protected abstract bool can_deploy();
 
-        bool same_vessel_collision_if_deployed()
+        private bool same_vessel_collision_if_deployed()
         {
             var B = get_deployed_part_bounds(true);
             for(int i = 0, vesselPartsCount = vessel.Parts.Count; i < vesselPartsCount; i++)
@@ -490,7 +492,7 @@ namespace GroundConstruction
 
         protected abstract IEnumerable finalize_deployment();
 
-        IEnumerator<YieldInstruction> deploy()
+        private IEnumerator<YieldInstruction> deploy()
         {
             foreach(var _ in prepare_deployment()) yield return null;
             var deployT = get_deploy_transform(Vector3.zero, out _);

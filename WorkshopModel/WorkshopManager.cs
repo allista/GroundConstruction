@@ -39,13 +39,13 @@ namespace GroundConstruction
 
         public bool isOperable => WorkshopBase.IsOperable(Vessel, workshopTypes, out _);
 
-        void add_protoworkshop(ProtoWorkshop info)
+        private void add_protoworkshop(ProtoWorkshop info)
         {
             ProtoWorkshops[info.id] = info;
             DisplayOrder[info.PartName] = info.id;
         }
 
-        void add_workshop(WorkshopBase workshop)
+        private void add_workshop(WorkshopBase workshop)
         {
             var info = new ProtoWorkshop(workshop);
             Workshops[info.id] = workshop;
@@ -53,7 +53,7 @@ namespace GroundConstruction
             workshop.Manager = this;
         }
 
-        void remove_workshop(PartModule workshop)
+        private void remove_workshop(PartModule workshop)
         {
             Workshops.Remove(workshop.part.flightID);
             ProtoWorkshop info;
@@ -64,7 +64,7 @@ namespace GroundConstruction
             }
         }
 
-        void update_and_checkin(Vessel vsl)
+        private void update_and_checkin(Vessel vsl)
         {
             if(vsl == vessel && vessel != null)
             {
@@ -112,7 +112,7 @@ namespace GroundConstruction
             GameEvents.onVesselRename.Add(onVesselRename);
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             GameEvents.onGameStateSave.Remove(onGameStateSave);
             GameEvents.onVesselCrewWasModified.Remove(update_and_checkin);
@@ -153,24 +153,24 @@ namespace GroundConstruction
             update_and_checkin(vessel);
         }
 
-        void onGameStateSave(ConfigNode node)
+        private void onGameStateSave(ConfigNode node)
         {
             update_and_checkin(vessel);
         }
 
-        void onVesselRename(GameEvents.HostedFromToAction<Vessel,string> data)
+        private void onVesselRename(GameEvents.HostedFromToAction<Vessel, string> data)
         {
             update_and_checkin(data.host);
         }
 
-        IEnumerator update_and_checkin_coroutine(Vessel vsl)
+        private IEnumerator update_and_checkin_coroutine(Vessel vsl)
         {
             if(vsl == null || vsl != vessel) yield break;
             while(string.IsNullOrEmpty(vsl.vesselName)) yield return null;
             update_and_checkin(vsl);
         }
 
-        void onVesselNullName(Vessel vsl)
+        private void onVesselNullName(Vessel vsl)
         {
             if(isActiveAndEnabled)
                 StartCoroutine(update_and_checkin_coroutine(vsl));
@@ -212,19 +212,19 @@ namespace GroundConstruction
             return true;
         }
 
-        void focusCB()
+        private void focusCB()
         {
             var cb = FlightGlobals.Bodies.Find(body => body.bodyName == CB);
             if(cb != null) toMapView(cb.MapObject);
         }
 
-        void focusVessel()
+        private void focusVessel()
         {
             var vsl = FlightGlobals.FindVessel(vessel.id);
             if(vsl != null) toMapView(vsl.mapObject);
         }
 
-        static void toMapView(MapObject target)
+        private static void toMapView(MapObject target)
         {
             if(target == null) goto end;
             if(HighLogic.LoadedSceneIsFlight)

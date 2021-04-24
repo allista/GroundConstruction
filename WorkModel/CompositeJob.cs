@@ -69,7 +69,7 @@ namespace GroundConstruction
             }
         }
 
-        T next_job(int current_stage)
+        private T next_job(int current_stage)
         {
             T job;
             do

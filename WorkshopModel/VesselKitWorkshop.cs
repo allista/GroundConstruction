@@ -286,7 +286,7 @@ namespace GroundConstruction
             }
         }
 
-        Vector2 resources_scroll = Vector2.zero;
+        private Vector2 resources_scroll = Vector2.zero;
 
         protected virtual void resources_pane()
         {
@@ -314,7 +314,7 @@ namespace GroundConstruction
             }
         }
 
-        void kit_configuration()
+        private void kit_configuration()
         {
             if(selected_task != null)
             {

@@ -16,18 +16,18 @@ namespace GroundConstruction
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class GCEditorGUI : AddonWindowBase<GCEditorGUI>
     {
-        VesselKit AssembleKit;
-        VesselKit ConstructionKit;
-        DockingNodeList DockingNodes => AssembleKit?.DockingNodes;
-        bool update;
+        private VesselKit AssembleKit;
+        private VesselKit ConstructionKit;
+        private DockingNodeList DockingNodes => AssembleKit?.DockingNodes;
+        private bool update;
 
-        bool highlight_all;
-        ConstructDockingNode highlight_node;
-        Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
+        private bool highlight_all;
+        private ConstructDockingNode highlight_node;
+        private Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
 
-        bool all_highlighted =>
-        highlighted_parts.Count > 0
-        && AssembleKit != null
+        private bool all_highlighted =>
+            highlighted_parts.Count > 0
+            && AssembleKit != null
             && highlighted_parts.Count == AssembleKit.DockingNodes.Count;
 
         public override void Awake()
@@ -54,22 +54,22 @@ namespace GroundConstruction
             base.OnDestroy();
         }
 
-        void Started()
+        private void Started()
         {
             update = true;
         }
 
-        void Restart()
+        private void Restart()
         {
             update = true;
         }
 
-        void OnShipLoad(ShipConstruct ship, CraftBrowserDialog.LoadType load_type)
+        private void OnShipLoad(ShipConstruct ship, CraftBrowserDialog.LoadType load_type)
         {
             update = true;
         }
 
-        void OnShipModified(ShipConstruct ship)
+        private void OnShipModified(ShipConstruct ship)
         {
             update = true;
         }
@@ -126,15 +126,16 @@ namespace GroundConstruction
             }
         }
 
-        void disable_highlights()
+        private void disable_highlights()
         {
             foreach(var p in highlighted_parts.Values)
                 p.SetHighlightDefault();
             highlighted_parts.Clear();
         }
 
-        Vector2 scroll;
-        void draw(int windowId)
+        private Vector2 scroll;
+
+        private void draw(int windowId)
         {
             GUILayout.BeginVertical(Styles.white);
             if(AssembleKit != null)
