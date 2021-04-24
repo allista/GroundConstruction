@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using AT_Utils;
 
@@ -233,6 +234,20 @@ namespace GroundConstruction
             else goto end;
             return;
             end: Utils.Message("Go to Tracking Station to do this.");
+
+        private IWorkshopTask sync_task;
+
+        private IEnumerator<YieldInstruction> start_task_in_all_workshops(IWorkshopTask task)
+        {
+            foreach(var ws in Workshops.Values.ToList())
+                yield return StartCoroutine(ws.StartTask(task));
+        }
+
+        private void Update()
+        {
+            if(sync_task != null && sync_task.Valid)
+                StartCoroutine(start_task_in_all_workshops(sync_task));
+            sync_task = null;
         }
 
         public void Draw()
@@ -242,7 +257,6 @@ namespace GroundConstruction
             else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"),
                                      Styles.white, GUILayout.ExpandWidth(true)))
                 focusVessel();
-            IWorkshopTask sync_task = null;
             foreach(var item in ProtoWorkshops)
             {
                 var pw = item.Value;
@@ -271,8 +285,6 @@ namespace GroundConstruction
                 }
                 GUILayout.EndHorizontal();
             }
-            if(sync_task != null && sync_task.Valid)
-                Workshops.Values.ForEach(ws => ws.StartTask(sync_task));
             GUILayout.EndVertical();
         }
         #endregion
