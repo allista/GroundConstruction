@@ -39,10 +39,11 @@ namespace GroundConstruction
                 return;
             Utils.SaveGame(name);
         }
-        
+
         public static void CheckinVessel(WorkshopManager workshop_manager)
         {
-            if(workshop_manager.Vessel == null || workshop_manager.Empty) return;
+            if(workshop_manager.Vessel == null || workshop_manager.Empty)
+                return;
             Workshops[workshop_manager.VesselID] = workshop_manager;
             remove_display_entry(workshop_manager.VesselID);
             DisplayOrder[workshop_manager.DisplayID] = workshop_manager.VesselID;
@@ -50,7 +51,8 @@ namespace GroundConstruction
 
         public static void CheckoutVessel(WorkshopManager workshop_manager)
         {
-            if(workshop_manager.Vessel == null) return;
+            if(workshop_manager.Vessel == null)
+                return;
             Workshops.Remove(workshop_manager.VesselID);
             DisplayOrder.Remove(workshop_manager.DisplayID);
         }
@@ -64,7 +66,8 @@ namespace GroundConstruction
         private static void remove_display_entry(Guid vesselID)
         {
             var del = DisplayOrder.FirstOrDefault(i => i.Value == vesselID);
-            if(!string.IsNullOrEmpty(del.Key)) DisplayOrder.Remove(del.Key);
+            if(!string.IsNullOrEmpty(del.Key))
+                DisplayOrder.Remove(del.Key);
         }
 
         private static bool recheck_workshops()
@@ -76,10 +79,10 @@ namespace GroundConstruction
                 var del = new List<Guid>();
                 foreach(var workshop in Workshops)
                 {
-                    if(workshop.Value != null &&
-                       workshop.Value.Vessel != null &&
-                       workshop.Value.VesselID == workshop.Key &&
-                       !workshop.Value.Empty)
+                    if(workshop.Value != null
+                       && workshop.Value.Vessel != null
+                       && workshop.Value.VesselID == workshop.Key
+                       && !workshop.Value.Empty)
                     {
                         if(workshop.Value.isOperable)
                         {
@@ -88,7 +91,8 @@ namespace GroundConstruction
                             tab_valid |= cb == CelestialBodyTab;
                         }
                     }
-                    else del.Add(workshop.Key);
+                    else
+                        del.Add(workshop.Key);
                 }
                 del.ForEach(CheckoutVessel);
                 CelestialBodies.Clear();
@@ -187,42 +191,52 @@ namespace GroundConstruction
             if(CelestialBodies.Count > 0)
             {
                 GUILayout.BeginVertical();
-                cb_scroll = GUILayout.BeginScrollView(cb_scroll, GUILayout.Height(height), GUILayout.Width(cb_width+10));
+                cb_scroll = GUILayout.BeginScrollView(cb_scroll,
+                    GUILayout.Height(height),
+                    GUILayout.Width(cb_width + 10));
                 foreach(var cb in CelestialBodies)
                 {
-                    if(GUILayout.Button(new GUIContent(cb, "Show workshops on "+cb),
-                                        CelestialBodyTab == cb? Styles.enabled : Styles.active,
-                                        GUILayout.Width(cb_width)))
+                    if(GUILayout.Button(new GUIContent(cb, "Show workshops on " + cb),
+                        CelestialBodyTab == cb ? Styles.enabled : Styles.active,
+                        GUILayout.Width(cb_width)))
                         CelestialBodyTab = cb;
                 }
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
                 GUILayout.BeginVertical(Styles.white);
-                workshops_scroll = GUILayout.BeginScrollView(workshops_scroll, GUILayout.Height(height), GUILayout.Width(workshops_width));
-                foreach(var item in DisplayOrder.Values)
+                workshops_scroll = GUILayout.BeginScrollView(workshops_scroll,
+                    GUILayout.Height(height),
+                    GUILayout.Width(workshops_width));
+                foreach(var item in DisplayOrder.Values.ToList())
                 {
                     var info = Workshops[item];
-                    if(info.CB != CelestialBodyTab) continue;
+                    if(info.CB != CelestialBodyTab)
+                        continue;
                     GUILayout.BeginHorizontal();
                     info.Draw();
                     if(info.IsActive)
                         GUILayout.Label(new GUIContent("◉", "This is the active vessel"),
-                                        Styles.inactive, GUILayout.ExpandWidth(false));
+                            Styles.inactive,
+                            GUILayout.ExpandWidth(false));
                     else if(GUILayout.Button(new GUIContent("◉", "Switch to this workshop"),
-                                             Styles.enabled_button, GUILayout.ExpandWidth(false)))
+                        Styles.enabled_button,
+                        GUILayout.ExpandWidth(false)))
                         switchto = info;
                     GUILayout.EndHorizontal();
                 }
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
             }
-            else GUILayout.Label("No Operational Workshops", Styles.white, GUILayout.ExpandWidth(true));
+            else
+                GUILayout.Label("No Operational Workshops", Styles.white, GUILayout.ExpandWidth(true));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            Utils.ButtonSwitch("Show Deploy Hints", ref ShowDeployHint,
-                               "Draw visual cues to help position a DIY Kit",
-                               GUILayout.ExpandWidth(false));
-            Utils.ButtonSwitch("Auto Save", ref AutoSave,
+            Utils.ButtonSwitch("Show Deploy Hints",
+                ref ShowDeployHint,
+                "Draw visual cues to help position a DIY Kit",
+                GUILayout.ExpandWidth(false));
+            Utils.ButtonSwitch("Auto Save",
+                ref AutoSave,
                 "Save the game before deploying containers and spawning new vessels",
                 GUILayout.ExpandWidth(false));
             GUILayout.FlexibleSpace();
@@ -237,19 +251,23 @@ namespace GroundConstruction
 
         private void OnGUI()
         {
-            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint) return;
+            if(Event.current.type != EventType.Layout && Event.current.type != EventType.Repaint)
+                return;
             if(show_window && GUIWindowBase.HUD_enabled)
             {
                 Styles.Init();
                 Utils.LockIfMouseOver(LockName, WindowPos);
                 WindowPos = GUILayout.Window(GetInstanceID(),
-                                             WindowPos, main_window, "Workshops",
-                                             GUILayout.Width(width),
-                                             GUILayout.Height(height)).clampToScreen();
+                        WindowPos,
+                        main_window,
+                        "Workshops",
+                        GUILayout.Width(width),
+                        GUILayout.Height(height))
+                    .clampToScreen();
             }
-            else Utils.LockIfMouseOver(LockName, WindowPos, false);
+            else
+                Utils.LockIfMouseOver(LockName, WindowPos, false);
         }
         #endregion
     }
 }
-

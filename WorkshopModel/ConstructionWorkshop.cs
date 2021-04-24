@@ -18,8 +18,7 @@ namespace GroundConstruction
         #region Target Actions
         protected ConstructionKitInfo target_kit;
 
-        protected virtual bool check_target_kit(ConstructionKitInfo target) =>
-            target.Recheck() && target.Complete;
+        protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
         #endregion
 
         #region Resource Transfer
@@ -186,7 +185,8 @@ namespace GroundConstruction
                 if(vsl.loaded
                    && !vsl.isEVA
                    && (vsl != vessel || vsl.Parts.Count > 1)
-                   && (part.partTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                   && (part.partTransform.position - vsl.vesselTransform.position).magnitude
+                   < GLB.MaxDistanceToWorkshop)
                     yield return vsl;
             }
         }

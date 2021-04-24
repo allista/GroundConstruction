@@ -67,8 +67,7 @@ namespace GroundConstruction
             return work;
         }
 
-        protected virtual void on_task_complete(KitInfo task) =>
-            task.Controllable?.EnableControls();
+        protected virtual void on_task_complete(KitInfo task) => task.Controllable?.EnableControls();
 
         protected override double do_some_work(double available_work)
         {
@@ -94,11 +93,9 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
-        protected override bool check_task(KitInfo task) =>
-            base.check_task(task) && check_host(task);
+        protected override bool check_task(KitInfo task) => base.check_task(task) && check_host(task);
 
-        protected virtual bool check_host(KitInfo task) =>
-            task.Container != null && task.Container.Valid;
+        protected virtual bool check_host(KitInfo task) => task.Container != null && task.Container.Valid;
 
         #region available kits
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();

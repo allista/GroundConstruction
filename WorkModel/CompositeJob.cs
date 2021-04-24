@@ -37,7 +37,7 @@ namespace GroundConstruction
             });
             return work;
         }
-        
+
         public double TotalWorkInStage(int stage)
         {
             var work = 0.0;
@@ -115,8 +115,7 @@ namespace GroundConstruction
             return work;
         }
 
-        public override void SetComplete(bool complete) =>
-            Jobs.ForEach(j => j.SetComplete(complete));
+        public override void SetComplete(bool complete) => Jobs.ForEach(j => j.SetComplete(complete));
 
         public override void SetStageComplete(int stage, bool complete) =>
             Jobs.ForEach(j => j.SetStageComplete(stage, complete));

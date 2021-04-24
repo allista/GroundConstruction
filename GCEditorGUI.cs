@@ -152,15 +152,15 @@ namespace GroundConstruction
             {
                 GUILayout.Label("Attach nodes for docked construction", Styles.label, GUILayout.ExpandWidth(true));
                 if(GUILayout.Button("Highight all nodes",
-                                    all_highlighted ? Styles.enabled_button : Styles.active_button,
-                                    GUILayout.ExpandWidth(true)))
+                    all_highlighted ? Styles.enabled_button : Styles.active_button,
+                    GUILayout.ExpandWidth(true)))
                     highlight_all = true;
                 scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(100));
                 foreach(var n in DockingNodes)
                 {
                     if(GUILayout.Button(n.ToString(),
-                                        highlighted_parts.ContainsKey(n.PartId) ? Styles.active : Styles.white,
-                                        GUILayout.ExpandWidth(true)))
+                        highlighted_parts.ContainsKey(n.PartId) ? Styles.active : Styles.white,
+                        GUILayout.ExpandWidth(true)))
                         highlight_node = n;
                 }
                 GUILayout.EndScrollView();
@@ -174,11 +174,12 @@ namespace GroundConstruction
             LockControls();
             WindowPos =
                 GUILayout.Window(GetInstanceID(),
-                                 WindowPos,
-                                 draw,
-                                 Title,
-                                 GUILayout.Width(width),
-                                 GUILayout.Height(height)).clampToScreen();
+                        WindowPos,
+                        draw,
+                        Title,
+                        GUILayout.Width(width),
+                        GUILayout.Height(height))
+                    .clampToScreen();
         }
     }
 }

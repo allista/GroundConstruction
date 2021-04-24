@@ -228,11 +228,9 @@ namespace GroundConstruction
             }
         }
 
-        public VesselResources ConstructResources =>
-            Complete ? new VesselResources(Blueprint) : null;
+        public VesselResources ConstructResources => Complete ? new VesselResources(Blueprint) : null;
 
-        public void CheckinWorker(WorkshopBase module) =>
-            workers[module.part.flightID] = module.Workforce;
+        public void CheckinWorker(WorkshopBase module) => workers[module.part.flightID] = module.Workforce;
 
         public void CheckoutWorker(WorkshopBase module) => workers.Remove(module.part.flightID);
 
@@ -398,8 +396,7 @@ namespace GroundConstruction
 
         public Part GetDockingPart(Vessel vsl) => vsl.Parts.GetPartByCraftID(PartId);
 
-        public AttachNode GetDockingNode(Vessel vsl) =>
-            vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
+        public AttachNode GetDockingNode(Vessel vsl) => vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
 
         public override string ToString() => Name;
     }

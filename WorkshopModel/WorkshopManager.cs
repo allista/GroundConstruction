@@ -27,12 +27,12 @@ namespace GroundConstruction
         public bool IsLanded => vessel.Landed;
         public string DisplayID => vessel.vesselName + vessel.id;
 
-        public WorkshopType workshopTypes 
-        { 
+        public WorkshopType workshopTypes
+        {
             get
             {
-                WorkshopType types = WorkshopType.NONE;
-                ProtoWorkshops.Values.ForEach(pw => types = types | pw.workshopType);
+                var types = WorkshopType.NONE;
+                ProtoWorkshops.Values.ForEach(pw => types |= pw.workshopType);
                 return types;
             }
         }
@@ -81,11 +81,14 @@ namespace GroundConstruction
                 {
                     foreach(var pp in vessel.protoVessel.protoPartSnapshots)
                     {
-                        var pm = pp.FindModule(typeof(WorkshopBase).Name);
-                        if(pm == null) continue;
-                        add_protoworkshop(new ProtoWorkshop(vessel.id, vessel.vesselName,
-                                                            pp.flightID, pp.partInfo.title,
-                                                            pm.moduleValues));
+                        var pm = pp.FindModule(nameof(WorkshopBase));
+                        if(pm == null)
+                            continue;
+                        add_protoworkshop(new ProtoWorkshop(vessel.id,
+                            vessel.vesselName,
+                            pp.flightID,
+                            pp.partInfo.title,
+                            pm.moduleValues));
                     }
                 }
                 if(!Empty)
@@ -161,8 +164,10 @@ namespace GroundConstruction
 
         private IEnumerator update_and_checkin_coroutine(Vessel vsl)
         {
-            if(vsl == null || vsl != vessel) yield break;
-            while(string.IsNullOrEmpty(vsl.vesselName)) yield return null;
+            if(vsl == null || vsl != vessel)
+                yield break;
+            while(string.IsNullOrEmpty(vsl.vesselName))
+                yield return null;
             update_and_checkin(vsl);
         }
 
@@ -175,14 +180,16 @@ namespace GroundConstruction
 
         public void CheckinWorkshop(WorkshopBase workshop)
         {
-            if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
+            if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel)
+                return;
 //            this.Log("Checked In:  {}:{}", workshop, workshop.part.flightID);//debug
             add_workshop(workshop);
         }
 
         public void CheckoutWorkshop(WorkshopBase workshop)
         {
-            if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel) return;
+            if(workshop.vessel == null || workshop.part == null || workshop.vessel != vessel)
+                return;
 //            this.Log("Checked Out: {}:{}", workshop, workshop.part.flightID);//debug
             remove_workshop(workshop);
         }
@@ -202,7 +209,10 @@ namespace GroundConstruction
                 FlightGlobals.SetActiveVessel(vessel);
             else
             {
-                GamePersistence.SaveGame(HighLogic.CurrentGame.Updated(), "persistent", HighLogic.SaveFolder, SaveMode.OVERWRITE);
+                GamePersistence.SaveGame(HighLogic.CurrentGame.Updated(),
+                    "persistent",
+                    HighLogic.SaveFolder,
+                    SaveMode.OVERWRITE);
                 FlightDriver.StartAndFocusVessel("persistent", FlightGlobals.Vessels.IndexOf(vessel));
             }
             return true;
@@ -211,29 +221,34 @@ namespace GroundConstruction
         private void focusCB()
         {
             var cb = FlightGlobals.Bodies.Find(body => body.bodyName == CB);
-            if(cb != null) toMapView(cb.MapObject);
+            if(cb != null)
+                toMapView(cb.MapObject);
         }
 
         private void focusVessel()
         {
             var vsl = FlightGlobals.FindVessel(vessel.id);
-            if(vsl != null) toMapView(vsl.mapObject);
+            if(vsl != null)
+                toMapView(vsl.mapObject);
         }
 
         private static void toMapView(MapObject target)
         {
-            if(target == null) goto end;
+            if(target == null)
+                goto end;
             if(HighLogic.LoadedSceneIsFlight)
             {
                 if(!MapView.MapIsEnabled)
                     MapView.EnterMapView();
             }
-            if(HighLogic.LoadedSceneIsFlight ||
-               HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            if(HighLogic.LoadedSceneIsFlight || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
                 PlanetariumCamera.fetch.SetTarget(target);
-            else goto end;
+            else
+                goto end;
             return;
-            end: Utils.Message("Go to Tracking Station to do this.");
+            end:
+            Utils.Message("Go to Tracking Station to do this.");
+        }
 
         private IWorkshopTask sync_task;
 
@@ -253,9 +268,11 @@ namespace GroundConstruction
         public void Draw()
         {
             GUILayout.BeginVertical();
-            if(IsActive) GUILayout.Label(VesselName, Styles.enabled, GUILayout.ExpandWidth(true));
+            if(IsActive)
+                GUILayout.Label(VesselName, Styles.enabled, GUILayout.ExpandWidth(true));
             else if(GUILayout.Button(new GUIContent(VesselName, "Press to focus on Map"),
-                                     Styles.white, GUILayout.ExpandWidth(true)))
+                Styles.white,
+                GUILayout.ExpandWidth(true)))
                 focusVessel();
             foreach(var item in ProtoWorkshops)
             {
@@ -292,8 +309,13 @@ namespace GroundConstruction
         public override string ToString()
         {
             return Utils.Format("{}, VesselID={}, DisplayID={}, IsActive={}, CB={}, Empty={}, IsLanded={}",
-                                VesselName, VesselID, DisplayID, IsActive, CB, Empty, IsLanded);
+                VesselName,
+                VesselID,
+                DisplayID,
+                IsActive,
+                CB,
+                Empty,
+                IsLanded);
         }
     }
 }
-

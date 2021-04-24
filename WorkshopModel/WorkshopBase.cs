@@ -290,8 +290,7 @@ namespace GroundConstruction
 
         protected Type worker_effect => typeof(E);
 
-        protected override void update_workforce() => 
-            workforce = ConstructionUtils.PartWorkforce<E>(part, 0.5f);
+        protected override void update_workforce() => workforce = ConstructionUtils.PartWorkforce<E>(part, 0.5f);
 
         protected int do_crew_transfer;
 
