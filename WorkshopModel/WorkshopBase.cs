@@ -84,7 +84,7 @@ namespace GroundConstruction
 
         public abstract IWorkshopTask GetCurrentTask();
 
-        public abstract void StartTask(IWorkshopTask task);
+        public abstract IEnumerator<YieldInstruction> StartTask(IWorkshopTask task);
 
         protected virtual void onVesselPacked(Vessel vsl)
         {
@@ -261,10 +261,14 @@ namespace GroundConstruction
 
         public override IWorkshopTask GetCurrentTask() => CurrentTask;
 
-        public override void StartTask(IWorkshopTask task)
+        public override IEnumerator<YieldInstruction> StartTask(IWorkshopTask task)
         {
-            if(task is T Task && CurrentTask.ID != Task.ID && check_task(Task) && init_task(Task))
+            if(!(task is T Task) || !check_task(Task))
+                yield break;
+            if(CurrentTask.ID != Task.ID)
             {
+                if(!init_task(Task))
+                    yield break;
                 if(CurrentTask.Valid)
                 {
                     Queue.Enqueue(CurrentTask);
@@ -272,8 +276,14 @@ namespace GroundConstruction
                 }
                 reset_current_task();
                 CurrentTask = Task;
-                start();
             }
+            if(workforce <= 0)
+            {
+                get_required_crew();
+                yield return null;
+                update_workforce();
+            }
+            start();
         }
 
         protected void reset_current_task() => CurrentTask = new T();
