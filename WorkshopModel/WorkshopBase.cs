@@ -121,7 +121,7 @@ namespace GroundConstruction
             EndUT = -1;
             ETA_Display = "";
             LastUpdateTime = -1;
-            TimeWarp.SetRate(0, false);
+            Utils.StopTimeWarp();
             on_stop(reset);
             checkin();
         }

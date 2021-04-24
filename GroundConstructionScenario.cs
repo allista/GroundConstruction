@@ -111,7 +111,8 @@ namespace GroundConstruction
                 now = Planetarium.GetUniversalTime();
                 foreach(var workshop in Workshops.Values)
                     finished = workshop.CheckETA(now) || finished;
-                if(finished) TimeWarp.SetRate(0, !HighLogic.LoadedSceneIsFlight);
+                if(finished)
+                    Utils.StopTimeWarp(!HighLogic.LoadedSceneIsFlight);
                 yield return new WaitForSeconds(1);
             }
         }
