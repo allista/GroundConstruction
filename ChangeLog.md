@@ -1,10 +1,31 @@
 # Ground Construction ChangeLog
 
-* **v2.6.4.1**
+* **v2.7.0**
+    * KSP: 1.11.1
+    * Added support of attach nodes in **Part Variants** for construct docking
+    * The construct from Docked Container is wielded 
+        to the base ship **excluding the docking port**
+    * When construction is started, the required crew is automatically 
+        transferred into the workshop if not present
+    * UI
+        * Added **Get Crew** and **Dismiss Crew** buttons to the Workshop Window
+        * Added **Warp to Deployed** button to the Workshop Window
+        * Updating Editor UI on ship naming change
+        * Corrected ETA display
+    * The deployment of a container does not decrease container size
+    * Fixed 
+        * task synchronization of tasks between workshops in Workshop Manger
+        * recycling report on failed resource trasfers
+        * kit mass calculation
+        * NRE in Docked Kit Container UI
+        * AOR exception in Jobs+stage derived methods/properties
+
+
+* v2.6.4.1
     * Fixed **Part Printer** and **Replicator** converters in Assembly Lines
     _broken by Squad in KSP-1.10_
 
-* **v2.6.4**
+* v2.6.4
     * **Fixed ship loading into kits**
     * Fixed the _same vessel collision if deployed_ check
     * Using new uGUI dialogs from AT_Utils
