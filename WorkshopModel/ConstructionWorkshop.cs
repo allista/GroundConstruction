@@ -18,8 +18,7 @@ namespace GroundConstruction
         #region Target Actions
         protected ConstructionKitInfo target_kit;
 
-        protected virtual bool check_target_kit(ConstructionKitInfo target) =>
-            target.Recheck() && target.Complete;
+        protected virtual bool check_target_kit(ConstructionKitInfo target) => target.Recheck() && target.Complete;
         #endregion
 
         #region Resource Transfer
@@ -186,7 +185,8 @@ namespace GroundConstruction
                 if(vsl.loaded
                    && !vsl.isEVA
                    && (vsl != vessel || vsl.Parts.Count > 1)
-                   && (part.partTransform.position - vsl.vesselTransform.position).magnitude < GLB.MaxDistanceToWorkshop)
+                   && (part.partTransform.position - vsl.vesselTransform.position).magnitude
+                   < GLB.MaxDistanceToWorkshop)
                     yield return vsl;
             }
         }
@@ -375,12 +375,13 @@ namespace GroundConstruction
                 {
                     if(!req)
                         continue;
-                    result |= transfer_resource(from,
+                    var res_result = transfer_resource(from,
                         req.resource.id,
                         req.resource_amount,
                         discard_excess_resources);
-                    if(result != TransferState.FULL)
+                    if(res_result != TransferState.FULL)
                         recycle_report.Add($"No space left for '{req.resource.def.name}'.");
+                    result |= res_result;
                 }
                 if(ec > 0 && result == TransferState.ZERO)
                     part.RequestResource(Utils.ElectricCharge.id, -ec);
@@ -420,7 +421,9 @@ namespace GroundConstruction
                             Styles.enabled_button,
                             GUILayout.ExpandWidth(false),
                             GUILayout.ExpandHeight(true)))
+                        {
                             add = info;
+                        }
                     }
                     else if(depl.State != DeploymentState.DEPLOYING)
                     {
@@ -429,20 +432,33 @@ namespace GroundConstruction
                             Styles.active_button,
                             GUILayout.ExpandWidth(false),
                             GUILayout.ExpandHeight(true)))
+                        {
                             deploy = depl;
+                        }
                     }
                     else
+                    {
                         GUILayout.Label(DeployableStatus(depl),
                             Styles.boxed_label,
                             GUILayout.ExpandWidth(true),
                             GUILayout.ExpandHeight(true));
+                        if(GUILayout.Button(ProtoWorkshop.WarpToButton,
+                            Styles.enabled_button,
+                            GUILayout.ExpandWidth(false),
+                            GUILayout.ExpandHeight(true)))
+                        {
+                            TimeWarp.fetch.WarpTo(Planetarium.GetUniversalTime() + depl.DeploymentETA);
+                        }
+                    }
                 }
                 else if(GUILayout.Button(
                     new GUIContent("Add", "Add this kit to construction queue"),
                     Styles.enabled_button,
                     GUILayout.ExpandWidth(false),
                     GUILayout.ExpandHeight(true)))
+                {
                     add = info;
+                }
                 GUILayout.EndHorizontal();
             }
             if(add != null)

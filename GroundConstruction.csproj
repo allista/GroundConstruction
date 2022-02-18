@@ -14,7 +14,7 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>GameData\GroundConstruction\Plugins</OutputPath>
-        <DefineConstants>DEBUG;</DefineConstants>
+        <DefineConstants>DEBUG;NIGHTBUILD</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
         <ConsolePause>false</ConsolePause>
@@ -36,35 +36,35 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="System">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\System.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\System.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="Assembly-CSharp">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="System.Core">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\System.Core.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\System.Core.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UI">
-            <HintPath>..\KSP-test\KSP_test_1.10.0\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+            <HintPath>..\KSP-test\KSP_test_1.11.1\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
             <Private>False</Private>
         </Reference>
     </ItemGroup>

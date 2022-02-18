@@ -102,8 +102,7 @@ namespace GroundConstruction
                 EndUT = -1;
                 return true;
             }
-            ETA = EndUT > 0 ?
-                "Time left: " + KSPUtil.PrintTimeCompact(EndUT - now, false) : "Stalled...";
+            ETA = EndUT > 0 ? $"Time left: {Utils.formatTimeDelta(EndUT - now)}" : "Stalled...";
             return false;
         }
 
@@ -129,7 +128,7 @@ namespace GroundConstruction
                 if(State == Status.ACTIVE)
                 {
                     style = EndUT > 0 ? Styles.active : Styles.danger;
-                    status = new GUIContent(string.Format("{0}: {1}", TaskName, ETA), tooltip);
+                    status = new GUIContent($"{TaskName}: {ETA}", tooltip);
                 }
                 else
                 {

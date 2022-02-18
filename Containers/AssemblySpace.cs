@@ -315,7 +315,7 @@ namespace GroundConstruction
                 yield break;
             }
             enable_damper();
-            var bounds = new Metric(construct, world_space: true).bounds;
+            var bounds = new Metric((IShipconstruct)construct, world_space: true).bounds;
             var spawn_transform = SpawnManager.GetSpawnTransform(bounds, out var spawn_offset);
             vessel_spawner.SpawnShipConstruct(construct,
                 spawn_transform,

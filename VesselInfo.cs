@@ -14,8 +14,8 @@ namespace GroundConstruction
     {
         [Persistent] public Guid vesselID;
 
-        public bool Valid { get { return vesselID != Guid.Empty; } }
-        public bool IsActive { get { return FlightGlobals.ActiveVessel != null && vesselID == FlightGlobals.ActiveVessel.id; } }
+        public bool Valid => vesselID != Guid.Empty;
+        public bool IsActive => FlightGlobals.ActiveVessel != null && vesselID == FlightGlobals.ActiveVessel.id;
         public Vessel GetVessel() { return FlightGlobals.FindVessel(vesselID); }
 
         protected VesselInfo() {}

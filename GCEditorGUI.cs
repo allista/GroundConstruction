@@ -16,18 +16,18 @@ namespace GroundConstruction
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class GCEditorGUI : AddonWindowBase<GCEditorGUI>
     {
-        VesselKit AssembleKit;
-        VesselKit ConstructionKit;
-        DockingNodeList DockingNodes => AssembleKit?.DockingNodes;
-        bool update;
+        private VesselKit AssembleKit;
+        private VesselKit ConstructionKit;
+        private DockingNodeList DockingNodes => AssembleKit?.DockingNodes;
+        private bool update;
 
-        bool highlight_all;
-        ConstructDockingNode highlight_node;
-        Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
+        private bool highlight_all;
+        private ConstructDockingNode highlight_node;
+        private Dictionary<uint, Part> highlighted_parts = new Dictionary<uint, Part>();
 
-        bool all_highlighted =>
-        highlighted_parts.Count > 0
-        && AssembleKit != null
+        private bool all_highlighted =>
+            highlighted_parts.Count > 0
+            && AssembleKit != null
             && highlighted_parts.Count == AssembleKit.DockingNodes.Count;
 
         public override void Awake()
@@ -41,6 +41,7 @@ namespace GroundConstruction
             GameEvents.onEditorLoad.Add(OnShipLoad);
             GameEvents.onEditorRestart.Add(Restart);
             GameEvents.onEditorStarted.Add(Started);
+            GameEvents.onEditorVesselNamingChanged.Add(OnShipNamingChanged);
             Show(false);
         }
 
@@ -51,32 +52,38 @@ namespace GroundConstruction
             GameEvents.onEditorLoad.Remove(OnShipLoad);
             GameEvents.onEditorRestart.Remove(Restart);
             GameEvents.onEditorStarted.Remove(Started);
+            GameEvents.onEditorVesselNamingChanged.Remove(OnShipNamingChanged);
             base.OnDestroy();
         }
 
-        void Started()
+        private void Started()
         {
             update = true;
         }
 
-        void Restart()
+        private void Restart()
         {
             update = true;
         }
 
-        void OnShipLoad(ShipConstruct ship, CraftBrowserDialog.LoadType load_type)
+        private void OnShipLoad(ShipConstruct ship, CraftBrowserDialog.LoadType load_type)
         {
             update = true;
         }
 
-        void OnShipModified(ShipConstruct ship)
+        private void OnShipModified(ShipConstruct ship)
         {
             update = true;
         }
 
-        void Update()
+        private void OnShipNamingChanged(GameEvents.HostedFromToAction<ShipConstruct, string> action)
         {
-            var ship = EditorLogic.fetch != null? EditorLogic.fetch.ship : null;
+            update = true;
+        }
+
+        private void Update()
+        {
+            var ship = EditorLogic.fetch != null ? EditorLogic.fetch.ship : null;
             if(update)
             {
                 highlight_all = all_highlighted;
@@ -126,15 +133,16 @@ namespace GroundConstruction
             }
         }
 
-        void disable_highlights()
+        private void disable_highlights()
         {
             foreach(var p in highlighted_parts.Values)
                 p.SetHighlightDefault();
             highlighted_parts.Clear();
         }
 
-        Vector2 scroll;
-        void draw(int windowId)
+        private Vector2 scroll;
+
+        private void draw(int windowId)
         {
             GUILayout.BeginVertical(Styles.white);
             if(AssembleKit != null)
@@ -151,15 +159,15 @@ namespace GroundConstruction
             {
                 GUILayout.Label("Attach nodes for docked construction", Styles.label, GUILayout.ExpandWidth(true));
                 if(GUILayout.Button("Highight all nodes",
-                                    all_highlighted ? Styles.enabled_button : Styles.active_button,
-                                    GUILayout.ExpandWidth(true)))
+                    all_highlighted ? Styles.enabled_button : Styles.active_button,
+                    GUILayout.ExpandWidth(true)))
                     highlight_all = true;
                 scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(100));
                 foreach(var n in DockingNodes)
                 {
                     if(GUILayout.Button(n.ToString(),
-                                        highlighted_parts.ContainsKey(n.PartId) ? Styles.active : Styles.white,
-                                        GUILayout.ExpandWidth(true)))
+                        highlighted_parts.ContainsKey(n.PartId) ? Styles.active : Styles.white,
+                        GUILayout.ExpandWidth(true)))
                         highlight_node = n;
                 }
                 GUILayout.EndScrollView();
@@ -173,11 +181,12 @@ namespace GroundConstruction
             LockControls();
             WindowPos =
                 GUILayout.Window(GetInstanceID(),
-                                 WindowPos,
-                                 draw,
-                                 Title,
-                                 GUILayout.Width(width),
-                                 GUILayout.Height(height)).clampToScreen();
+                        WindowPos,
+                        draw,
+                        Title,
+                        GUILayout.Width(width),
+                        GUILayout.Height(height))
+                    .clampToScreen();
         }
     }
 }

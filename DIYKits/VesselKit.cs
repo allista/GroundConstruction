@@ -96,7 +96,13 @@ namespace GroundConstruction
             var bottom_center = bounds.center - new Vector3(0, bounds.extents.y, 0);
             foreach(var p in ship.Parts)
             {
-                foreach(var n in p.attachNodes)
+                var variants = p.Modules.GetModule<ModulePartVariants>();
+                var attachNodes = p.attachNodes;
+                if(variants != null)
+                {
+                    attachNodes = variants.SelectedVariant.AttachNodes;
+                }
+                foreach(var n in attachNodes)
                 {
                     if(n.attachedPart != null)
                         continue;
@@ -108,10 +114,7 @@ namespace GroundConstruction
                         {
                             nodes.Add(new ConstructDockingNode
                             {
-                                Name = string.Format("{0} {1:X} ({2})",
-                                    p.Title(),
-                                    p.craftID,
-                                    n.id),
+                                Name = $"{p.Title()} {p.craftID:X} ({n.id})",
                                 PartId = p.craftID,
                                 NodeId = n.id,
                                 DockingOffset = delta
@@ -142,13 +145,14 @@ namespace GroundConstruction
         {
             Host = host;
             Name = Localizer.Format(ship.shipName);
+            ship.Parts.ForEach(p => p.UpdateMass());
             if(!simulate)
             {
                 strip_resources(ship, assembled);
                 Blueprint = ship.SaveShip();
             }
             var create_resources = count_kit_resources(ship, assembled);
-            ShipMetric = new Metric(ship, true, true);
+            ShipMetric = new Metric((IShipconstruct)ship, true, true);
             DockingNodes = FindDockingNodes(ship, ShipMetric);
             var final_assembly_work = 0f;
             ship.Parts.ForEach(p =>
@@ -221,11 +225,9 @@ namespace GroundConstruction
             }
         }
 
-        public VesselResources ConstructResources =>
-            Complete ? new VesselResources(Blueprint) : null;
+        public VesselResources ConstructResources => Complete ? new VesselResources(Blueprint) : null;
 
-        public void CheckinWorker(WorkshopBase module) =>
-            workers[module.part.flightID] = module.Workforce;
+        public void CheckinWorker(WorkshopBase module) => workers[module.part.flightID] = module.Workforce;
 
         public void CheckoutWorker(WorkshopBase module) => workers.Remove(module.part.flightID);
 
@@ -391,8 +393,7 @@ namespace GroundConstruction
 
         public Part GetDockingPart(Vessel vsl) => vsl.Parts.GetPartByCraftID(PartId);
 
-        public AttachNode GetDockingNode(Vessel vsl) =>
-            vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
+        public AttachNode GetDockingNode(Vessel vsl) => vsl.Parts.GetPartByCraftID(PartId)?.FindAttachNode(NodeId);
 
         public override string ToString() => Name;
     }

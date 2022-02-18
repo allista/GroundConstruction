@@ -330,7 +330,7 @@ namespace GroundConstruction
         protected Quaternion get_Y_rotation() =>
             Quaternion.AngleAxis((int)yRotation * 90f, Vector3.up);
 
-        protected override Vector3 get_deployed_size() => kit.ShipMetric.size;
+        protected override Vector3 get_deployed_size() => Vector3.Max(kit.ShipMetric.size, Size);
 
         protected abstract Transform get_deploy_transform_unrotated(
             Vector3 size,

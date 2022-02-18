@@ -67,8 +67,7 @@ namespace GroundConstruction
             return work;
         }
 
-        protected virtual void on_task_complete(KitInfo task) =>
-            task.Controllable?.EnableControls();
+        protected virtual void on_task_complete(KitInfo task) => task.Controllable?.EnableControls();
 
         protected override double do_some_work(double available_work)
         {
@@ -94,11 +93,9 @@ namespace GroundConstruction
                 reset_current_task();
         }
 
-        protected override bool check_task(KitInfo task) =>
-            base.check_task(task) && check_host(task);
+        protected override bool check_task(KitInfo task) => base.check_task(task) && check_host(task);
 
-        protected virtual bool check_host(KitInfo task) =>
-            task.Container != null && task.Container.Valid;
+        protected virtual bool check_host(KitInfo task) => task.Container != null && task.Container.Valid;
 
         #region available kits
         protected List<KitInfo> unbuilt_kits = new List<KitInfo>();
@@ -167,7 +164,7 @@ namespace GroundConstruction
                 {
                     var time = Planetarium.GetUniversalTime();
                     EndUT = time + ETA;
-                    ETA_Display = "Time left: " + KSPUtil.PrintTimeCompact(ETA, false);
+                    ETA_Display = $"Time left: {Utils.formatTimeDelta(ETA)}";
                 }
             }
             else
@@ -197,10 +194,20 @@ namespace GroundConstruction
 
         protected virtual void info_pane()
         {
+            GUILayout.BeginHorizontal();
+            if(GUILayout.Button(dismissCrewButton,
+                Styles.danger_button,
+                GUILayout.ExpandWidth(false)))
+                do_crew_transfer = -1;
             GUILayout.Label(
                 $"<color=silver>Workforce:</color> <b>{workforce:F1}</b>/{max_workforce:F1} SK",
                 Styles.boxed_label,
                 GUILayout.ExpandWidth(true));
+            if(GUILayout.Button(getCrewButton,
+                Styles.enabled_button,
+                GUILayout.ExpandWidth(false)))
+                do_crew_transfer = 1;
+            GUILayout.EndHorizontal();
         }
 
         protected Vector2 unbuilt_scroll = Vector2.zero;
@@ -286,49 +293,41 @@ namespace GroundConstruction
             }
         }
 
-        Vector2 resources_scroll = Vector2.zero;
+        private Vector2 resources_scroll = Vector2.zero;
 
         protected virtual void resources_pane()
         {
-            if(selected_task != null)
+            if(selected_task == null)
+                return;
+            if(!check_task(selected_task))
+                selected_task = null;
+            else if(selected_task.Kit.AdditionalResources.Count > 0)
             {
-                var close = false;
-                if(!check_task(selected_task))
-                    selected_task = null;
-                else if(selected_task.Kit.AdditionalResources.Count > 0)
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>",
-                            selected_task.Name),
-                        Styles.label,
-                        GUILayout.ExpandWidth(true));
-                    GUILayout.EndHorizontal();
-                    var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
-                    resources_scroll = GUILayout.BeginScrollView(resources_scroll,
-                        GUILayout.Height(h));
-                    selected_task.Kit.AdditionalResources.Draw();
-                    GUILayout.EndScrollView();
-                }
-                if(close)
-                    selected_task = null;
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(string.Format("Additional resources required for <b>{0}</b>",
+                        selected_task.Name),
+                    Styles.label,
+                    GUILayout.ExpandWidth(true));
+                GUILayout.EndHorizontal();
+                var h = Math.Max(selected_task.Kit.AdditionalResources.Count, 3) * 26;
+                resources_scroll = GUILayout.BeginScrollView(resources_scroll,
+                    GUILayout.Height(h));
+                selected_task.Kit.AdditionalResources.Draw();
+                GUILayout.EndScrollView();
             }
         }
 
-        void kit_configuration()
+        private void kit_configuration()
         {
-            if(selected_task != null)
+            var cfg = selected_task?.Configurator;
+            if(cfg != null && cfg.IsConfigurable)
             {
-                var cfg = selected_task.Configurator;
-                if(cfg != null && cfg.IsConfigurable)
-                {
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(string.Format("Construction options for <b>{0}</b>",
-                            selected_task.Name),
-                        Styles.label,
-                        GUILayout.ExpandWidth(true));
-                    cfg.DrawOptions();
-                    GUILayout.EndVertical();
-                }
+                GUILayout.BeginVertical();
+                GUILayout.Label($"Construction options for <b>{selected_task.Name}</b>",
+                    Styles.label,
+                    GUILayout.ExpandWidth(true));
+                cfg.DrawOptions();
+                GUILayout.EndVertical();
             }
         }
 
