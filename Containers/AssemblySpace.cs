@@ -25,10 +25,10 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public VesselKit Kit = new VesselKit();
 
         [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
-        VesselSpawner vessel_spawner;
-        IAnimator animator;
+        private VesselSpawner vessel_spawner;
+        private IAnimator animator;
         private ATMagneticDamper damper;
-        bool can_construct_in_situ;
+        private bool can_construct_in_situ;
 
         public override void OnAwake()
         {
@@ -61,7 +61,7 @@ namespace GroundConstruction
             Kit.Host = this;
         }
 
-        void spawn_space_keeper()
+        private void spawn_space_keeper()
         {
             if(animator != null && !SpawnManager.SpawnSpaceEmpty)
                 animator.Open();
