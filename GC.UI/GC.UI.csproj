@@ -7,7 +7,7 @@
         <OutputType>Library</OutputType>
         <RootNamespace>GC.UI</RootNamespace>
         <AssemblyName>GC.UI</AssemblyName>
-        <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     </PropertyGroup>
     <Import Project="$(MSBuildProjectDirectory)/../../CSharp.warnings.xml" />
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
