@@ -71,8 +71,7 @@ namespace GroundConstruction
         protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct, false);
-            var selected_space_module = selected_space as PartModule;
-            if(selected_space_module != null)
+            if (selected_space is PartModule)
             {
                 float ratio;
                 if(!selected_space.Empty)
@@ -298,13 +297,11 @@ namespace GroundConstruction
                     else
                         selected_space = null;
                 }
-                var module = space as PartModule;
-                if(module != null)
+                if (space is PartModule module)
                     set_highlighted_part(module.part);
                 if(space.Empty)
                 {
-                    var producer = space as IContainerProducer;
-                    if(producer != null)
+                    if (space is IContainerProducer producer)
                     {
                         if(GUILayout.Button(new GUIContent("Create Empty Container",
                                                            "Create a new empty container of the selected type"),
@@ -324,8 +321,7 @@ namespace GroundConstruction
                 }
                 else
                 {
-                    var construction_space = space as IConstructionSpace;
-                    if(construction_space != null && construction_space.Valid)
+                    if (space is IConstructionSpace construction_space && construction_space.Valid)
                         GUILayout.Label(new GUIContent(Colors.Enabled.Tag("In-place Construction"),
                                                        "It is possible to construct this kit directly in the assembly space"),
                                         Styles.rich_label, GUILayout.ExpandWidth(false));
