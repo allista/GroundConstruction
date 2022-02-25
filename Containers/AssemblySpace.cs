@@ -70,7 +70,7 @@ namespace GroundConstruction
         #region IAssemblySpace
         public string Name => Title;
         public bool Empty => !Kit && SpawnManager.SpawnSpaceEmpty;
-        public bool Valid => isEnabled;
+        public bool Valid => isEnabled && SpawnManager.Valid;
         public VesselKit GetKit(Guid id) => Kit.id == id ? Kit : null;
         public List<VesselKit> GetKits() => new List<VesselKit> { Kit };
 
@@ -260,7 +260,7 @@ namespace GroundConstruction
              && SpawnManager != null
              && SpawnManager.MetricFits(vessel_kit.ShipMetric));
 
-        bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
+        bool IConstructionSpace.Valid => this.Valid && can_construct_in_situ;
         public bool ConstructionComplete => Kit && Kit.Complete;
 
         public void Launch()
