@@ -17,11 +17,12 @@ namespace GroundConstruction
     {
         [KSPField]
         public string KitParts = "DIYKit";
-        SortedList<string, string> kit_parts = new SortedList<string, string>();
+        private readonly SortedList<string, string> kit_parts = new SortedList<string, string>();
 
         [KSPField(isPersistant = true)]
         public string SelectedPart = string.Empty;
-        string kit_part => kit_parts[SelectedPart];
+
+        private string kit_part => kit_parts[SelectedPart];
 
         [KSPField(isPersistant = true)]
         public PersistentList<VesselKit> Kits = new PersistentList<VesselKit>();
