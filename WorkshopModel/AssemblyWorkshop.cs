@@ -73,10 +73,9 @@ namespace GroundConstruction
             var kit = new VesselKit(this, construct, false);
             if (selected_space is PartModule)
             {
-                float ratio;
                 if(!selected_space.Empty)
                     Utils.Message("Selected assembly space is occupied");
-                else if(!selected_space.CheckKit(kit, kit_part, out ratio))
+                else if (!selected_space.CheckKit(kit, kit_part, out float ratio))
                 {
                     if(ratio > 0)
                         Utils.Message("Selected assembly space is too small");
@@ -135,8 +134,7 @@ namespace GroundConstruction
             {
                 if(space.Valid)
                 {
-                    float ratio;
-                    if(space.CheckKit(kit, kit_part, out ratio))
+                    if(space.CheckKit(kit, kit_part, out _))
                         return space;
                 }
             }
@@ -151,8 +149,7 @@ namespace GroundConstruction
             {
                 if(space.Valid)
                 {
-                    float ratio;
-                    if(space.CheckKit(kit, kit_part, out ratio))
+                    if(space.CheckKit(kit, kit_part, out float ratio))
                     {
                         if(ratio > best_ratio)
                         {
