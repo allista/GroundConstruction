@@ -303,7 +303,6 @@ namespace GroundConstruction
                     set_highlighted_part(module.part);
                 if(space.Empty)
                 {
-                    var animated = space as IAnimatedSpace;
                     var producer = space as IContainerProducer;
                     if(producer != null)
                     {
@@ -312,7 +311,7 @@ namespace GroundConstruction
                                             Styles.active_button, GUILayout.ExpandWidth(false)))
                             producer.SpawnEmptyContainer(kit_part);
                     }
-                    if(animated != null)
+                    if (space is IAnimatedSpace animated && animated.HasAnimator)
                     {
                         var opened = animated.Opened;
                         if(Utils.ButtonSwitch("Close", "Open", opened, "",

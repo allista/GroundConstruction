@@ -65,6 +65,7 @@ namespace GroundConstruction
         void Open();
         void Close();
         bool Opened { get; }
+        bool HasAnimator { get; }
     }
 
     public interface IContainerProducer

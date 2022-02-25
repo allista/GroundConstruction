@@ -121,6 +121,8 @@ namespace GroundConstruction
         public bool Opened =>
             animator == null || animator.GetAnimatorState() != AnimatorState.Closed;
 
+        public bool HasAnimator => animator != null;
+
         public void SpawnKit() => StartCoroutine(spawn_kit());
 
         public void SpawnEmptyContainer(string part_name) =>
@@ -146,7 +148,7 @@ namespace GroundConstruction
                 Utils.Message("Kit construction is already started");
                 yield break;
             }
-            if(Opened)
+            if(HasAnimator && Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
@@ -168,7 +170,7 @@ namespace GroundConstruction
                 Utils.Message("In progress...");
                 yield break;
             }
-            if(Opened)
+            if(HasAnimator && Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
