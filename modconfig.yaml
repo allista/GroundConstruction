@@ -2,3 +2,21 @@ dll_path: GameData/GroundConstruction/Plugins/GroundConstruction.dll
 archive_path: Releases
 github_url: allista/GroundConstruction
 spacedock_mod_id: 1123
+game_data_path: GameData
+additional_data_paths:
+    - '../AT_Utils/GameData'
+    - '../AT_Utils/ConfigurableContainers/GameData'
+exclude_patterns:
+    - '*/@thumbs/*'
+    - '*/config.xml'
+    - '*.user'
+    - '*.orig'
+    - '*.mdb'
+    - '*.pdb'
+    - '*/System.*.dll'
+    - '*/Mono.*.dll'
+    - '*/Unity*.dll'
+    - 'GameData/000_AT_Utils/Plugins/AnimatedConverters.dll'
+    - 'GameData/000_AT_Utils/Plugins/SubmodelResizer.dll'
+    - 'GameData/ConfigurableContainers/Parts/*'
+    - 'GameData/000_AT_Utils/ResourceHack.cfg'
