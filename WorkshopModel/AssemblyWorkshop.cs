@@ -17,11 +17,12 @@ namespace GroundConstruction
     {
         [KSPField]
         public string KitParts = "DIYKit";
-        SortedList<string, string> kit_parts = new SortedList<string, string>();
+        private readonly SortedList<string, string> kit_parts = new SortedList<string, string>();
 
         [KSPField(isPersistant = true)]
         public string SelectedPart = string.Empty;
-        string kit_part => kit_parts[SelectedPart];
+
+        private string kit_part => kit_parts[SelectedPart];
 
         [KSPField(isPersistant = true)]
         public PersistentList<VesselKit> Kits = new PersistentList<VesselKit>();
@@ -71,13 +72,11 @@ namespace GroundConstruction
         protected virtual void process_construct(ShipConstruct construct)
         {
             var kit = new VesselKit(this, construct, false);
-            var selected_space_module = selected_space as PartModule;
-            if(selected_space_module != null)
+            if (selected_space is PartModule)
             {
-                float ratio;
                 if(!selected_space.Empty)
                     Utils.Message("Selected assembly space is occupied");
-                else if(!selected_space.CheckKit(kit, kit_part, out ratio))
+                else if (!selected_space.CheckKit(kit, kit_part, out float ratio))
                 {
                     if(ratio > 0)
                         Utils.Message("Selected assembly space is too small");
@@ -136,8 +135,7 @@ namespace GroundConstruction
             {
                 if(space.Valid)
                 {
-                    float ratio;
-                    if(space.CheckKit(kit, kit_part, out ratio))
+                    if(space.CheckKit(kit, kit_part, out _))
                         return space;
                 }
             }
@@ -152,8 +150,7 @@ namespace GroundConstruction
             {
                 if(space.Valid)
                 {
-                    float ratio;
-                    if(space.CheckKit(kit, kit_part, out ratio))
+                    if(space.CheckKit(kit, kit_part, out float ratio))
                     {
                         if(ratio > best_ratio)
                         {
@@ -298,21 +295,18 @@ namespace GroundConstruction
                     else
                         selected_space = null;
                 }
-                var module = space as PartModule;
-                if(module != null)
+                if (space is PartModule module)
                     set_highlighted_part(module.part);
                 if(space.Empty)
                 {
-                    var animated = space as IAnimatedSpace;
-                    var producer = space as IContainerProducer;
-                    if(producer != null)
+                    if (space is IContainerProducer producer)
                     {
                         if(GUILayout.Button(new GUIContent("Create Empty Container",
                                                            "Create a new empty container of the selected type"),
                                             Styles.active_button, GUILayout.ExpandWidth(false)))
                             producer.SpawnEmptyContainer(kit_part);
                     }
-                    if(animated != null)
+                    if (space is IAnimatedSpace animated && animated.HasAnimator)
                     {
                         var opened = animated.Opened;
                         if(Utils.ButtonSwitch("Close", "Open", opened, "",
@@ -325,8 +319,7 @@ namespace GroundConstruction
                 }
                 else
                 {
-                    var construction_space = space as IConstructionSpace;
-                    if(construction_space != null && construction_space.Valid)
+                    if (space is IConstructionSpace construction_space && construction_space.Valid)
                         GUILayout.Label(new GUIContent(Colors.Enabled.Tag("In-place Construction"),
                                                        "It is possible to construct this kit directly in the assembly space"),
                                         Styles.rich_label, GUILayout.ExpandWidth(false));

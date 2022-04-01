@@ -25,10 +25,10 @@ namespace GroundConstruction
         [KSPField(isPersistant = true)] public VesselKit Kit = new VesselKit();
 
         [KSPField, SerializeField] public SpawnSpaceManager SpawnManager = new SpawnSpaceManager();
-        VesselSpawner vessel_spawner;
-        IAnimator animator;
+        private VesselSpawner vessel_spawner;
+        private IAnimator animator;
         private ATMagneticDamper damper;
-        bool can_construct_in_situ;
+        private bool can_construct_in_situ;
 
         public override void OnAwake()
         {
@@ -61,7 +61,7 @@ namespace GroundConstruction
             Kit.Host = this;
         }
 
-        void spawn_space_keeper()
+        private void spawn_space_keeper()
         {
             if(animator != null && !SpawnManager.SpawnSpaceEmpty)
                 animator.Open();
@@ -70,7 +70,7 @@ namespace GroundConstruction
         #region IAssemblySpace
         public string Name => Title;
         public bool Empty => !Kit && SpawnManager.SpawnSpaceEmpty;
-        public bool Valid => isEnabled;
+        public bool Valid => isEnabled && SpawnManager.Valid;
         public VesselKit GetKit(Guid id) => Kit.id == id ? Kit : null;
         public List<VesselKit> GetKits() => new List<VesselKit> { Kit };
 
@@ -121,6 +121,8 @@ namespace GroundConstruction
         public bool Opened =>
             animator == null || animator.GetAnimatorState() != AnimatorState.Closed;
 
+        public bool HasAnimator => animator != null;
+
         public void SpawnKit() => StartCoroutine(spawn_kit());
 
         public void SpawnEmptyContainer(string part_name) =>
@@ -146,7 +148,7 @@ namespace GroundConstruction
                 Utils.Message("Kit construction is already started");
                 yield break;
             }
-            if(Opened)
+            if(HasAnimator && Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
@@ -168,7 +170,7 @@ namespace GroundConstruction
                 Utils.Message("In progress...");
                 yield break;
             }
-            if(Opened)
+            if(HasAnimator && Opened)
             {
                 Utils.Message("Need to close assembly space first");
                 Close();
@@ -260,7 +262,7 @@ namespace GroundConstruction
              && SpawnManager != null
              && SpawnManager.MetricFits(vessel_kit.ShipMetric));
 
-        bool IConstructionSpace.Valid => isEnabled && can_construct_in_situ;
+        bool IConstructionSpace.Valid => this.Valid && can_construct_in_situ;
         public bool ConstructionComplete => Kit && Kit.Complete;
 
         public void Launch()
