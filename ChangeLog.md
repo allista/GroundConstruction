@@ -1,5 +1,12 @@
 # Ground Construction Change Log
 
+## v2.7.1 / 2022-04-01
+
+* Compiled for KSP 1.12.3 and latest AT_Utils
+* Added `IAnimatedSpace.HasAnimator`; only check `.Opened` when the animator does exist
+* `AssemblySpace` is `Valid` only when its `SpawnManager` is
+* Internal project changes for CI/CD
+
 ## v2.7.0
 
 * KSP: 1.11.1
